@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/loginScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_login"
+    android:fillViewport="true"
+    tools:context=".LoginActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="25dp"
+        android:paddingTop="80dp"
+        android:paddingBottom="24dp">
+
+        <ImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_marginBottom="10dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/petversologo" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:text="Bem-vindo(a) ao PetVerso!"
+            android:textColor="@color/text_orange"
+            android:textSize="22sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:text="Slogan que eu ainda não sei da nossa marca"
+            android:textColor="#5f2e16"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="E-mail"
+            android:textColor="@color/text_orange"
+            android:textSize="15sp" />
+
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/ipEdtUser"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            app:boxBackgroundColor="@color/white"
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#a5713f"
+            app:boxStrokeErrorColor="#fd6f28"
+            app:endIconMode="clear_text"
+            app:endIconTint="@color/primary_orange"
+            app:errorIconTint="@color/error"
+            app:errorTextColor="@color/error"
+            app:hintEnabled="false">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtUser"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center_vertical"
+                android:hint="exemplo@email.com"
+                android:inputType="textEmailAddress"
+                android:maxLength="50"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="0dp"
+                android:textColor="@color/black"
+                android:textColorHint="#AAAAAA"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="Senha"
+            android:textColor="@color/text_orange"
+            android:textSize="15sp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/ipEdtSenha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            app:boxBackgroundColor="@color/white"
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#a5713f"
+            app:boxStrokeErrorColor="#fd6f28"
+            app:endIconMode="password_toggle"
+            app:endIconTint="@color/primary_orange"
+            app:errorIconTint="@color/error"
+            app:errorTextColor="@color/error"
+            app:hintEnabled="false">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtSenha"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center_vertical"
+                android:hint="••••••••"
+                android:inputType="textPassword"
+                android:maxLength="16"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="0dp"
+                android:textColor="@color/black"
+                android:textColorHint="#AAAAAA"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="25dp"
+                android:text="Lembrar de mim"
+                android:textColor="#5f2e16"
+                app:buttonTint="#5f2e16" />
+
+            <TextView
+                android:id="@+id/txtForgotPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="18dp"
+                android:gravity="end"
+                android:text="@string/forgot_pass"
+                android:textColor="#5f2e16"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEntrar"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_marginBottom="30dp"
+            android:background="@drawable/bg_btn_entrar"
+            android:text="Entrar"
+            android:textColor="#5f2e16"
+            android:textSize="18sp"
+            app:backgroundTint="@null"
+            app:cornerRadius="6dp"
+            app:elevation="4dp" />
+
+
+        <TextView
+            android:id="@+id/txtSignUp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:text="Ainda não possui uma conta?"
+            android:textColor="#5f2e16"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/txtCadastrar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/signup"
+            android:textColor="#5f2e16"
+            android:textSize="15sp" />
+
+
+    </LinearLayout>
+</ScrollView>

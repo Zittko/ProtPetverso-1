@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffe8ce"
+    tools:context=".MenuActivity">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#f08c4b"
+        android:fitsSystemWindows="false"
+        app:menu="@menu/menu_main"
+        app:navigationIcon="@drawable/ic_menu"
+        app:navigationIconTint="@color/text_orange"
+        app:title="Tela Inicial"
+        app:titleCentered="true"
+        app:titleTextColor="@color/text_orange" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        app:labelMaxLines="1"
+
+        app:itemIconTint="@color/text_orange"
+        app:itemTextColor="@color/text_orange"
+        app:itemActiveIndicatorStyle="@style/CustomActiveIndicator"
+        app:labelVisibilityMode="labeled"
+        android:background="@color/primary_orange"
+        android:fitsSystemWindows="false"
+        app:menu="@menu/bottom_nav_menu" />
+
+</RelativeLayout>

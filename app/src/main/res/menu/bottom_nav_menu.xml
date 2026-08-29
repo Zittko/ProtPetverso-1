@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menuHome"
+        android:icon="@drawable/ic_home"
+        android:title="Inicio" />
+    <item
+        android:id="@+id/menuAgenda"
+        android:icon="@drawable/baseline_calendar"
+        android:title="Agenda" />
+    <item
+        android:id="@+id/menuForyou"
+        android:icon="@drawable/baseline_vaccines"
+        android:title="Vacina" />
+    <item
+        android:id="@+id/menuTrending"
+        android:icon="@drawable/ic_paw"
+        android:title="Pets" />
+</menu>
