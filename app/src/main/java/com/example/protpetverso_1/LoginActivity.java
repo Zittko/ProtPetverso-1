@@ -56,23 +56,19 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         btnEntrar.setOnClickListener(v -> {
-            String user = String.valueOf(edtUser.getText()).trim();
-            String senha = String.valueOf(edtSenha.getText()).trim();
-            ipEdtUser.setError(null);
-            ipEdtSenha.setError(null);
-            if (user.isEmpty()) {
-                ipEdtUser.setError("Digite um email");
-            }
-            if (senha.isEmpty()) {
-                ipEdtSenha.setError("Senha não digitada");
-                return;
-            }
-            if ((user.equalsIgnoreCase("projetopetverso@gmail.com"))
-                    && senha.equals("123")) {
-                startActivity(new Intent(getApplicationContext(), MenuActivity.class));
-                finish();
-            } else {
-                ipEdtSenha.setError("Usuário ou senha incorretos");
+            TextInputEditText[] editTexts = {edtUser, edtSenha};
+            TextInputLayout[] layouts = {ipEdtUser, ipEdtSenha};
+            String[] mensagens = {"Digite um email", "Senha não digitada"};
+            for (int i = 0; i < editTexts.length; i++) {
+                String texto = String.valueOf(editTexts[i].getText()).trim();
+                if (texto.isEmpty()) {
+                    layouts[i].setError(mensagens[i]);
+                    return;
+                } else {
+                    layouts[i].setError(null);
+                    startActivity(new Intent(getApplicationContext(), MenuActivity.class));
+                    finish();
+                }
             }
         });
 
