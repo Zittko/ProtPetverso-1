@@ -15,12 +15,11 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import java.util.ArrayList;
 import java.util.List;
-
+// Classe de Fragmento Home (View para o menu)
 public class HomeFragment extends Fragment {
-
-    private ViewPager2 viewPagerPets;
-    private ImageButton btnAnterior, btnProximo;
-    private RecyclerView recyclerViewTarefas;
+    private ViewPager2 viewPagerPets; // Variável ViewPager2 (Componente da roleta)
+    private ImageButton btnAnterior, btnProximo; // Variável para os botões das setas
+    private RecyclerView recyclerViewTarefas; // Recycler Views para a Agenda e os Alertas de Saúde
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -31,17 +30,20 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Definições de busca no XML o que é o que
         viewPagerPets = view.findViewById(R.id.viewPagerPets);
         btnAnterior = view.findViewById(R.id.btnAnterior);
         btnProximo = view.findViewById(R.id.btnProximo);
         recyclerViewTarefas = view.findViewById(R.id.recyclerViewTarefas);
 
+        // Ciração de uma lista de array para a lista de pets
         List<Pet> listaPets = new ArrayList<>();
         listaPets.add(new Pet("Thor", R.drawable.thor));
         listaPets.add(new Pet("Luna", R.drawable.luna));
         listaPets.add(new Pet("Mel", R.drawable.mel));
         listaPets.add(new Pet("Bob", R.drawable.bob));
 
+        // Ciração de uma lista de array para a lista de tarefas
         List<Tarefa> listaTarefas = new ArrayList<>();
         listaTarefas.add(new Tarefa(
                 "PlanetaPet Pets - Banho & Tosa 10/05",
@@ -54,13 +56,16 @@ public class HomeFragment extends Fragment {
                 R.drawable.racao
         ));
 
+        // Conexão da ViewPager2 com a array criada de pets já passada pelo adapter
         PetAdapter adapterPet = new PetAdapter(requireContext(), listaPets);
         viewPagerPets.setAdapter(adapterPet);
 
+        // Conexão da RecyclerView com a array criada de tarefas já passada pelo adapter
         TarefaAdapter adapterTarefa = new TarefaAdapter(requireContext(), listaTarefas);
         recyclerViewTarefas.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerViewTarefas.setAdapter(adapterTarefa);
 
+        // Botões das setas para passar ou voltar de imagem da ViewPager2
         btnProximo.setOnClickListener(v -> {
             int atual = viewPagerPets.getCurrentItem();
             int proximo = (atual + 1) % listaPets.size();

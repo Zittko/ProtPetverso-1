@@ -13,7 +13,7 @@
         <item name="android:color">#FFE0B2</item>
         <item name="android:width">32dp</item>
         <item name="android:height">32dp</item>
-        <item name="shapeAppearance">@style/ShapeAppearance.Material3.Corner.Full</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Material3.Corner.Medium</item>
     </style>
 
 </resources>

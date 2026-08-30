@@ -7,7 +7,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
+// Classe de Fragmento Agenda (View para o menu)
 public class AgendaFragment extends Fragment {
 
     public AgendaFragment() {

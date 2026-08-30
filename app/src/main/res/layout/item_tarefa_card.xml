@@ -34,14 +34,15 @@
                 android:layout_height="wrap_content"
                 android:text="Título da tarefa"
                 android:textAlignment="center"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/descTarefa"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
+                android:layout_marginTop="5dp"
+                android:textSize="12sp"
                 android:text="Descrição da tarefa, coisas curtas e objetivas de preferência" />
 
         </LinearLayout>
