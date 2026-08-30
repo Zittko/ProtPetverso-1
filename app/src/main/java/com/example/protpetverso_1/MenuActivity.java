@@ -1,20 +1,16 @@
 package com.example.protpetverso_1;
 
 import android.os.Bundle;
-import android.widget.ImageButton;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.viewpager2.widget.ViewPager2;
+import androidx.fragment.app.Fragment;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MenuActivity extends AppCompatActivity {
 
@@ -23,12 +19,9 @@ public class MenuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.menu_layout);
+
         MaterialToolbar toolbar = findViewById(R.id.toolbarMenu);
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavbar);
-
-        ViewPager2 viewPagerPets = findViewById(R.id.viewPagerPets);
-        ImageButton btnAnterior = findViewById(R.id.btnAnterior);
-        ImageButton btnProximo = findViewById(R.id.btnProximo);
 
         ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -42,25 +35,33 @@ public class MenuActivity extends AppCompatActivity {
             return insets;
         });
 
-        List<Pet> listaPets = new ArrayList<>();
-        listaPets.add(new Pet("Thor", R.drawable.petversologo));
-        listaPets.add(new Pet("Luna", R.drawable.petversologo));
-        listaPets.add(new Pet("Mel", R.drawable.petversologo));
-        listaPets.add(new Pet("Bob", R.drawable.petversologo));
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, new HomeFragment())
+                .commit();
 
-        PetAdapter adapter = new PetAdapter(listaPets);
-        viewPagerPets.setAdapter(adapter);
+        bottomNav.setOnItemSelectedListener(item -> {
+            Fragment selectedFragment = null;
+            int itemId = item.getItemId();
 
-        btnProximo.setOnClickListener(v -> {
-            int atual = viewPagerPets.getCurrentItem();
-            int proximo = (atual + 1) % listaPets.size();
-            viewPagerPets.setCurrentItem(proximo, true);
-        });
+            if (itemId == R.id.menuHome) {
+                selectedFragment = new HomeFragment();
+            } else if (itemId == R.id.menuAgenda) {
+                selectedFragment = new AgendaFragment();
+            } else if (itemId == R.id.menuForyou) {
+                selectedFragment = new VacinaFragment();
+            } else if (itemId == R.id.menuTrending) {
+                selectedFragment = new PetsFragment();
+            }
 
-        btnAnterior.setOnClickListener(v -> {
-            int atual = viewPagerPets.getCurrentItem();
-            int anterior = (atual - 1 + listaPets.size()) % listaPets.size();
-            viewPagerPets.setCurrentItem(anterior, true);
+            if (selectedFragment != null) {
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragmentContainer, selectedFragment)
+                        .commit();
+                return true;
+            }
+            return false;
         });
     }
 }

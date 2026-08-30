@@ -16,22 +16,22 @@
             android:id="@+id/imgPet"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="fitCenter"
+            android:scaleType="centerCrop"
             android:src="@drawable/petversologo" />
 
         <TextView
             android:id="@+id/txtPetNome"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="37dp"
             android:layout_gravity="bottom"
             android:background="#80000000"
             android:paddingHorizontal="20dp"
             android:paddingTop="10dp"
             android:paddingBottom="14dp"
             android:text="Nome do Pet"
-            android:textAlignment="textEnd"
+            android:textAlignment="textStart"
             android:textColor="@android:color/white"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
     </FrameLayout>
 </androidx.cardview.widget.CardView>

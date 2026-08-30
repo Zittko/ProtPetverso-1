@@ -1,5 +1,6 @@
 package com.example.protpetverso_1;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +16,7 @@ public class PetAdapter extends RecyclerView.Adapter<PetAdapter.PetViewHolder> {
 
     private List<Pet> listaPets;
 
-    public PetAdapter(List<Pet> listaPets) {
+    public PetAdapter(Context applicationContext, List<Pet> listaPets) {
         this.listaPets = listaPets;
     }
 

@@ -4,6 +4,7 @@
     android:id="@+id/ModeloCardtarefa"
     android:layout_width="match_parent"
     android:layout_height="85dp"
+    android:layout_marginBottom="15dp"
     app:cardCornerRadius="15dp">
 
     <LinearLayout
@@ -13,11 +14,11 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:id="@+id/ModeloImgTarefa"
+            android:id="@+id/imgTarefa"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginRight="10dp"
             android:layout_gravity="center"
+            android:layout_marginRight="10dp"
             android:scaleType="fitXY"
             android:src="#2c2c2c" />
 
@@ -28,7 +29,7 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/ModeloTitleTarefa"
+                android:id="@+id/titleTarefa"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Título da tarefa"
@@ -37,7 +38,7 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/ModeloDescTarefa"
+                android:id="@+id/descTarefa"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
@@ -46,15 +47,16 @@
         </LinearLayout>
 
     </LinearLayout>
+
     <ImageButton
         android:id="@+id/btnVoltar"
-        android:layout_marginTop="10dp"
-        android:layout_marginRight="10dp"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:background="#FFFFFF"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:background="#00000000"
         android:scaleType="fitXY"
         android:src="@drawable/baseline_more_vert"
-        android:layout_gravity="top|end"
         app:tint="@color/black" />
 </androidx.cardview.widget.CardView>
