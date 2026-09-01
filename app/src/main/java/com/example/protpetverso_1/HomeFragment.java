@@ -19,7 +19,7 @@ import java.util.List;
 public class HomeFragment extends Fragment {
     private ViewPager2 viewPagerPets; // Variável ViewPager2 (Componente da roleta)
     private ImageButton btnAnterior, btnProximo; // Variável para os botões das setas
-    private RecyclerView recyclerViewTarefas; // Recycler Views para a Agenda e os Alertas de Saúde
+    private RecyclerView recyclerViewTarefas, recyclerViewTarefasAlertasSaude; // Recycler Views para a Agenda e os Alertas de Saúde
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -35,6 +35,7 @@ public class HomeFragment extends Fragment {
         btnAnterior = view.findViewById(R.id.btnAnterior);
         btnProximo = view.findViewById(R.id.btnProximo);
         recyclerViewTarefas = view.findViewById(R.id.recyclerViewTarefas);
+        recyclerViewTarefasAlertasSaude = view.findViewById(R.id.recyclerViewAlertasSaude);
 
         // Ciração de uma lista de array para a lista de pets
         List<Pet> listaPets = new ArrayList<>();
