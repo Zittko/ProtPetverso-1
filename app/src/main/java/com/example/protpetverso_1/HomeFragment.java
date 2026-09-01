@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import java.util.ArrayList;
@@ -20,6 +21,15 @@ public class HomeFragment extends Fragment {
     private ViewPager2 viewPagerPets; // Variável ViewPager2 (Componente da roleta)
     private ImageButton btnAnterior, btnProximo; // Variável para os botões das setas
     private RecyclerView recyclerViewTarefas, recyclerViewTarefasAlertasSaude; // Recycler Views para a Agenda e os Alertas de Saúde
+
+    private void atualizarAgenda(List<Tarefa> tarefasDoPet) {
+        TarefaAdapter adapter = new TarefaAdapter(requireContext(), tarefasDoPet);
+        recyclerViewTarefas.setAdapter(adapter);
+    }
+    private void atualizarSaude(List<AlertaSaude> saudeDoPet) {
+        AlertaSaudeAdapter adapter = new AlertaSaudeAdapter(requireContext(), saudeDoPet);
+        recyclerViewTarefasAlertasSaude.setAdapter(adapter);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -57,13 +67,13 @@ public class HomeFragment extends Fragment {
                 R.drawable.racao
         ));
 
-        List<AlertaSaude> listaAlertasSaudes = new ArrayList<>();
-        listaAlertasSaudes.add(new AlertaSaude(
+        List<AlertaSaude> listaAlertasSaudesPet1 = new ArrayList<>();
+        listaAlertasSaudesPet1.add(new AlertaSaude(
                 "PlanetaPet Pets - Banho & Tosa 10/05",
                 "O seu pet está com serviços agendados no dia 10/05, no PetShop RiDog.",
                 R.drawable.petversologo
         ));
-        listaAlertasSaudes.add(new AlertaSaude(
+        listaAlertasSaudesPet1.add(new AlertaSaude(
                 "Verifique se há água para beber",
                 "Não esqueça de hidratar o seu pet, é muito importante para a sáude dele!",
                 R.drawable.racao
@@ -72,6 +82,16 @@ public class HomeFragment extends Fragment {
         // Conexão da ViewPager2 com a array criada de pets já passada pelo adapter
         PetAdapter adapterPet = new PetAdapter(requireContext(), listaPets);
         viewPagerPets.setAdapter(adapterPet);
+
+        viewPagerPets.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                Pet petAtual = listaPets.get(position);
+
+                atualizarAgenda(petAtual.getTarefas());
+                atualizarSaude(petAtual.getAlertasSaude());
+            }
+        });
 
         // Conexão da RecyclerView com a array criada de tarefas já passada pelo adapter
         TarefaAdapter adapterTarefa = new TarefaAdapter(requireContext(), listaTarefas);
@@ -91,13 +111,7 @@ public class HomeFragment extends Fragment {
             viewPagerPets.setCurrentItem(anterior, true);
         });
 
-        viewPagerPets.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                Pet.petAtual.get(position);
 
-                atualizarAgenda(petAtual.getTarefas());
-            }
-        });
     }
+
 }

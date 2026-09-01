@@ -20,4 +20,12 @@ public class Pet {
     public int getImagemResId() {
         return imagemResId;
     }
+
+    public List<Tarefa> getTarefas() {
+        return tarefas;
+    }
+
+    public List<AlertaSaude> getAlertasSaude() {
+        return alertasSaude;
+    }
 }

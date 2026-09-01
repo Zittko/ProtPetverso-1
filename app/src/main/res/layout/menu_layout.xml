@@ -34,7 +34,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="@color/primary_orange"
-
         android:fitsSystemWindows="false"
         app:itemActiveIndicatorStyle="@style/CustomActiveIndicator"
         app:itemIconTint="@color/text_orange"
