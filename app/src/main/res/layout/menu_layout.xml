@@ -21,19 +21,25 @@
         app:titleCentered="true"
         app:titleTextColor="@color/text_orange" />
 
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbarMenu"
+        android:layout_above="@id/bottomNavbar" />
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        app:labelMaxLines="1"
-
-        app:itemIconTint="@color/text_orange"
-        app:itemTextColor="@color/text_orange"
-        app:itemActiveIndicatorStyle="@style/CustomActiveIndicator"
-        app:labelVisibilityMode="labeled"
         android:background="@color/primary_orange"
         android:fitsSystemWindows="false"
+        app:itemActiveIndicatorStyle="@style/CustomActiveIndicator"
+        app:itemIconTint="@color/text_orange"
+        app:itemTextColor="@color/text_orange"
+        app:labelMaxLines="1"
+        app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_nav_menu" />
 
 </RelativeLayout>

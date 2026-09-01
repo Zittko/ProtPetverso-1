@@ -38,7 +38,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
-            android:text="Slogan que eu ainda não sei da nossa marca"
+            android:text="O universo do seu pet na palma da sua mão!"
             android:textColor="#5f2e16"
             android:textSize="12sp" />
 

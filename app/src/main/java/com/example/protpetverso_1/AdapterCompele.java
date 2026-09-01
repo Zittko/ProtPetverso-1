@@ -12,7 +12,6 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
-
 public class AdapterCompele extends RecyclerView.Adapter<AdapterCompele.ViewHolder> {
     private Context context;
     private List<ComponentesEletronicos> LstCompele;

@@ -19,11 +19,13 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 public class LoginActivity extends AppCompatActivity {
-    TextInputEditText edtUser, edtSenha;
-    Button btnEntrar;
-    TextInputLayout ipEdtUser, ipEdtSenha;
-    TextView txtForgotPassword, txtCadastrar;
-    ScrollView loginScroll;
+    TextInputEditText edtUser, edtSenha; // Variavel para buscar o que está escrito dentro do InputLayout
+    Button btnEntrar; // Variável para buscar o botão de entrar
+    TextInputLayout ipEdtUser, ipEdtSenha; // Variáveis para buscar as caixas de input
+    TextView txtForgotPassword, txtCadastrar; // Variáveis para buscar os textos (que irão se tornar botões)
+    ScrollView loginScroll; // Variável para buscar a view do layout do XML inteiro
+
+    // Função para focar em um alvo de forma suave com scroll
     private void scrollToView(View target) {
         loginScroll.postDelayed(() -> {
             int[] location = new int[2];
@@ -37,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.login_layout);
-
+        // Definições de busca no XML o que é o que
         loginScroll = findViewById(R.id.loginScroll);
         ipEdtUser = findViewById(R.id.ipEdtUser);
         ipEdtSenha = findViewById(R.id.ipEdtSenha);
@@ -55,25 +57,28 @@ public class LoginActivity extends AppCompatActivity {
             return insets;
         });
 
+        // Função para fazer uma ação ao clicar o botão
         btnEntrar.setOnClickListener(v -> {
-            String user = String.valueOf(edtUser.getText()).trim();
-            String senha = String.valueOf(edtSenha.getText()).trim();
-            ipEdtUser.setError(null);
-            ipEdtSenha.setError(null);
-            if (user.isEmpty()) {
-                ipEdtUser.setError("Digite um email");
+
+            // Armazena as labels, os textos dentro delas E as mensagens de erro dentro de arrays
+            TextInputEditText[] editTexts = {edtUser, edtSenha};
+            TextInputLayout[] layouts = {ipEdtUser, ipEdtSenha};
+            String[] mensagens = {"Digite um email", "Senha não digitada"};
+
+            // Função for para checar se cada label tem um texto digitado, caso não, envia a respectiva mensagem de erro para o campo não digitado
+            for (int i = 0; i < editTexts.length; i++) {
+                String texto = String.valueOf(editTexts[i].getText()).trim();
+                if (texto.isEmpty()) {
+                    layouts[i].setError(mensagens[i]);
+                    return;
+                } else {
+                    layouts[i].setError(null);
+                }
             }
-            if (senha.isEmpty()) {
-                ipEdtSenha.setError("Senha não digitada");
-                return;
-            }
-            if ((user.equalsIgnoreCase("projetopetverso@gmail.com"))
-                    && senha.equals("123")) {
-                startActivity(new Intent(getApplicationContext(), MenuActivity.class));
-                finish();
-            } else {
-                ipEdtSenha.setError("Usuário ou senha incorretos");
-            }
+
+            //
+            startActivity(new Intent(getApplicationContext(), MenuActivity.class));
+            finish();
         });
 
         edtSenha.setOnFocusChangeListener((v, hasFocus) -> {
