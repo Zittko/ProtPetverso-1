@@ -57,6 +57,18 @@ public class HomeFragment extends Fragment {
                 R.drawable.racao
         ));
 
+        List<AlertaSaude> listaAlertasSaudes = new ArrayList<>();
+        listaAlertasSaudes.add(new AlertaSaude(
+                "PlanetaPet Pets - Banho & Tosa 10/05",
+                "O seu pet está com serviços agendados no dia 10/05, no PetShop RiDog.",
+                R.drawable.petversologo
+        ));
+        listaAlertasSaudes.add(new AlertaSaude(
+                "Verifique se há água para beber",
+                "Não esqueça de hidratar o seu pet, é muito importante para a sáude dele!",
+                R.drawable.racao
+        ));
+
         // Conexão da ViewPager2 com a array criada de pets já passada pelo adapter
         PetAdapter adapterPet = new PetAdapter(requireContext(), listaPets);
         viewPagerPets.setAdapter(adapterPet);
@@ -77,6 +89,15 @@ public class HomeFragment extends Fragment {
             int atual = viewPagerPets.getCurrentItem();
             int anterior = (atual - 1 + listaPets.size()) % listaPets.size();
             viewPagerPets.setCurrentItem(anterior, true);
+        });
+
+        viewPagerPets.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                Pet.petAtual.get(position);
+
+                atualizarAgenda(petAtual.getTarefas());
+            }
         });
     }
 }
