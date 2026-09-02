@@ -16,6 +16,8 @@ import android.view.ViewGroup;
 public class AgendaFragment extends Fragment {
 // Declara o Fragment da aba "Agenda". É uma das telas controladas pela BottomNavigationView.
 
+    private atualizarAgenda atualizarAgenda;
+
     public AgendaFragment() {
         // Construtor vazio obrigatório para Fragments.
         // O Android precisa dele para recriar o Fragment automaticamente.
