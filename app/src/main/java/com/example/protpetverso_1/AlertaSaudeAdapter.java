@@ -29,7 +29,6 @@ public class AlertaSaudeAdapter extends RecyclerView.Adapter<AlertaSaudeAdapter.
     @Override
     public void onBindViewHolder(@NonNull AlertaSaudeViewHolder holder, int position) {
         AlertaSaude alertaSaude = listaAlertasSaude.get(position);
-
         holder.titleTarefa.setText(alertaSaude.getTitulo());
         holder.descTarefa.setText(alertaSaude.getDesc());
         holder.imgTarefa.setImageResource(alertaSaude.getImagemResId());
@@ -37,7 +36,7 @@ public class AlertaSaudeAdapter extends RecyclerView.Adapter<AlertaSaudeAdapter.
 
     @Override
     public int getItemCount() {
-        return 0;
+        return listaAlertasSaude.size();
     }
 
     static class AlertaSaudeViewHolder extends RecyclerView.ViewHolder{

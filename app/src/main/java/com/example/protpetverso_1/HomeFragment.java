@@ -47,56 +47,49 @@ public class HomeFragment extends Fragment {
         recyclerViewTarefas = view.findViewById(R.id.recyclerViewTarefas);
         recyclerViewTarefasAlertasSaude = view.findViewById(R.id.recyclerViewAlertasSaude);
 
+        // Ciração de uma lista de array para a lista de tarefas
+        List<Tarefa> tarefasThor = new ArrayList<>();
+        tarefasThor.add(new Tarefa(
+                "PlanetaPet Pets - Banho & Tosa 10/05",
+                "O seu pet está com serviços agendados no dia 10/05, no PetShop RiDog.",
+                R.drawable.petversologo
+        ));
+        tarefasThor.add(new Tarefa(
+                "Verifique se há água para beber",
+                "Não esqueça de hidratar o seu pet, é muito importante para a sáude dele!",
+                R.drawable.racao
+        ));
+
+        List<AlertaSaude> saudesThor = new ArrayList<>();
+        saudesThor.add(new AlertaSaude(
+                "PlanetaPet Pets - Banho & Tosa 10/05",
+                "O seu pet está com serviços agendados no dia 10/05, no PetShop RiDog.",
+                R.drawable.petversologo
+        ));
+        saudesThor.add(new AlertaSaude(
+                "Verifique se há água para beber",
+                "Não esqueça de hidratar o seu pet, é muito importante para a sáude dele!",
+                R.drawable.racao
+        ));
+
         // Ciração de uma lista de array para a lista de pets
         List<Pet> listaPets = new ArrayList<>();
-        listaPets.add(new Pet("Thor", R.drawable.thor));
-        listaPets.add(new Pet("Luna", R.drawable.luna));
-        listaPets.add(new Pet("Mel", R.drawable.mel));
-        listaPets.add(new Pet("Bob", R.drawable.bob));
-
-        // Ciração de uma lista de array para a lista de tarefas
-        List<Tarefa> listaTarefas = new ArrayList<>();
-        listaTarefas.add(new Tarefa(
-                "PlanetaPet Pets - Banho & Tosa 10/05",
-                "O seu pet está com serviços agendados no dia 10/05, no PetShop RiDog.",
-                R.drawable.petversologo
-        ));
-        listaTarefas.add(new Tarefa(
-                "Verifique se há água para beber",
-                "Não esqueça de hidratar o seu pet, é muito importante para a sáude dele!",
-                R.drawable.racao
-        ));
-
-        List<AlertaSaude> listaAlertasSaudesPet1 = new ArrayList<>();
-        listaAlertasSaudesPet1.add(new AlertaSaude(
-                "PlanetaPet Pets - Banho & Tosa 10/05",
-                "O seu pet está com serviços agendados no dia 10/05, no PetShop RiDog.",
-                R.drawable.petversologo
-        ));
-        listaAlertasSaudesPet1.add(new AlertaSaude(
-                "Verifique se há água para beber",
-                "Não esqueça de hidratar o seu pet, é muito importante para a sáude dele!",
-                R.drawable.racao
-        ));
+        listaPets.add(new Pet("Thor", R.drawable.thor, tarefasThor, saudesThor));
+        listaPets.add(new Pet("Luna", R.drawable.luna, new ArrayList<>(), new ArrayList<>()));
+        listaPets.add(new Pet("Mel", R.drawable.mel, new ArrayList<>(), new ArrayList<>()));
+        listaPets.add(new Pet("Bob", R.drawable.bob, new ArrayList<>(), new ArrayList<>()));
 
         // Conexão da ViewPager2 com a array criada de pets já passada pelo adapter
         PetAdapter adapterPet = new PetAdapter(requireContext(), listaPets);
         viewPagerPets.setAdapter(adapterPet);
 
-        viewPagerPets.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                Pet petAtual = listaPets.get(position);
-
-                atualizarAgenda(petAtual.getTarefas());
-                atualizarSaude(petAtual.getAlertasSaude());
-            }
-        });
-
         // Conexão da RecyclerView com a array criada de tarefas já passada pelo adapter
-        TarefaAdapter adapterTarefa = new TarefaAdapter(requireContext(), listaTarefas);
         recyclerViewTarefas.setLayoutManager(new LinearLayoutManager(requireContext()));
-        recyclerViewTarefas.setAdapter(adapterTarefa);
+        recyclerViewTarefasAlertasSaude.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        Pet primeiroPet = listaPets.get(0);
+        atualizarAgenda(primeiroPet.getTarefas());
+        atualizarSaude(primeiroPet.getAlertasSaude());
 
         // Botões das setas para passar ou voltar de imagem da ViewPager2
         btnProximo.setOnClickListener(v -> {
@@ -111,7 +104,14 @@ public class HomeFragment extends Fragment {
             viewPagerPets.setCurrentItem(anterior, true);
         });
 
-
+        viewPagerPets.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                Pet petAtual = listaPets.get(position);
+                atualizarAgenda(petAtual.getTarefas());
+                atualizarSaude(petAtual.getAlertasSaude());
+            }
+        });
     }
 
 }

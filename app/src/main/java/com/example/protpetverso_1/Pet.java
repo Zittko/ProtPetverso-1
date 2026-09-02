@@ -8,9 +8,11 @@ public class Pet {
     private List<Tarefa> tarefas;
     private List<AlertaSaude> alertasSaude;
 
-    public Pet(String nome, int imagemResId) {
+    public Pet(String nome, int imagemResId, List<Tarefa> tarefas, List<AlertaSaude> alertasSaude) {
         this.nome = nome;
         this.imagemResId = imagemResId;
+        this.tarefas = tarefas;
+        this.alertasSaude = alertasSaude;
     }
 
     public String getNome() {
