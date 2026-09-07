@@ -33,7 +33,7 @@ public class AlertaSaudeAdapter extends RecyclerView.Adapter<AlertaSaudeAdapter.
     @Override
     public AlertaSaudeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Chamado quando a RecyclerView precisa criar um novo card (item).
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_tarefa_card, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_alerta_saude_card, parent, false);
         // Infla o layout do card (item_tarefa_card.xml).
         // Observação: está reutilizando o mesmo layout das tarefas.
         return new AlertaSaudeViewHolder(view);
@@ -46,13 +46,13 @@ public class AlertaSaudeAdapter extends RecyclerView.Adapter<AlertaSaudeAdapter.
         AlertaSaude alertaSaude = listaAlertasSaude.get(position);
         // Pega o alerta da posição atual.
 
-        holder.titleTarefa.setText(alertaSaude.getTitulo());
+        holder.titleSaude.setText(alertaSaude.getTitulo());
         // Coloca o título no TextView do card.
 
-        holder.descTarefa.setText(alertaSaude.getDesc());
+        holder.descSaude.setText(alertaSaude.getDesc());
         // Coloca a descrição no TextView do card.
 
-        holder.imgTarefa.setImageResource(alertaSaude.getImagemResId());
+        holder.imgSaude.setImageResource(alertaSaude.getImagemResId());
         // Coloca a imagem/ícone no ImageView do card.
     }
 
@@ -67,15 +67,15 @@ public class AlertaSaudeAdapter extends RecyclerView.Adapter<AlertaSaudeAdapter.
         // Guarda as referências dos componentes visuais de cada card.
         // Evita ficar chamando findViewById várias vezes.
 
-        TextView titleTarefa, descTarefa;
-        ImageView imgTarefa;
+        TextView titleSaude, descSaude;
+        ImageView imgSaude;
 
         public AlertaSaudeViewHolder(@NonNull View itemView) {
             super(itemView);
             // Liga os componentes do XML com as variáveis Java.
-            imgTarefa = itemView.findViewById(R.id.imgTarefa);
-            titleTarefa = itemView.findViewById(R.id.titleTarefa);
-            descTarefa = itemView.findViewById(R.id.descTarefa);
+            imgSaude = itemView.findViewById(R.id.imgSaude);
+            titleSaude = itemView.findViewById(R.id.titleSaude);
+            descSaude = itemView.findViewById(R.id.descSaude);
         }
     }
 }

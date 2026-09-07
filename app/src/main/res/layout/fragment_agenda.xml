@@ -1,13 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#FFF3E0"
     tools:context=".AgendaFragment">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="AGENDA" />
+        android:orientation="vertical">
 
-</FrameLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFF3E0"
+            android:orientation="vertical"
+            android:paddingTop="12dp"
+            android:paddingBottom="4dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:clipToPadding="false"
+                android:paddingHorizontal="12dp"
+                android:overScrollMode="never"
+                android:id="@+id/recyclerDias"/>
+            
+            <ImageView
+                android:id="@+id/btnExpandirCalendario"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="16dp"
+                android:src="@android:drawable/arrow_down_float"
+                android:contentDescription="Expandir Calendário"/>
+
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtTituloLista"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tarefas do Dia"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerTarefas"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingHorizontal="12dp"
+            android:paddingBottom="100dp"/>
+
+        <TextView
+            android:id="@+id/txtSemTarefas"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Nenhuma tarefa para este dia"
+            android:textSize="15sp"
+            android:textColor="#999999"
+            android:visibility="gone" />
+
+
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:id="@+id/btnNovaTarefa"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="90dp"
+        android:contentDescription="Nova Tarefa"
+        app:backgroundTint="#E67E22"
+        android:tint="@android:color/white"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+        app:elevation="6dp"
+        />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

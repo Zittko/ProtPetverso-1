@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import android.widget.ImageButton;
 // Imports básicos de View e botões.
 
@@ -16,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 // Imports do Fragment, RecyclerView e ViewPager2.
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 // Usados para criar as listas de Pets, Tarefas e Alertas.
@@ -24,6 +27,8 @@ import java.util.List;
 public class HomeFragment extends Fragment {
 // Fragment principal da aba "Início". Controla o carrossel de pets e as listas de tarefas/alertas.
 
+    LocalDate hoje = LocalDate.now();
+    LocalTime agora = LocalTime.now();
     private ViewPager2 viewPagerPets;
     // Componente que mostra um pet por vez (carrossel).
 
@@ -70,34 +75,54 @@ public class HomeFragment extends Fragment {
         List<Tarefa> tarefasThor = new ArrayList<>();
         tarefasThor.add(new Tarefa(
                 "PlanetaPet Pets - Banho & Tosa 10/05",
-                "O seu pet está com serviços agendados no dia 10/05, no PetShop RiDog.",
-                R.drawable.petversologo
+                "O seu pet está com serviços agendados no dia 10/05, no PetShop PlanetaPet Pets.",
+                R.drawable.petversologo,
+                hoje,
+                LocalTime.of(8,0)
         ));
         tarefasThor.add(new Tarefa(
                 "Verifique se há água para beber",
                 "Não esqueça de hidratar o seu pet, é muito importante para a sáude dele!",
-                R.drawable.racao
+                R.drawable.racao,
+                hoje.plusDays(1),
+                LocalTime.of(9,0)
         ));
         // Conectado com: classe Tarefa
 
         // Cria os alertas de saúde do pet Thor
         List<AlertaSaude> saudesThor = new ArrayList<>();
         saudesThor.add(new AlertaSaude(
-                "PlanetaPet Pets - Banho & Tosa 10/05",
-                "O seu pet está com serviços agendados no dia 10/05, no PetShop RiDog.",
+                "Vacina Antirrábica",
+                "A data para a aplicação da próxima dose está próxima!",
                 R.drawable.petversologo
         ));
-        saudesThor.add(new AlertaSaude(
-                "Verifique se há água para beber",
-                "Não esqueça de hidratar o seu pet, é muito importante para a sáude dele!",
-                R.drawable.racao
+
+        List<Tarefa> tarefasLuna = new ArrayList<>();
+        tarefasLuna.add(new Tarefa(
+                "MundoAnimal - Castração",
+                "O seu pet está com serviços agendados no dia 07/09, no PetShop MundoAnimal.",
+                R.drawable.petversologo, hoje, LocalTime.of(14, 0)
+        ));
+        tarefasLuna.add(new Tarefa(
+                "Verifique se há ração",
+                "Não esqueça de alimentar o seu pet, é muito importante para a saúde dele!",
+                R.drawable.racao, hoje, LocalTime.of(5,0)
+        ));
+        // Conectado com: classe Tarefa
+
+        // Cria os alertas de saúde do pet Thor
+        List<AlertaSaude> saudesLuna = new ArrayList<>();
+        saudesLuna.add(new AlertaSaude(
+                "Vermífugo",
+                "A data para a aplicação da próxima dose está próxima!",
+                R.drawable.petversologo
         ));
         // Conectado com: classe AlertaSaude
 
         // Cria a lista de pets. Cada pet já leva suas próprias tarefas e alertas.
         List<Pet> listaPets = new ArrayList<>();
         listaPets.add(new Pet("Thor", R.drawable.thor, tarefasThor, saudesThor));
-        listaPets.add(new Pet("Luna", R.drawable.luna, new ArrayList<>(), new ArrayList<>()));
+        listaPets.add(new Pet("Luna", R.drawable.luna, tarefasLuna, saudesLuna));
         listaPets.add(new Pet("Mel", R.drawable.mel, new ArrayList<>(), new ArrayList<>()));
         listaPets.add(new Pet("Bob", R.drawable.bob, new ArrayList<>(), new ArrayList<>()));
         // Conectado com: classe Pet
@@ -113,6 +138,7 @@ public class HomeFragment extends Fragment {
 
         // Mostra os dados do primeiro pet (Thor) ao abrir a tela
         Pet primeiroPet = listaPets.get(0);
+        PetSelecionado.setPet(primeiroPet);
         atualizarAgenda(primeiroPet.getTarefas());
         atualizarSaude(primeiroPet.getAlertasSaude());
 
@@ -136,6 +162,10 @@ public class HomeFragment extends Fragment {
             public void onPageSelected(int position) {
                 // position = índice do pet que está aparecendo agora
                 Pet petAtual = listaPets.get(position);
+
+
+                //Salva o pet selecionado para a agenda usar depois
+                PetSelecionado.setPet(petAtual);
                 // Atualiza as duas RecyclerViews com os dados desse pet
                 atualizarAgenda(petAtual.getTarefas());
                 atualizarSaude(petAtual.getAlertasSaude());

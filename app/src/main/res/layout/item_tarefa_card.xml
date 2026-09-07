@@ -3,49 +3,81 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/ModeloCardtarefa"
     android:layout_width="match_parent"
-    android:layout_height="85dp"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="6dp"
     android:layout_marginBottom="15dp"
-    app:cardCornerRadius="15dp">
+    app:cardCornerRadius="14dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="#FFFFFF"
+    >
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="10dp"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
         android:orientation="horizontal">
 
         <ImageView
-            android:id="@+id/imgTarefa"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
             android:layout_gravity="center"
-            android:layout_marginRight="10dp"
-            android:scaleType="fitXY"
-            android:src="#2c2c2c" />
+            android:id="@+id/imgStatus"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginTop="4dp"
+            android:src="@android:drawable/checkbox_off_background"
+            android:contentDescription="Status da Tarefa"/>
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginRight="40dp"
-            android:orientation="vertical">
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="8dp">
 
             <TextView
+                android:layout_gravity="center"
                 android:id="@+id/titleTarefa"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Título da tarefa"
-                android:textAlignment="center"
-                android:textSize="14sp"
+                android:text="Título da Tarefa"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:textSize="15sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/descTarefa"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:textSize="12sp"
-                android:text="Descrição da tarefa, coisas curtas e objetivas de preferência" />
+                android:layout_marginTop="4dp"
+                android:textSize="13sp"
+                android:text="Descrição da tarefa, coisas curtas e objetivas de preferência"
+                android:maxLines="4"
+                android:ellipsize="end"/>
+
+                <TextView
+                    android:id="@+id/txtRodape"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Feito por: Bruno"
+                    android:textSize="12sp"/>
+
+
+
 
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/imgTarefa"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="10dp"
+            android:contentDescription="Ícone da tarefa"
+            android:scaleType="fitXY"
+            android:src="#2c2c2c" />
 
     </LinearLayout>
 
