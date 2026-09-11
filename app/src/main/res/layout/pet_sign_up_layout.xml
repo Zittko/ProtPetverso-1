@@ -9,36 +9,44 @@
     tools:context=".PetSignUpActivity">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="450dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="24dp"
         android:paddingTop="24dp"
-        android:paddingBottom="24dp" d>
+        android:paddingBottom="24dp">
 
-        <ImageView
-            android:layout_width="180dp"
-            android:layout_height="180dp"
-            android:layout_gravity="center"
-            android:id="@+id/imgPetSignUp"
-            android:src="#2c2c2c"
-            />
+        <ImageButton
+            android:id="@+id/btnVoltar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginBottom="12dp"
+            android:background="#ffe8ce"
+            android:scaleType="fitXY"
+            android:src="@drawable/baseline_arrow_back"
+            app:tint="@color/primary_orange" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Adicione uma foto"
+            android:textSize="28sp"
+            android:text="Cadastre o seu pet"
+            android:layout_marginBottom="5dp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:text="Lembre-se de preencher os campos obrigátorios!"
+            android:textColor="@color/error"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:textSize="18sp"
-            android:textAlignment="center"
-            android:textStyle="bold"
-            android:layout_gravity="center"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
             android:textStyle="bold"
             android:text="Nome"
             android:layout_marginTop="10dp"
@@ -46,7 +54,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/ipPetEdtNome"
-            android:layout_width="350dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
             app:boxBackgroundColor="#fffbf6"
@@ -77,13 +85,15 @@
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginTop="20dp"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:layout_width="wrap_content"
+                android:layout_alignParentStart="true"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
@@ -92,6 +102,7 @@
                     android:layout_height="wrap_content"
                     android:text="Data de Nascimento"
                     android:layout_marginTop="10dp"
+                    android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="10dp"/>
 
@@ -132,6 +143,7 @@
 
             <LinearLayout
                 android:layout_width="wrap_content"
+                android:layout_alignParentEnd="true"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginLeft="80dp">
@@ -140,7 +152,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Porte"
-                    android:textSize="14sp"
+                    android:textSize="18sp"
                     android:layout_marginTop="10dp"
                     android:textStyle="bold"
                     android:layout_marginBottom="10dp"/>
@@ -167,14 +179,142 @@
                         android:id="@+id/PetSignPorte"
                         android:layout_width="135dp"
                         android:layout_height="50dp"
-                        android:inputType="none"
+                        android:hint="Ex: Pequeno"
+                        android:inputType="none"/>
 
                 </com.google.android.material.textfield.TextInputLayout>
 
 
             </LinearLayout>
 
-        </LinearLayout>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Raça"
+                    android:textSize="20sp"
+                    android:layout_marginTop="10dp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="10dp"/>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/ipPetRaca"
+                    android:layout_width="135dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    app:boxBackgroundColor="#fffbf6"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:boxStrokeColor="#a5713f"
+                    app:boxStrokeErrorColor="#fd6f28"
+                    app:endIconMode="clear_text"
+                    app:endIconTint="@color/primary_orange"
+                    app:errorIconTint="@color/error"
+                    app:errorTextColor="@color/error"
+                    app:hintEnabled="false">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/PetRaca"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:gravity="center_vertical"
+                        android:hint="Ex: Labrador"
+                        android:inputType="date"
+                        android:maxLength="16"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="0dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="#AAAAAA"
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginLeft="80dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Espécie"
+                    android:textSize="18sp"
+                    android:layout_marginTop="10dp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="10dp"/>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/ipPetEspecie"
+                    android:layout_width="135dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    app:boxBackgroundColor="#fffbf6"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:boxStrokeColor="#a5713f"
+                    app:boxStrokeErrorColor="#fd6f28"
+                    app:endIconMode="clear_text"
+                    app:endIconTint="@color/primary_orange"
+                    app:errorIconTint="@color/error"
+                    app:errorTextColor="@color/error"
+                    app:hintEnabled="false">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/PetSignEspecie"
+                        android:layout_width="135dp"
+                        android:layout_height="50dp"
+                        android:hint="Ex: Pequeno"
+                        android:inputType="none"/>
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+
+        <TextView
+            android:layout_marginTop="18dp"
+            android:id="@+id/txtForgotPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:gravity="end"
+            android:text="Mais Informações"
+            android:textColor="#5f2e16"
+            android:textSize="15sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCadastrar"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:backgroundTint="@color/primary_orange"
+            android:text="Cadastrar"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            app:cornerRadius="8dp"/>
 
     </LinearLayout>
 
