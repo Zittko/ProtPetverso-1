@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF3E0">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="32dp">
+
+            <!-- ===== CABEÇALHO DO PET ===== -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="18dp">
+
+                <ImageView
+                    android:id="@+id/imgFotoPet"
+                    android:layout_width="110dp"
+                    android:layout_height="110dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/luna"
+                    android:background="@drawable/bg_foto_pet"
+                    android:clipToOutline="true"
+                    android:contentDescription="Foto do pet" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_gravity="center"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+
+                    <TextView
+                        android:id="@+id/txtNomePet"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Thor"
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        android:textColor="#3E2723" />
+
+                    <TextView
+                        android:id="@+id/txtRacaPeso"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Vira-Lata  |  12 Kg"
+                        android:textSize="15sp"
+                        android:textColor="#6D4C41" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ===== CARD TUTORES ===== -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:strokeWidth="1.5dp"
+                app:strokeColor="#FF9800">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Título + editar -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tutores"
+                            android:textSize="17sp"
+                            android:textStyle="bold"
+                            android:textColor="#3E2723"
+                            android:layout_centerVertical="true" />
+
+                        <ImageButton
+                            android:id="@+id/btnEditarTutores"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:layout_alignParentEnd="true"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@android:drawable/ic_menu_edit"
+                            app:tint="#E67E22"
+                            android:contentDescription="Editar tutores" />
+                    </RelativeLayout>
+
+                    <!-- Lista de tutores -->
+                    <LinearLayout
+                        android:id="@+id/containerTutores"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Tutor 1 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="8dp">
+
+                            <ImageView
+                                android:layout_width="34dp"
+                                android:layout_height="34dp"
+                                android:src="@drawable/ic_tutor"
+                                app:tint="#AB47BC"
+                                android:contentDescription="Tutor" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:text="Você (Principal)"
+                                android:textSize="15sp"
+                                android:textColor="#333333" />
+                        </LinearLayout>
+
+                        <!-- Tutor 2 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="34dp"
+                                android:layout_height="34dp"
+                                android:src="@drawable/ic_tutor"
+                                app:tint="#AB47BC"
+                                android:contentDescription="Tutor" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:text="Mariana (Suporte)"
+                                android:textSize="15sp"
+                                android:textColor="#333333" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Divisor -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="14dp"
+                        android:background="#EEEEEE" />
+
+                    <!-- Compartilhar Tutoria -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Compartilhar Tutoria"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="#3E2723" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:text="Quer dividir os cuidados com alguém?"
+                        android:textSize="13sp"
+                        android:textColor="#777777" />
+
+                    <TextView
+                        android:id="@+id/txtCodigoPet"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginBottom="12dp"
+                        android:text="Código do Pet: XYZ-987"
+                        android:textSize="14sp"
+                        android:textColor="#5D4037"
+                        android:textStyle="bold" />
+
+                    <!-- Botões -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCopiarCodigo"
+                            android:layout_width="0dp"
+                            android:layout_height="46dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:text="Copiar Código"
+                            android:textAllCaps="false"
+                            android:textSize="13sp"
+                            app:cornerRadius="10dp"
+                            app:backgroundTint="#E67E22"
+                            android:textColor="@android:color/white" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnGerarQrCode"
+                            android:layout_weight="1"
+                            android:layout_width="0dp"
+                            android:layout_height="46dp"
+                            android:text="Gerar QR Code"
+                            android:textAllCaps="false"
+                            android:textSize="13sp"
+                            app:cornerRadius="10dp"
+                            app:backgroundTint="#E67E22"
+                            android:textColor="@android:color/white" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ===== CARD INFORMAÇÕES CLÍNICAS ===== -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:strokeWidth="1.5dp"
+                app:strokeColor="#FF9800">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:text="Informações Clínicas"
+                        android:textSize="17sp"
+                        android:textStyle="bold"
+                        android:textColor="#3E2723" />
+
+                    <!-- Personalidade -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Personalidade"
+                        android:textSize="13sp"
+                        android:textColor="#888888" />
+
+                    <TextView
+                        android:id="@+id/txtPersonalidade"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginBottom="14dp"
+                        android:text="Brincalhão, Curioso"
+                        android:textSize="15sp"
+                        android:textColor="#333333"
+                        android:textStyle="bold" />
+
+                    <!-- Sensibilidades -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sensibilidades"
+                        android:textSize="13sp"
+                        android:textColor="#888888" />
+
+                    <TextView
+                        android:id="@+id/txtSensibilidades"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:text="Medo de fogos de artifício"
+                        android:textSize="15sp"
+                        android:textColor="#333333"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

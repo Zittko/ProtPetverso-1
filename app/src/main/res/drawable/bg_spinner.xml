@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Fundo + borda arredondada -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#FFFFFF" /> <!-- Cor de fundo branca -->
-            <stroke android:width="1dp" android:color="#000000" /> <!-- Borda cinza clara opcional -->
+            <solid android:color="#fffbf6" />
+            <stroke
+                android:width="1.5dp"
+                android:color="#a5713f" />
             <corners android:radius="8dp" />
         </shape>
-
     </item>
+
+    <!-- Seta para baixo à direita -->
     <item
         android:drawable="@drawable/ic_arrow_drop_down"
-        android:gravity="right"
-        android:right="16dp" />
+        android:gravity="center_vertical|end"
+        android:right="14dp" />
+
 </layer-list>

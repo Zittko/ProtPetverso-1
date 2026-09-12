@@ -143,9 +143,10 @@ public class HomeFragment extends Fragment {
         atualizarSaude(primeiroPet.getAlertasSaude());
 
         // Botão de próximo pet
+        // ===== TESTE: clique longo abre o Perfil do Pet =====
         btnProximo.setOnClickListener(v -> {
             int atual = viewPagerPets.getCurrentItem();
-            int proximo = (atual + 1) % listaPets.size(); // volta para o primeiro no final
+            int proximo = (atual + 1) % listaPets.size();
             viewPagerPets.setCurrentItem(proximo, true);
         });
 

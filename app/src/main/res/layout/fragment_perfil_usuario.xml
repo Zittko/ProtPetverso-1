@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF3E0"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="32dp"
+        android:paddingBottom="40dp"
+        android:gravity="center_horizontal">
+
+        <!-- Foto de perfil -->
+        <ImageView
+            android:id="@+id/imgFotoPerfil"
+            android:layout_width="130dp"
+            android:layout_height="130dp"
+            android:layout_marginBottom="16dp"
+            android:src="@drawable/luna"
+            android:scaleType="centerCrop"
+            android:background="@drawable/bg_circulo_perfil"
+            android:clipToOutline="true"
+            android:contentDescription="Foto do usuário" />
+
+        <!-- Username -->
+        <TextView
+            android:id="@+id/txtUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="36dp"
+            android:text="carlosbuenow"
+            android:textSize="19sp"
+            android:textStyle="bold"
+            android:textColor="#5D4037" />
+
+        <!-- Card de informações -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="5dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="22dp">
+
+                <!-- Título do card + botão editar -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="22dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Informações Pessoais"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="#5D4037"
+                        android:layout_centerVertical="true" />
+
+                    <ImageButton
+                        android:id="@+id/btnEditarPerfil"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@android:drawable/ic_menu_edit"
+                        app:tint="#E67E22"
+                        android:contentDescription="Editar informações" />
+                </RelativeLayout>
+
+                <!-- Nome -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nome"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="#000000" />
+
+                <TextView
+                    android:id="@+id/txtNome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginBottom="20dp"
+                    android:text="Carlos Henrique Bueno"
+                    android:textSize="14sp"
+                    android:textColor="#000000"
+                     />
+
+                <!-- Data de Nascimento -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Data de Nascimento"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000" />
+
+                <TextView
+                    android:id="@+id/txtDataNascimento"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginBottom="20dp"
+                    android:text="02/08/1998"
+                    android:textSize="14sp"
+                    android:textColor="#000000"
+                     />
+
+                <!-- E-mail -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="E-mail"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000" />
+
+                <TextView
+                    android:id="@+id/txtEmail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginBottom="20dp"
+                    android:text="carlinhos290826@hotmail.com"
+                    android:textSize="14sp"
+                    android:textColor="#000000" />
+
+                <!-- Telefone -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Telefone"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="#000000" />
+
+                <TextView
+                    android:id="@+id/txtTelefone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="(11) 98765-4321"
+                    android:textSize="14sp"
+                    android:textColor="#000000" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</ScrollView>

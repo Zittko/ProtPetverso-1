@@ -4,86 +4,110 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
-    android:background="#ffe8ce"
     android:layout_height="match_parent"
+    android:background="#FFE8CE"
     tools:context=".PetSignUpActivity">
 
     <LinearLayout
-        android:layout_width="450dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="24dp"
         android:paddingTop="24dp"
-        android:paddingBottom="24dp">
+        android:paddingBottom="32dp">
+
+        <!-- Botão Voltar -->
         <ImageButton
             android:id="@+id/btnVoltar"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginBottom="5dp"
-            android:background="#ffe8ce"
+            android:layout_marginBottom="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:scaleType="fitXY"
             android:src="@drawable/baseline_arrow_back"
             app:tint="@color/primary_orange" />
 
+        <!-- Título -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="28sp"
+            android:layout_marginBottom="4dp"
             android:text="Cadastre o seu pet"
-            android:layout_marginBottom="5dp"
-            android:textStyle="bold"/>
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#3E2723" />
 
+        <!-- Aviso campos obrigatórios -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
-            android:text="Lembre-se de preencher os campos obrigátorios!"
+            android:layout_marginBottom="16dp"
+            android:text="Lembre-se de preencher os campos obrigatórios!"
             android:textColor="@color/error"
             android:textSize="12sp"
             android:textStyle="bold" />
 
+        <!-- Foto do pet -->
         <ImageView
-            android:layout_marginTop="5dp"
+            android:id="@+id/imgPetFoto"
             android:layout_width="240dp"
             android:layout_height="140dp"
             android:layout_gravity="center"
-            android:layout_marginBottom="15dp"
-            android:src="#2c2c2c"
-            android:scaleType="centerCrop"
+            android:layout_marginBottom="8dp"
             android:background="@drawable/cantos_arrendados"
-            android:clipToOutline="true"/>
+            android:clipToOutline="true"
+            android:scaleType="centerCrop"
+            android:src="@color/black" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
             android:text="Adicione uma foto"
             android:textAlignment="center"
-            android:layout_gravity="center"
-            android:textStyle="bold"
-            android:layout_marginBottom="5dp"/>
-
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:text="Nome"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"/>
+            android:textColor="#5D4037" />
+
+        <!-- ==================== NOME * ==================== -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nome "
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#3E2723" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="*"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#F44336" />
+        </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/ipPetEdtNome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
+            android:layout_marginBottom="12dp"
+            app:boxBackgroundMode="outline"
             app:boxBackgroundColor="#fffbf6"
+            app:boxStrokeColor="#a5713f"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
-            app:boxStrokeColor="#a5713f"
             app:boxStrokeErrorColor="#fd6f28"
             app:endIconMode="clear_text"
             app:endIconTint="@color/primary_orange"
@@ -92,84 +116,88 @@
             app:hintEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/edtSenha"
+                android:id="@+id/edtPetNome"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="52dp"
                 android:gravity="center_vertical"
                 android:hint="Digite o nome do seu pet"
                 android:inputType="textPersonName"
-                android:maxLength="16"
+                android:maxLength="30"
                 android:paddingHorizontal="14dp"
-                android:paddingVertical="0dp"
                 android:textColor="@color/black"
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-
+        <!-- ==================== ESPÉCIE ==================== -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Espécie"
+                android:text="Espécie "
+                android:layout_marginBottom="8dp"
                 android:textSize="18sp"
-                android:layout_marginTop="5dp"
                 android:textStyle="bold"
-                android:layout_marginBottom="10dp"/>
+                android:textColor="#3E2723" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/ipPetEspecie"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/ipPetEspecie"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:boxBackgroundMode="outline"
+            app:boxBackgroundColor="#fffbf6"
+            app:boxStrokeColor="#a5713f"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeErrorColor="#fd6f28"
+            app:endIconMode="clear_text"
+            app:endIconTint="@color/primary_orange"
+            app:errorIconTint="@color/error"
+            app:errorTextColor="@color/error"
+            app:hintEnabled="false">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtPetEspecie"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                app:boxBackgroundColor="#fffbf6"
-                app:boxCornerRadiusBottomEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusTopStart="8dp"
-                app:boxStrokeColor="#a5713f"
-                app:boxStrokeErrorColor="#fd6f28"
-                app:endIconMode="clear_text"
-                app:endIconTint="@color/primary_orange"
-                app:errorIconTint="@color/error"
-                app:errorTextColor="@color/error"
-                app:hintEnabled="false">
+                android:layout_height="52dp"
+                android:gravity="center_vertical"
+                android:hint="Ex: Cachorro"
+                android:inputType="text"
+                android:maxLength="30"
+                android:paddingHorizontal="14dp"
+                android:textColor="@color/black"
+                android:textColorHint="#AAAAAA"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/PetEspecie"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:gravity="center_vertical"
-                    android:hint="Ex: Cachorro"
-                    android:inputType="date"
-                    android:maxLength="16"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="0dp"
-                    android:textColor="@color/black"
-                    android:textColorHint="#AAAAAA"
-                    android:textSize="14sp" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
+        <!-- ==================== RAÇA ==================== -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:text="Raça"
-            android:textSize="20sp"
-            android:layout_marginTop="5dp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:layout_marginBottom="10dp"/>
+            android:textColor="#3E2723" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/ipPetRaca"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
+            android:layout_marginBottom="12dp"
+            app:boxBackgroundMode="outline"
             app:boxBackgroundColor="#fffbf6"
+            app:boxStrokeColor="#a5713f"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
-            app:boxStrokeColor="#a5713f"
             app:boxStrokeErrorColor="#fd6f28"
             app:endIconMode="clear_text"
             app:endIconTint="@color/primary_orange"
@@ -178,52 +206,71 @@
             app:hintEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/PetRaca"
+                android:id="@+id/edtPetRaca"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:gravity="center_vertical"
                 android:hint="Ex: Labrador"
-                android:inputType="date"
-                android:maxLength="16"
+                android:inputType="text"
+                android:maxLength="30"
                 android:paddingHorizontal="14dp"
-                android:paddingVertical="0dp"
                 android:textColor="@color/black"
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <RelativeLayout
+        <!-- ==================== DATA * + SEXO * ==================== -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
 
+            <!-- Data de Nascimento * -->
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_alignParentStart="true"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginEnd="8dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Data de Nascimento"
-                    android:layout_marginTop="5dp"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="10dp"/>
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Data de Nascimento "
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="#3E2723" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="*"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="#F44336" />
+                </LinearLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/ipPetDtn"
-                    android:layout_width="135dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
+                    app:boxBackgroundMode="outline"
                     app:boxBackgroundColor="#fffbf6"
+                    app:boxStrokeColor="#a5713f"
+                    app:boxStrokeWidth="1.5dp"
+                    app:boxStrokeWidthFocused="2dp"
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusTopStart="8dp"
-                    app:boxStrokeColor="#a5713f"
                     app:boxStrokeErrorColor="#fd6f28"
                     app:endIconMode="clear_text"
                     app:endIconTint="@color/primary_orange"
@@ -232,84 +279,98 @@
                     app:hintEnabled="false">
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/PetDtn"
+                        android:id="@+id/edtPetDtn"
                         android:layout_width="match_parent"
                         android:layout_height="52dp"
                         android:gravity="center_vertical"
                         android:hint="dd/mm/aaaa"
                         android:inputType="date"
-                        android:maxLength="16"
+                        android:maxLength="10"
                         android:paddingHorizontal="14dp"
-                        android:paddingVertical="0dp"
                         android:textColor="@color/black"
                         android:textColorHint="#AAAAAA"
                         android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
-
             </LinearLayout>
 
+            <!-- Sexo * -->
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_alignParentEnd="true"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:orientation="vertical"
-                android:layout_marginLeft="80dp">
+                android:layout_marginStart="8dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sexo"
-                    android:textSize="18sp"
-                    android:layout_marginTop="5dp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="10dp"/>
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sexo "
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#3E2723" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="*"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#F44336" />
+                </LinearLayout>
 
                 <androidx.appcompat.widget.AppCompatSpinner
                     android:id="@+id/PetSexoSpinner"
-                    android:layout_width="135dp"
+                    android:layout_width="match_parent"
                     android:layout_height="52dp"
                     android:background="@drawable/bg_spinner"
-                    android:backgroundTint="@null"
                     android:padding="12dp" />
-
-
-
             </LinearLayout>
+        </LinearLayout>
 
-        </RelativeLayout>
-
-        <RelativeLayout
+        <!-- ==================== PESO + PORTE * ==================== -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
 
+            <!-- Peso -->
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_alignParentStart="true"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginEnd="8dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
                     android:text="Peso (Kg)"
-                    android:textSize="20sp"
-                    android:layout_marginTop="5dp"
+                    android:textSize="16sp"
                     android:textStyle="bold"
-                    android:layout_marginBottom="10dp"/>
+                    android:textColor="#3E2723" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/ipPetPeso"
-                    android:layout_width="135dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
+                    app:boxBackgroundMode="outline"
                     app:boxBackgroundColor="#fffbf6"
+                    app:boxStrokeColor="#a5713f"
+                    app:boxStrokeWidth="1.5dp"
+                    app:boxStrokeWidthFocused="2dp"
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusTopStart="8dp"
-                    app:boxStrokeColor="#a5713f"
                     app:boxStrokeErrorColor="#fd6f28"
                     app:endIconMode="clear_text"
                     app:endIconTint="@color/primary_orange"
@@ -318,63 +379,74 @@
                     app:hintEnabled="false">
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/PetPeso"
+                        android:id="@+id/edtPetPeso"
                         android:layout_width="match_parent"
                         android:layout_height="52dp"
                         android:gravity="center_vertical"
                         android:hint="Ex: 17"
-                        android:inputType="date"
-                        android:maxLength="16"
+                        android:inputType="numberDecimal"
+                        android:maxLength="6"
                         android:paddingHorizontal="14dp"
-                        android:paddingVertical="0dp"
                         android:textColor="@color/black"
                         android:textColorHint="#AAAAAA"
                         android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
-
             </LinearLayout>
 
+            <!-- Porte * -->
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_alignParentEnd="true"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:orientation="vertical"
-                android:layout_marginLeft="80dp">
+                android:layout_marginStart="8dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Porte"
-                    android:textSize="18sp"
-                    android:layout_marginTop="5dp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="10dp"/>
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Porte "
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#3E2723" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="*"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#F44336" />
+                </LinearLayout>
 
                 <androidx.appcompat.widget.AppCompatSpinner
                     android:id="@+id/PetPorteSpinner"
-                    android:layout_width="135dp"
+                    android:layout_width="match_parent"
                     android:layout_height="52dp"
-                    android:padding="12dp"
                     android:background="@drawable/bg_spinner"
-                    android:backgroundTint="@null" />
-
-
+                    android:padding="12dp" />
             </LinearLayout>
+        </LinearLayout>
 
-        </RelativeLayout>
-
-
+        <!-- Mais Informações -->
         <TextView
-            android:layout_marginTop="18dp"
-            android:id="@+id/txtForgotPassword"
+            android:id="@+id/txtMaisInformacoes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:layout_marginBottom="20dp"
             android:gravity="end"
             android:text="Mais Informações"
             android:textColor="#5f2e16"
-            android:textSize="15sp" />
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
+        <!-- Botão Cadastrar -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCadastrar"
             android:layout_width="match_parent"
@@ -384,11 +456,7 @@
             android:textAllCaps="false"
             android:textColor="@android:color/white"
             android:textSize="16sp"
-            app:cornerRadius="8dp"/>
+            app:cornerRadius="8dp" />
 
     </LinearLayout>
-
-
-
-
 </ScrollView>
