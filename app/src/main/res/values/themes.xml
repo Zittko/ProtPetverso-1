@@ -22,4 +22,9 @@
         <item name="cornerSize">12dp</item>
     </style>
 
+    <style name="CantosArrendodados" parent="">
+        <item name="cornerRadius">8dp</item>
+        <item name="cornerFamily">rounded</item>
+    </style>
+
 </resources>
