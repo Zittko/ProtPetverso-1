@@ -1,10 +1,219 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".EscolhaPetActivity">
+    android:orientation="vertical"
+    android:background="#FFF3E0"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="24dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Espaçador de cima (empura o conteúdo para o centro) -->
+    <!-- Espaçador de cima (menor, só para dar um respiro) -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.4" />
+
+    <!-- ===== CONTEÚDO CENTRAL ===== -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <!-- Título -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seja bem-vindo!"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="#5D4037" />
+
+        <!-- Subtítulo -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="36dp"
+            android:text="O que deseja fazer agora?"
+            android:textSize="16sp"
+            android:textColor="#8D6E63" />
+
+        <!-- Card Cadastrar novo pet -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardCadastrarPet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:strokeWidth="1.5dp"
+            app:strokeColor="#FF9800">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="18dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@android:drawable/ic_input_add"
+                    app:tint="#FF9800"
+                    android:background="@drawable/bg_circulo_laranja"
+                    android:padding="10dp"
+                    android:contentDescription="Cadastrar pet" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cadastrar novo pet"
+                        android:textSize="17sp"
+                        android:textStyle="bold"
+                        android:textColor="#3E2723" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="(Você será o tutor principal)"
+                        android:textSize="13sp"
+                        android:textColor="#888888" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Texto "Ou" -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="Ou"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#5D4037" />
+
+        <!-- Card Entrar como suporte -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardEntrarSuporte"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:strokeWidth="1.5dp"
+            app:strokeColor="#FF9800">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@android:drawable/ic_input_add"
+                        app:tint="#FF9800"
+                        android:background="@drawable/bg_circulo_laranja"
+                        android:padding="10dp"
+                        android:contentDescription="Entrar como suporte" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Entrar como suporte"
+                            android:textSize="17sp"
+                            android:textStyle="bold"
+                            android:textColor="#3E2723" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="(Insira o código de outro pet)"
+                            android:textSize="13sp"
+                            android:textColor="#888888" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Campo do código -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/ipCodigoPet"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    app:boxBackgroundMode="outline"
+                    app:boxBackgroundColor="#FFF8F0"
+                    app:boxStrokeColor="#FF9800"
+                    app:boxStrokeWidth="1.5dp"
+                    app:boxCornerRadiusBottomEnd="10dp"
+                    app:boxCornerRadiusBottomStart="10dp"
+                    app:boxCornerRadiusTopEnd="10dp"
+                    app:boxCornerRadiusTopStart="10dp"
+                    app:hintEnabled="false">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edtCodigoPet"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:gravity="center"
+                        android:hint="Ex: QKZ-2813"
+                        android:inputType="textCapCharacters"
+                        android:maxLength="10"
+                        android:textColor="@color/black"
+                        android:textColorHint="#AAAAAA"
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+    <!-- Espaçador de baixo -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.2" />
+
+    <!-- Botão Voltar -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnVoltar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="Voltar"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:textColor="#5D4037"
+        app:backgroundTint="#FFCC80"
+        app:cornerRadius="12dp" />
+
+</LinearLayout>

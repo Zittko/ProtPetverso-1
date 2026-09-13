@@ -1,10 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".RecuperarSenhaActivity">
+    android:orientation="vertical"
+    android:background="#FFF3E0"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="40dp"
+    android:paddingBottom="24dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Título -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Recuperar Senha"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="#3E2723" />
+
+    <!-- Espaçador -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.5" />
+
+    <!-- Card do formulário -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="#FFE0B2"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Label Email -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Email"
+                android:textSize="14sp"
+                android:textColor="#5D4037" />
+
+            <!-- Campo de e-mail -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/ipEmailRecuperar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="#FFFFFF"
+                app:boxStrokeColor="#FF9800"
+                app:boxStrokeWidth="1.5dp"
+                app:boxCornerRadiusBottomEnd="10dp"
+                app:boxCornerRadiusBottomStart="10dp"
+                app:boxCornerRadiusTopEnd="10dp"
+                app:boxCornerRadiusTopStart="10dp"
+                app:hintEnabled="false">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edtEmailRecuperar"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:gravity="center_vertical"
+                    android:hint="Digite o e-mail cadastrado"
+                    android:inputType="textEmailAddress"
+                    android:paddingHorizontal="14dp"
+                    android:textColor="@color/black"
+                    android:textColorHint="#AAAAAA"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Botão Recuperar Senha -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRecuperarSenha"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="Recuperar Senha"
+                android:textAllCaps="false"
+                android:textSize="15sp"
+                android:textColor="@android:color/white"
+                app:backgroundTint="#E67E22"
+                app:cornerRadius="10dp" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Link "Tentar de outra forma" -->
+    <TextView
+        android:id="@+id/txtTentarOutraForma"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="12dp"
+        android:text="Tentar de outra forma"
+        android:textSize="14sp"
+        android:textColor="#E67E22"
+        android:textStyle="bold" />
+
+    <!-- Espaçador -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.5" />
+
+    <!-- Botão Voltar -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnVoltar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="Voltar"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:textColor="#5D4037"
+        app:backgroundTint="#FFCC80"
+        app:cornerRadius="12dp" />
+
+</LinearLayout>

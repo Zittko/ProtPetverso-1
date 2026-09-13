@@ -1,6 +1,7 @@
 package com.example.protpetverso_1;
 // Define o pacote do projeto.
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -143,7 +144,6 @@ public class HomeFragment extends Fragment {
         atualizarSaude(primeiroPet.getAlertasSaude());
 
         // Botão de próximo pet
-        // ===== TESTE: clique longo abre o Perfil do Pet =====
         btnProximo.setOnClickListener(v -> {
             int atual = viewPagerPets.getCurrentItem();
             int proximo = (atual + 1) % listaPets.size();
