@@ -10,6 +10,18 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ScrollView;
 import android.widget.Toast;
+
+//Imports para integração com a API
+
+import android.content.Intent;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 // Imports para Intent, Views, TextWatcher e Toast.
 
 import androidx.activity.EdgeToEdge;
@@ -27,10 +39,12 @@ import com.google.android.material.textfield.TextInputLayout;
 public class SignUpActivity extends AppCompatActivity {
 // Tela de Cadastro. Aberta a partir da LoginActivity.
 
-    TextInputEditText edtNome, edtCriarEmail, edtCriarSenha, edtSenha;
+    private SessionManager sessionManager;
+
+    TextInputEditText edtNome, edtCriarEmail, edtTelefone, edtCriarSenha, edtSenha;
     // Campos de digitação: nome, e-mail, senha e confirmação de senha.
 
-    TextInputLayout ipEdtNome, ipEdtCriarEmail, ipEdtCriarSenha, ipEdtSenha;
+    TextInputLayout ipEdtNome, ipEdtCriarEmail, ipEdtTelefone, ipEdtCriarSenha, ipEdtSenha;
     // Containers dos campos (usados para mostrar erros).
 
     ScrollView signupScroll;
@@ -51,14 +65,17 @@ public class SignUpActivity extends AppCompatActivity {
         setContentView(R.layout.signup_layout);
         // Carrega o layout da tela de cadastro.
         // Conectado com: signup_layout.xml
+        sessionManager = new SessionManager(this);
 
         // Liga os componentes do XML com as variáveis Java
         edtNome = findViewById(R.id.edtNome);
         edtCriarEmail = findViewById(R.id.edtCriarEmail);
+        edtTelefone = findViewById(R.id.edtTelefone);
         edtCriarSenha = findViewById(R.id.edtCriarSenha);
         edtSenha = findViewById(R.id.edtSenha);
         ipEdtNome = findViewById(R.id.ipEdtNome);
         ipEdtCriarEmail = findViewById(R.id.ipEdtCriarEmail);
+        ipEdtTelefone = findViewById(R.id.ipEdtTelefone);
         ipEdtCriarSenha = findViewById(R.id.ipEdtCriarSenha);
         ipEdtSenha = findViewById(R.id.ipEdtSenha);
         signupScroll = findViewById(R.id.signupScroll);
@@ -84,22 +101,19 @@ public class SignUpActivity extends AppCompatActivity {
             ipEdtCriarSenha.setError(null);
             ipEdtSenha.setError(null);
 
-            // Pega os textos digitados
             String nome = String.valueOf(edtNome.getText()).trim();
             String email = String.valueOf(edtCriarEmail.getText()).trim();
+            String telefone = String.valueOf(edtTelefone.getText()).trim(); // campo de telefone
             String senha = String.valueOf(edtCriarSenha.getText()).trim();
             String confirma = String.valueOf(edtSenha.getText()).trim();
 
             boolean valido = true;
-            // Flag que indica se o formulário passou em todas as validações.
 
-            // Validação do nome
             if (nome.isEmpty()) {
                 ipEdtNome.setError("Digite um nome");
                 valido = false;
             }
 
-            // Validação do e-mail
             if (email.isEmpty()) {
                 ipEdtCriarEmail.setError("Digite um email");
                 valido = false;
@@ -108,7 +122,15 @@ public class SignUpActivity extends AppCompatActivity {
                 valido = false;
             }
 
-            // Validação da senha
+            if (telefone.isEmpty()) {
+                ipEdtTelefone.setError("Digite um telefone");
+                valido = false;
+            }
+
+            if (valido) {
+                executarCadastro(nome, email, telefone, senha);
+            }
+
             if (senha.isEmpty()) {
                 ipEdtCriarSenha.setError("Digite uma senha");
                 valido = false;
@@ -117,30 +139,22 @@ public class SignUpActivity extends AppCompatActivity {
                 valido = false;
             }
 
-            // Validação da confirmação de senha
             if (confirma.isEmpty()) {
                 ipEdtSenha.setError("Confirme a senha");
                 valido = false;
             } else if (!senha.equals(confirma)) {
-                ipEdtSenha.setError("A senha digitada deve ser igual à senha criada acima");
+                ipEdtSenha.setError("As senhas não coincidem");
                 valido = false;
             }
 
-            // Validação dos checkboxes de termos
-            MaterialCheckBox cbTermos = findViewById(R.id.cbTermos);
-            MaterialCheckBox cbPrivacidade = findViewById(R.id.cbPrivacidade);
+            // Checkboxes de termos (se ainda existirem no layout)
+            // MaterialCheckBox cbTermos = findViewById(R.id.cbTermos);
+            // MaterialCheckBox cbPrivacidade = findViewById(R.id.cbPrivacidade);
+            // if (!cbTermos.isChecked() || !cbPrivacidade.isChecked()) {
+            //     Toast.makeText(this, "Aceite os Termos e a Política de Privacidade", Toast.LENGTH_SHORT).show();
+            //     valido = false;
+            // }
 
-            if (!cbTermos.isChecked() || !cbPrivacidade.isChecked()) {
-                Toast.makeText(this, "Aceite os Termos e a Política de Privacidade", Toast.LENGTH_SHORT).show();
-                valido = false;
-            }
-            // Conectado com: cbTermos e cbPrivacidade no signup_layout.xml
-
-            // Se tudo estiver válido, segue o fluxo (ainda comentado)
-            if (valido) {
-                // startActivity(new Intent(this, ProximaActivity.class));
-                // finish();
-            }
         });
 
         // Botão de voltar
@@ -186,5 +200,95 @@ public class SignUpActivity extends AppCompatActivity {
             signupScroll.smoothScrollTo(0, location[1] - offset);
         }, 350);
         // Conectado com: signupScroll
+    }
+
+    /**
+     * Envia os dados de cadastro para a API via Volley.
+     */
+    /**
+     * Envia os dados de cadastro para a API via Volley.
+     */
+    private void executarCadastro(String nome, String email, String telefone, String senha) {
+        btnCadastrar.setEnabled(false);
+
+        try {
+            CadastroRequest requestDto = new CadastroRequest(nome, email, telefone, senha);
+            JSONObject body = requestDto.toJsonObject();
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.POST,
+                    ApiConfig.URL_CADASTRAR,
+                    body,
+                    responseJson -> {
+                        try {
+                            CadastroResponse responseDto = CadastroResponse.fromJsonObject(responseJson);
+
+                            sessionManager.salvarSessao(
+                                    responseDto.getToken(),
+                                    responseDto.getIdUsuario(),
+                                    responseDto.getNome(),
+                                    responseDto.getEmail()
+                            );
+
+                            Toast.makeText(this, "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show();
+
+                            Intent intent = new Intent(SignUpActivity.this, CriarUsuarioActivity.class);
+                            startActivity(intent);
+                            finish();
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            btnCadastrar.setEnabled(true);
+                            Toast.makeText(this, "Erro ao processar resposta da API", Toast.LENGTH_SHORT).show();
+                        }
+                    },
+                    error -> {
+                        btnCadastrar.setEnabled(true);
+                        tratarErroHttp(error);
+                    }
+            );
+
+            VolleySingleton.getInstance(this).addToRequestQueue(request);
+
+        } catch (JSONException e) {
+            btnCadastrar.setEnabled(true);
+            e.printStackTrace();
+            Toast.makeText(this, "Erro ao montar os dados de cadastro", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Trata erros HTTP comuns da API.
+     */
+    private void tratarErroHttp(com.android.volley.VolleyError error) {
+        if (error.networkResponse != null) {
+            int statusCode = error.networkResponse.statusCode;
+            String mensagem = "Erro na requisição.";
+
+            try {
+                String body = new String(error.networkResponse.data, java.nio.charset.StandardCharsets.UTF_8);
+                JSONObject jsonError = new JSONObject(body);
+                mensagem = jsonError.optString("mensagem", mensagem);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            switch (statusCode) {
+                case 400:
+                    Toast.makeText(this, "Dados inválidos: " + mensagem, Toast.LENGTH_LONG).show();
+                    break;
+                case 409:
+                    Toast.makeText(this, "Conflito: " + mensagem, Toast.LENGTH_LONG).show();
+                    break;
+                case 500:
+                    Toast.makeText(this, "Erro interno no servidor.", Toast.LENGTH_LONG).show();
+                    break;
+                default:
+                    Toast.makeText(this, "Erro (" + statusCode + "): " + mensagem, Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        } else {
+            Toast.makeText(this, "Sem conexão com o servidor.", Toast.LENGTH_LONG).show();
+        }
     }
 }

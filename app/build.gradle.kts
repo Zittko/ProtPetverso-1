@@ -37,6 +37,10 @@ android {
 }
 
 dependencies {
+    // Volley para requisições HTTP/JSON
+    implementation("com.android.volley:volley:1.2.1")
+    // EncryptedSharedPreferences para armazenamento seguro do Token
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)

@@ -11,6 +11,17 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 // Imports para Intent, Views e TextWatcher.
 
+//Imports para integração com a API
+import android.content.Intent;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -23,6 +34,8 @@ import com.google.android.material.textfield.TextInputLayout;
 // Componentes Material dos campos de texto.
 
 public class LoginActivity extends AppCompatActivity {
+
+    private SessionManager sessionManager;
 // Tela de Login. É a Activity que aparece após a Splash.
 
     TextInputEditText edtUser, edtSenha;
@@ -57,9 +70,20 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         // Ativa o modo edge-to-edge (conteúdo atrás das barras do sistema).
 
+        sessionManager = new SessionManager(this);
+
+        // Se já estiver logado, pula o login
+        if (sessionManager.isLogado()) {
+            startActivity(new Intent(this, MenuActivity.class)); // ou EscolhaPetActivity, conforme a regra
+            finish();
+            return;
+        }
+
         setContentView(R.layout.login_layout);
         // Carrega o layout XML da tela de login.
         // Conectado com: login_layout.xml
+
+
 
         // Liga os componentes do XML com as variáveis Java
         loginScroll = findViewById(R.id.loginScroll);
@@ -84,26 +108,34 @@ public class LoginActivity extends AppCompatActivity {
 
         // Ação do botão Entrar
         btnEntrar.setOnClickListener(v -> {
-            // Arrays para validar os dois campos de forma organizada
-            TextInputEditText[] editTexts = {edtUser, edtSenha};
-            TextInputLayout[] layouts = {ipEdtUser, ipEdtSenha};
-            String[] mensagens = {"Digite um email", "Senha não digitada"};
+            ipEdtUser.setError(null);
+            ipEdtSenha.setError(null);
 
-            // Verifica se algum campo está vazio
-            for (int i = 0; i < editTexts.length; i++) {
-                String texto = String.valueOf(editTexts[i].getText()).trim();
-                if (texto.isEmpty()) {
-                    layouts[i].setError(mensagens[i]); // mostra o erro no campo
-                    return; // para a execução
-                } else {
-                    layouts[i].setError(null); // limpa o erro
-                }
+            String email = String.valueOf(edtUser.getText()).trim();
+            String senha = String.valueOf(edtSenha.getText()).trim();
+
+            boolean valido = true;
+
+            if (email.isEmpty()) {
+                ipEdtUser.setError("Digite o e-mail");
+                valido = false;
+            } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                ipEdtUser.setError("E-mail inválido");
+                valido = false;
             }
 
-            // Se passou na validação, vai para a MenuActivity
-            startActivity(new Intent(getApplicationContext(), MenuActivity.class));
-            finish(); // fecha a LoginActivity (não volta para ela com o botão voltar)
-            // Conectado com: MenuActivity
+            if (senha.isEmpty()) {
+                ipEdtSenha.setError("Digite a senha");
+                valido = false;
+            }
+
+            if (valido) {
+                executarLogin(email, senha);
+            }
+        });
+
+        txtForgotPassword.setOnClickListener(v -> {
+            startActivity(new Intent(LoginActivity.this, RecuperarSenhaActivity.class));
         });
 
         // Quando o campo senha ganha foco, sobe a tela
@@ -147,5 +179,96 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {}
         });
+
+
+    }
+    /**
+     * Envia e-mail e senha para a API e salva a sessão se der certo.
+     */
+    private void executarLogin(String email, String senha) {
+        btnEntrar.setEnabled(false);
+
+        try {
+            LoginRequest requestDto = new LoginRequest(email, senha);
+            JSONObject body = requestDto.toJsonObject();
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.POST,
+                    ApiConfig.URL_LOGIN,
+                    body,
+                    responseJson -> {
+                        try {
+                            LoginResponse responseDto = LoginResponse.fromJsonObject(responseJson);
+
+                            sessionManager.salvarSessao(
+                                    responseDto.getToken(),
+                                    responseDto.getIdUsuario(),
+                                    responseDto.getNome(),
+                                    responseDto.getEmail()
+                            );
+
+                            Toast.makeText(this, "Login realizado com sucesso!", Toast.LENGTH_SHORT).show();
+
+                            // Por enquanto vai para a Home.
+                            // Depois: verificar se tem pet e decidir entre EscolhaPet e Menu.
+                            Intent intent = new Intent(LoginActivity.this, MenuActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                            finish();
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            btnEntrar.setEnabled(true);
+                            Toast.makeText(this, "Erro ao processar resposta da API", Toast.LENGTH_SHORT).show();
+                        }
+                    },
+                    error -> {
+                        btnEntrar.setEnabled(true);
+                        tratarErroHttp(error);
+                    }
+            );
+
+            VolleySingleton.getInstance(this).addToRequestQueue(request);
+
+        } catch (JSONException e) {
+            btnEntrar.setEnabled(true);
+            e.printStackTrace();
+            Toast.makeText(this, "Erro ao montar os dados de login", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Trata erros HTTP do login.
+     */
+    private void tratarErroHttp(VolleyError error) {
+        if (error.networkResponse != null) {
+            int statusCode = error.networkResponse.statusCode;
+            String mensagem = "Erro na requisição.";
+
+            try {
+                String body = new String(error.networkResponse.data, java.nio.charset.StandardCharsets.UTF_8);
+                JSONObject jsonError = new JSONObject(body);
+                mensagem = jsonError.optString("mensagem", mensagem);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            switch (statusCode) {
+                case 400:
+                    Toast.makeText(this, "Dados inválidos: " + mensagem, Toast.LENGTH_LONG).show();
+                    break;
+                case 401:
+                    Toast.makeText(this, "E-mail ou senha incorretos.", Toast.LENGTH_LONG).show();
+                    break;
+                case 500:
+                    Toast.makeText(this, "Erro interno no servidor.", Toast.LENGTH_LONG).show();
+                    break;
+                default:
+                    Toast.makeText(this, "Erro (" + statusCode + "): " + mensagem, Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        } else {
+            Toast.makeText(this, "Sem conexão com o servidor.", Toast.LENGTH_LONG).show();
+        }
     }
 }

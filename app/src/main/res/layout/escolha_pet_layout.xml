@@ -9,8 +9,6 @@
     android:paddingTop="24dp"
     android:paddingBottom="24dp">
 
-    <!-- Espaçador de cima (empura o conteúdo para o centro) -->
-    <!-- Espaçador de cima (menor, só para dar um respiro) -->
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
