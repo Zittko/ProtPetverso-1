@@ -14,21 +14,25 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 
+import org.json.JSONArray;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Tela de Perfil do Pet.
- * Mostra a foto, nome, raça, peso, tutores vinculados
- * e as informações clínicas (personalidade e sensibilidades).
- *
- * Esta classe foi organizada pensando na futura integração com a API.
- * Quando a API estiver pronta, bastará buscar os dados do pet
- * e preencher os campos com as informações recebidas.
+ * Busca os dados em GET /api/pets/{id}/perfil com o token do usuário.
  */
 public class PerfilPetFragment extends Fragment {
 
-    // ==================== COMPONENTES DA TELA ====================
+    private SessionManager sessionManager;
+    private long petId = -1;
+
     private ImageView imgFotoPet;
     private TextView txtNomePet;
     private TextView txtRacaPeso;
@@ -40,116 +44,183 @@ public class PerfilPetFragment extends Fragment {
     private MaterialButton btnCopiarCodigo;
     private MaterialButton btnGerarQrCode;
 
-    // Construtor vazio obrigatório
     public PerfilPetFragment() {
     }
 
-    /**
-     * Cria a parte visual do Fragment (carrega o XML).
-     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_perfil_pet, container, false);
     }
 
-    /**
-     * Chamado depois que o layout foi criado.
-     * Aqui ligamos os componentes, configuramos os cliques
-     * e carregamos os dados do pet.
-     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Altera o título da Toolbar
+        sessionManager = new SessionManager(requireContext());
+
         atualizarTituloToolbar("Perfil do Pet");
-
-        // Liga os componentes do XML com as variáveis Java
         ligarComponentes(view);
-
-        // Configura os cliques dos botões
         configurarBotoes();
 
-        // Carrega as informações do pet na tela
-        // (por enquanto dados fixos, depois virá da API)
-        carregarDadosDoPet();
+        // 1) id por argumento
+        if (getArguments() != null) {
+            petId = getArguments().getLong("PET_ID", -1);
+        }
+
+        // 2) se não veio, usa o pet salvo localmente
+        if (petId <= 0) {
+            petId = sessionManager.obterPetId();
+        }
+
+        if (petId > 0) {
+            buscarPetNaApi(petId);
+        } else {
+            Toast.makeText(requireContext(), "Nenhum pet selecionado.", Toast.LENGTH_SHORT).show();
+            carregarDadosLocais();
+        }
     }
 
-    /**
-     * Liga cada elemento do XML às variáveis desta classe.
-     */
     private void ligarComponentes(View view) {
-        imgFotoPet        = view.findViewById(R.id.imgFotoPet);
-        txtNomePet        = view.findViewById(R.id.txtNomePet);
-        txtRacaPeso       = view.findViewById(R.id.txtRacaPeso);
-        txtCodigoPet      = view.findViewById(R.id.txtCodigoPet);
-        txtPersonalidade  = view.findViewById(R.id.txtPersonalidade);
+        imgFotoPet = view.findViewById(R.id.imgFotoPet);
+        txtNomePet = view.findViewById(R.id.txtNomePet);
+        txtRacaPeso = view.findViewById(R.id.txtRacaPeso);
+        txtCodigoPet = view.findViewById(R.id.txtCodigoPet);
+        txtPersonalidade = view.findViewById(R.id.txtPersonalidade);
         txtSensibilidades = view.findViewById(R.id.txtSensibilidades);
-        containerTutores  = view.findViewById(R.id.containerTutores);
-        btnEditarTutores  = view.findViewById(R.id.btnEditarTutores);
-        btnCopiarCodigo   = view.findViewById(R.id.btnCopiarCodigo);
-        btnGerarQrCode    = view.findViewById(R.id.btnGerarQrCode);
+        containerTutores = view.findViewById(R.id.containerTutores);
+        btnEditarTutores = view.findViewById(R.id.btnEditarTutores);
+        btnCopiarCodigo = view.findViewById(R.id.btnCopiarCodigo);
+        btnGerarQrCode = view.findViewById(R.id.btnGerarQrCode);
     }
 
-    /**
-     * Define o que acontece quando o usuário clica nos botões.
-     * Por enquanto apenas mostra mensagens de teste.
-     */
     private void configurarBotoes() {
-        // Botão de editar tutores
-        btnEditarTutores.setOnClickListener(v -> {
-            Toast.makeText(requireContext(),
-                    "Editar tutores em desenvolvimento",
-                    Toast.LENGTH_SHORT).show();
-        });
+        btnEditarTutores.setOnClickListener(v ->
+                Toast.makeText(requireContext(),
+                        "Editar tutores em desenvolvimento",
+                        Toast.LENGTH_SHORT).show()
+        );
 
-        // Botão copiar código
-        btnCopiarCodigo.setOnClickListener(v -> {
-            Toast.makeText(requireContext(),
-                    "Código copiado!",
-                    Toast.LENGTH_SHORT).show();
-            // No futuro: copiar o código real para a área de transferência
-        });
+        btnCopiarCodigo.setOnClickListener(v ->
+                Toast.makeText(requireContext(),
+                        "Código copiado!",
+                        Toast.LENGTH_SHORT).show()
+        );
 
-        // Botão gerar QR Code
-        btnGerarQrCode.setOnClickListener(v -> {
-            Toast.makeText(requireContext(),
-                    "Gerar QR Code em desenvolvimento",
-                    Toast.LENGTH_SHORT).show();
-        });
+        btnGerarQrCode.setOnClickListener(v ->
+                Toast.makeText(requireContext(),
+                        "Gerar QR Code em desenvolvimento",
+                        Toast.LENGTH_SHORT).show()
+        );
     }
 
     /**
-     * Preenche a tela com os dados do pet.
-     *
-     * Atualmente usa dados fixos apenas para visualização.
-     * Quando a API estiver pronta, este método deverá:
-     * 1. Buscar os dados do pet no servidor (Volley)
-     * 2. Receber o JSON de resposta
-     * 3. Chamar preencherCampos() com os valores recebidos
+     * GET /api/pets/{id}/perfil
      */
-    private void carregarDadosDoPet() {
-        // ===== DADOS TEMPORÁRIOS (apenas para teste) =====
-        String nome           = "Thor";
-        String racaPeso       = "Vira-Lata  |  12 Kg";
-        String codigo         = "Código do Pet: XYZ-987";
-        String personalidade  = "Brincalhão, Curioso";
-        String sensibilidades = "Medo de fogos de artíficio";
-        int fotoResId         = R.drawable.thor;
+    private void buscarPetNaApi(long idPet) {
+        String token = sessionManager.obterToken();
+        if (token == null || token.isEmpty()) {
+            Toast.makeText(requireContext(), "Sessão expirada. Faça login.", Toast.LENGTH_SHORT).show();
+            carregarDadosLocais();
+            return;
+        }
 
-        // Coloca os dados na tela
-        preencherCampos(nome, racaPeso, codigo, personalidade, sensibilidades, fotoResId);
+        String url = ApiConfig.URL_PET_PERFIL + idPet + "/perfil";
 
-        // Exemplo futuro:
-        // buscarPetNaApi(idDoPet);
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    String nome = response.optString("nome", "");
+                    String raca = response.optString("raca", "");
+                    double peso = response.optDouble("peso", 0);
+                    String porte = response.optString("porte", "");
+
+                    String racaPeso = raca + "  |  " + peso + " Kg";
+                    if (!porte.isEmpty()) {
+                        racaPeso = raca + "  |  " + porte + "  |  " + peso + " Kg";
+                    }
+
+                    String sensibilidades = response.optString("perfilDeSensibilidade", "—");
+                    if (sensibilidades.isEmpty()) {
+                        sensibilidades = "—";
+                    }
+
+                    String personalidade = "—";
+                    if (response.has("personalidades") && !response.isNull("personalidades")) {
+                        try {
+                            JSONArray arr = response.getJSONArray("personalidades");
+                            StringBuilder sb = new StringBuilder();
+                            for (int i = 0; i < arr.length(); i++) {
+                                if (i > 0) sb.append(", ");
+                                sb.append(arr.getString(i));
+                            }
+                            if (sb.length() > 0) {
+                                personalidade = sb.toString();
+                            }
+                        } catch (Exception e) {
+                            personalidade = response.optString("personalidades", "—");
+                        }
+                    }
+
+                    String codigo = "Código do Pet: —";
+                    int fotoResId = R.drawable.thor;
+
+                    preencherCampos(nome, racaPeso, codigo, personalidade, sensibilidades, fotoResId);
+                },
+                error -> {
+                    String msg = "Erro ao carregar pet.";
+                    if (error.networkResponse != null) {
+                        msg += " Código: " + error.networkResponse.statusCode;
+                    }
+                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+                    carregarDadosLocais();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+
+        VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
     }
 
     /**
-     * Coloca os valores recebidos nos componentes da tela.
-     * Este método é separado de propósito para facilitar
-     * a integração com a API no futuro.
+     * Fallback com dados salvos no SessionManager.
      */
+    private void carregarDadosLocais() {
+        if (sessionManager != null && sessionManager.temPetSalvo()) {
+            String nome = sessionManager.obterPetNome();
+            String raca = sessionManager.obterPetRaca();
+            String peso = sessionManager.obterPetPeso();
+            String racaPeso = raca + "  |  " + peso + " Kg";
+
+            preencherCampos(
+                    nome,
+                    racaPeso,
+                    "Código do Pet: —",
+                    "—",
+                    "—",
+                    R.drawable.thor
+            );
+        } else {
+            // último recurso (dados fixos)
+            preencherCampos(
+                    "Pet",
+                    "—",
+                    "Código do Pet: —",
+                    "—",
+                    "—",
+                    R.drawable.thor
+            );
+        }
+    }
+
     private void preencherCampos(String nome, String racaPeso, String codigo,
                                  String personalidade, String sensibilidades,
                                  int fotoResId) {
@@ -161,23 +232,6 @@ public class PerfilPetFragment extends Fragment {
         imgFotoPet.setImageResource(fotoResId);
     }
 
-    /**
-     * Método reservado para a futura integração com a API.
-     * Aqui será feita a chamada Volley para buscar
-     * os dados completos do pet no servidor.
-     */
-    private void buscarPetNaApi(int idPet) {
-        // TODO: Implementar chamada Volley no futuro
-        //
-        // Exemplo da estrutura:
-        // String url = "https://sua-api.com/pets/" + idPet;
-        // JsonObjectRequest request = new JsonObjectRequest(...);
-        // Volley.newRequestQueue(requireContext()).add(request);
-    }
-
-    /**
-     * Altera o título da Toolbar.
-     */
     private void atualizarTituloToolbar(String titulo) {
         if (getActivity() != null) {
             MaterialToolbar toolbar = getActivity().findViewById(R.id.toolbarMenu);
@@ -187,10 +241,6 @@ public class PerfilPetFragment extends Fragment {
         }
     }
 
-    /**
-     * Quando o usuário sai desta tela, volta o título
-     * da Toolbar para o valor padrão.
-     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

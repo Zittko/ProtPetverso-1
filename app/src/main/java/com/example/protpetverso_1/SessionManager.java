@@ -7,17 +7,30 @@ import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 
 /**
- * Armazena e recupera a sessão do usuário de forma segura
- * (Token JWT + dados básicos) usando EncryptedSharedPreferences.
+ * Armazena e recupera a sessão do usuário e dados locais do último pet.
+ * Usa EncryptedSharedPreferences (AES-256).
  */
 public class SessionManager {
 
-
     private static final String PREF_NAME = "user_session";
+
+    // Usuário / sessão
     private static final String KEY_TOKEN = "AUTH_TOKEN";
     private static final String KEY_USER_ID = "USER_ID";
     private static final String KEY_USER_NAME = "USER_NAME";
     private static final String KEY_USER_EMAIL = "USER_EMAIL";
+    private static final String KEY_APELIDO = "USER_APELIDO";
+    private static final String KEY_TELEFONE = "USER_TELEFONE";
+
+    // Último pet cadastrado
+    private static final String KEY_PET_ID = "PET_ID";
+    private static final String KEY_PET_NOME = "PET_NOME";
+    private static final String KEY_PET_RACA = "PET_RACA";
+    private static final String KEY_PET_ESPECIE = "PET_ESPECIE";
+    private static final String KEY_PET_PESO = "PET_PESO";
+    private static final String KEY_PET_SEXO = "PET_SEXO";
+    private static final String KEY_PET_PORTE = "PET_PORTE";
+    private static final String KEY_PET_DATA = "PET_DATA";
 
     private SharedPreferences prefs;
 
@@ -35,14 +48,12 @@ public class SessionManager {
                     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             );
         } catch (Exception e) {
-            // Fallback caso a criptografia falhe
             prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         }
     }
 
-    /**
-     * Salva os dados da sessão após login ou cadastro bem-sucedido.
-     */
+    // ==================== SESSÃO / USUÁRIO ====================
+
     public void salvarSessao(String token, long idUsuario, String nome, String email) {
         prefs.edit()
                 .putString(KEY_TOKEN, token)
@@ -68,18 +79,80 @@ public class SessionManager {
         return prefs.getString(KEY_USER_EMAIL, null);
     }
 
-    /**
-     * Verifica se existe um token salvo (usuário logado).
-     */
+    public void salvarApelido(String apelido) {
+        prefs.edit().putString(KEY_APELIDO, apelido).apply();
+    }
+
+    public String obterApelido() {
+        return prefs.getString(KEY_APELIDO, "");
+    }
+
+    public void salvarTelefone(String telefone) {
+        prefs.edit().putString(KEY_TELEFONE, telefone).apply();
+    }
+
+    public String obterTelefone() {
+        return prefs.getString(KEY_TELEFONE, "");
+    }
+
     public boolean isLogado() {
         String token = obterToken();
         return token != null && !token.isEmpty();
     }
 
-    /**
-     * Limpa toda a sessão (logout).
-     */
     public void limparSessao() {
         prefs.edit().clear().apply();
+    }
+
+    // ==================== PET ====================
+
+    public void salvarPet(long id, String nome, String raca, String especie,
+                          String peso, String sexo, String porte, String dataNascimento) {
+        prefs.edit()
+                .putLong(KEY_PET_ID, id)
+                .putString(KEY_PET_NOME, nome)
+                .putString(KEY_PET_RACA, raca)
+                .putString(KEY_PET_ESPECIE, especie)
+                .putString(KEY_PET_PESO, peso)
+                .putString(KEY_PET_SEXO, sexo)
+                .putString(KEY_PET_PORTE, porte)
+                .putString(KEY_PET_DATA, dataNascimento)
+                .apply();
+    }
+
+    public long obterPetId() {
+        return prefs.getLong(KEY_PET_ID, -1);
+    }
+
+    public String obterPetNome() {
+        return prefs.getString(KEY_PET_NOME, "");
+    }
+
+    public String obterPetRaca() {
+        return prefs.getString(KEY_PET_RACA, "");
+    }
+
+    public String obterPetEspecie() {
+        return prefs.getString(KEY_PET_ESPECIE, "");
+    }
+
+    public String obterPetPeso() {
+        return prefs.getString(KEY_PET_PESO, "");
+    }
+
+    public String obterPetSexo() {
+        return prefs.getString(KEY_PET_SEXO, "");
+    }
+
+    public String obterPetPorte() {
+        return prefs.getString(KEY_PET_PORTE, "");
+    }
+
+    public String obterPetData() {
+        return prefs.getString(KEY_PET_DATA, "");
+    }
+
+    public boolean temPetSalvo() {
+        return obterPetId() > 0 || !obterPetNome().isEmpty();
     }
 }

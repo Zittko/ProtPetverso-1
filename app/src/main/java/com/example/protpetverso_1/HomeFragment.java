@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import android.widget.ImageButton;
+import android.widget.Toast;
 // Imports básicos de View e botões.
 
 import androidx.annotation.NonNull;
@@ -144,10 +145,27 @@ public class HomeFragment extends Fragment {
         atualizarSaude(primeiroPet.getAlertasSaude());
 
         // Botão de próximo pet
-        btnProximo.setOnClickListener(v -> {
-            int atual = viewPagerPets.getCurrentItem();
-            int proximo = (atual + 1) % listaPets.size();
-            viewPagerPets.setCurrentItem(proximo, true);
+        btnProximo.setOnLongClickListener(v -> {
+            SessionManager sm = new SessionManager(requireContext());
+            long petId = sm.obterPetId();
+
+            if (petId <= 0) {
+                Toast.makeText(requireContext(), "Nenhum pet salvo. Cadastre um pet primeiro.", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
+            PerfilPetFragment fragment = new PerfilPetFragment();
+            Bundle args = new Bundle();
+            args.putLong("PET_ID", petId);
+            fragment.setArguments(args);
+
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragmentContainer, fragment)
+                    .addToBackStack(null)
+                    .commit();
+
+            return true;
         });
 
         // Botão de pet anterior

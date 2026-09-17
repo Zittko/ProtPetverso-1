@@ -3,11 +3,9 @@ package com.example.protpetverso_1;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
-import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
@@ -111,6 +109,7 @@ public class CriarUsuarioActivity extends AppCompatActivity {
                 }
             };
 
+
             // 5) Envia a requisição
             VolleySingleton.getInstance(this).addToRequestQueue(request);
 
@@ -119,6 +118,7 @@ public class CriarUsuarioActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Erro ao montar os dados.", Toast.LENGTH_SHORT).show();
         }
+
     }
 
     private void tratarErroHttp(VolleyError error) {
