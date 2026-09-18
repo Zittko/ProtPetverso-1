@@ -35,10 +35,10 @@ public class CadastrarPetRequest {
         json.put("nome", nome);
         json.put("raca", raca);
         json.put("especie", especie);
-        json.put("dataDeNascimento", dataDeNascimento);
-        json.put("porte", porte);
-        json.put("peso", peso);
-        json.put("sexo", sexo);
+        json.put("dataDeNascimento", dataDeNascimento); // yyyy-MM-dd
+        json.put("porte", porte); // PEQUENO | MEDIO | GRANDE
+        json.put("peso", peso);   // double (número)
+        json.put("sexo", sexo);   // MACHO | FEMEA
         return json;
     }
 }

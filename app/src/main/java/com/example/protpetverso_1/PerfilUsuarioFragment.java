@@ -22,9 +22,12 @@ import java.util.Map;
 
 /**
  * Tela de Perfil do Usuário.
- * Busca os dados na API (GET /api/usuarios/perfil) usando o token salvo.
- * Campos atuais da API: idUsuario, nome, apelido, email, fotoBase64.
- * Telefone será adicionado futuramente na API.
+ * Busca os dados em:
+ * GET /api/usuarios/perfil
+ * Header: Authorization: Bearer <token>
+ *
+ * Campos da API (UsuarioPerfilDTO):
+ * idUsuario, nome, apelido, email, telefone, fotoBase64
  */
 public class PerfilUsuarioFragment extends Fragment {
 
@@ -51,8 +54,10 @@ public class PerfilUsuarioFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Gerenciador da sessão (token, nome, e-mail, telefone...)
         sessionManager = new SessionManager(requireContext());
 
+        // Título da toolbar
         if (getActivity() != null) {
             MaterialToolbar toolbar = getActivity().findViewById(R.id.toolbarMenu);
             if (toolbar != null) {
@@ -63,12 +68,12 @@ public class PerfilUsuarioFragment extends Fragment {
         ligarComponentes(view);
         configurarBotaoEditar();
 
-        // Oculta data de nascimento (não existe no cadastro/API do usuário)
+        // Usuário não tem data de nascimento no cadastro/API
         if (txtDataNascimento != null) {
             txtDataNascimento.setVisibility(View.GONE);
         }
 
-        // Busca dados reais na API
+        // Busca os dados reais na API
         buscarUsuarioNaApi();
     }
 
@@ -83,6 +88,7 @@ public class PerfilUsuarioFragment extends Fragment {
         }
     }
 
+    /** Liga os IDs do XML às variáveis Java. */
     private void ligarComponentes(View view) {
         imgFotoPerfil = view.findViewById(R.id.imgFotoPerfil);
         txtUsername = view.findViewById(R.id.txtUsername);
@@ -93,6 +99,7 @@ public class PerfilUsuarioFragment extends Fragment {
         btnEditarPerfil = view.findViewById(R.id.btnEditarPerfil);
     }
 
+    /** Clique do botão de editar (ainda em desenvolvimento). */
     private void configurarBotaoEditar() {
         btnEditarPerfil.setOnClickListener(v ->
                 Toast.makeText(requireContext(),
@@ -102,12 +109,13 @@ public class PerfilUsuarioFragment extends Fragment {
     }
 
     /**
-     * GET /api/usuarios/perfil
-     * Header: Authorization: Bearer <token>
+     * Chama a API para buscar o perfil do usuário logado.
+     * Se falhar, usa os dados salvos no SessionManager.
      */
     private void buscarUsuarioNaApi() {
         String token = sessionManager.obterToken();
 
+        // Sem token não dá para chamar endpoint protegido
         if (token == null || token.isEmpty()) {
             Toast.makeText(requireContext(),
                     "Sessão expirada. Faça login novamente.",
@@ -121,28 +129,27 @@ public class PerfilUsuarioFragment extends Fragment {
                 ApiConfig.URL_USUARIO_PERFIL,
                 null,
                 response -> {
+                    // Leitura segura: se o campo não existir, usa valor padrão
                     String nome = response.optString("nome", "");
                     String apelido = response.optString("apelido", "");
                     String email = response.optString("email", "");
-                    String fotoBase64 = response.optString("fotoBase64", "");
+                    String telefone = response.optString("telefone", "");
+                    // String fotoBase64 = response.optString("fotoBase64", "");
 
-                    // Quando a API incluir telefone, descomente:
-                    // String telefone = response.optString("telefone", "");
-                    String telefone = "";
-
+                    // Atualiza cache local
                     if (!apelido.isEmpty()) {
                         sessionManager.salvarApelido(apelido);
+                    }
+                    if (!telefone.isEmpty()) {
+                        sessionManager.salvarTelefone(telefone);
                     }
 
                     preencherCampos(
                             apelido.isEmpty() ? "usuário" : apelido,
                             nome,
                             email,
-                            telefone
+                            telefone.isEmpty() ? "—" : telefone
                     );
-
-                    // TODO: quando houver fotoBase64 válida, converter e exibir em imgFotoPerfil
-                    // if (fotoBase64 != null && !fotoBase64.isEmpty()) { ... }
                 },
                 error -> {
                     String msg = "Erro ao carregar perfil.";
@@ -155,6 +162,7 @@ public class PerfilUsuarioFragment extends Fragment {
         ) {
             @Override
             public Map<String, String> getHeaders() {
+                // Token no header, como a API exige
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Authorization", "Bearer " + token);
                 headers.put("Content-Type", "application/json");
@@ -165,36 +173,34 @@ public class PerfilUsuarioFragment extends Fragment {
         VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
     }
 
-    /**
-     * Fallback: usa dados salvos no SessionManager.
-     */
+    /** Fallback: mostra o que já está salvo no aparelho. */
     private void preencherComSessaoLocal() {
         preencherCampos(
-                safe(sessionManager.obterApelido(), "usuário"),
-                safe(sessionManager.obterNome(), ""),
-                safe(sessionManager.obterEmail(), ""),
-                ""
+                valorOuPadrao(sessionManager.obterApelido(), "usuário"),
+                valorOuPadrao(sessionManager.obterNome(), ""),
+                valorOuPadrao(sessionManager.obterEmail(), ""),
+                valorOuPadrao(sessionManager.obterTelefone(), "—")
         );
     }
 
+    /** Coloca os textos nos TextViews da tela. */
     private void preencherCampos(String username, String nome, String email, String telefone) {
         txtUsername.setText(username);
         txtNome.setText(nome);
         txtEmail.setText(email);
-
         if (txtTelefone != null) {
-            txtTelefone.setText((telefone == null || telefone.isEmpty()) ? "—" : telefone);
+            txtTelefone.setText(telefone);
         }
     }
 
-    private String safe(String value, String fallback) {
-        return (value == null || value.isEmpty()) ? fallback : value;
+    private String valorOuPadrao(String valor, String padrao) {
+        return (valor == null || valor.isEmpty()) ? padrao : valor;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // Atualiza ao voltar para a tela
+        // Ao voltar para a tela, atualiza os dados
         if (sessionManager != null) {
             buscarUsuarioNaApi();
         }

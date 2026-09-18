@@ -26,7 +26,15 @@ import java.util.Map;
 
 /**
  * Tela de Perfil do Pet.
- * Busca os dados em GET /api/pets/{id}/perfil com o token do usuário.
+ * Busca os dados em:
+ * GET /api/pets/{id}/perfil
+ * Header: Authorization: Bearer <token>
+ *
+ * Campos da API (PetPerfilDTO):
+ * id, nome, raca, especie, porte, peso, sexo,
+ * fotoPetBase64, perfilDeSensibilidade, personalidades
+ *
+ * Se personalidade/sensibilidade não vierem, a tela mostra "—" e não quebra.
  */
 public class PerfilPetFragment extends Fragment {
 
@@ -63,12 +71,12 @@ public class PerfilPetFragment extends Fragment {
         ligarComponentes(view);
         configurarBotoes();
 
-        // 1) id por argumento
+        // 1) tenta receber o id por argumento
         if (getArguments() != null) {
             petId = getArguments().getLong("PET_ID", -1);
         }
 
-        // 2) se não veio, usa o pet salvo localmente
+        // 2) se não veio, usa o último pet salvo no cadastro
         if (petId <= 0) {
             petId = sessionManager.obterPetId();
         }
@@ -116,6 +124,8 @@ public class PerfilPetFragment extends Fragment {
 
     /**
      * GET /api/pets/{id}/perfil
+     * Lê os campos com optString/optDouble para não quebrar
+     * quando personalidade ou sensibilidade estiverem vazias.
      */
     private void buscarPetNaApi(long idPet) {
         String token = sessionManager.obterToken();
@@ -132,21 +142,20 @@ public class PerfilPetFragment extends Fragment {
                 url,
                 null,
                 response -> {
-                    String nome = response.optString("nome", "");
-                    String raca = response.optString("raca", "");
+                    String nome = response.optString("nome", "—");
+                    String raca = response.optString("raca", "—");
                     double peso = response.optDouble("peso", 0);
-                    String porte = response.optString("porte", "");
 
+                    // Linha principal da tela: raça e peso
                     String racaPeso = raca + "  |  " + peso + " Kg";
-                    if (!porte.isEmpty()) {
-                        racaPeso = raca + "  |  " + porte + "  |  " + peso + " Kg";
-                    }
 
+                    // Opcional: sensibilidade
                     String sensibilidades = response.optString("perfilDeSensibilidade", "—");
                     if (sensibilidades.isEmpty()) {
                         sensibilidades = "—";
                     }
 
+                    // Opcional: lista de personalidades
                     String personalidade = "—";
                     if (response.has("personalidades") && !response.isNull("personalidades")) {
                         try {
@@ -159,13 +168,13 @@ public class PerfilPetFragment extends Fragment {
                             if (sb.length() > 0) {
                                 personalidade = sb.toString();
                             }
-                        } catch (Exception e) {
-                            personalidade = response.optString("personalidades", "—");
+                        } catch (Exception ignored) {
+                            // se não for array, mantém "—"
                         }
                     }
 
                     String codigo = "Código do Pet: —";
-                    int fotoResId = R.drawable.thor;
+                    int fotoResId = R.drawable.thor; // até tratar fotoPetBase64
 
                     preencherCampos(nome, racaPeso, codigo, personalidade, sensibilidades, fotoResId);
                 },
@@ -191,7 +200,7 @@ public class PerfilPetFragment extends Fragment {
     }
 
     /**
-     * Fallback com dados salvos no SessionManager.
+     * Fallback com dados salvos no SessionManager após o cadastro do pet.
      */
     private void carregarDadosLocais() {
         if (sessionManager != null && sessionManager.temPetSalvo()) {
@@ -200,27 +209,13 @@ public class PerfilPetFragment extends Fragment {
             String peso = sessionManager.obterPetPeso();
             String racaPeso = raca + "  |  " + peso + " Kg";
 
-            preencherCampos(
-                    nome,
-                    racaPeso,
-                    "Código do Pet: —",
-                    "—",
-                    "—",
-                    R.drawable.thor
-            );
+            preencherCampos(nome, racaPeso, "Código do Pet: —", "—", "—", R.drawable.thor);
         } else {
-            // último recurso (dados fixos)
-            preencherCampos(
-                    "Pet",
-                    "—",
-                    "Código do Pet: —",
-                    "—",
-                    "—",
-                    R.drawable.thor
-            );
+            preencherCampos("Pet", "—", "Código do Pet: —", "—", "—", R.drawable.thor);
         }
     }
 
+    /** Coloca os valores nos componentes da tela. */
     private void preencherCampos(String nome, String racaPeso, String codigo,
                                  String personalidade, String sensibilidades,
                                  int fotoResId) {

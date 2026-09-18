@@ -16,4 +16,5 @@ public class ApiConfig {
     // Base do perfil do pet: complete com o id na hora da requisição
     // Exemplo final: https://petversorestfull.onrender.com/api/pets/3/perfil
     public static final String URL_PET_PERFIL = BASE_URL + "/api/pets/";
+// uso: URL_PET_PERFIL + id + "/perfil"
 }

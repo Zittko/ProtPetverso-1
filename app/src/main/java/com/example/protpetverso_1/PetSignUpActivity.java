@@ -2,6 +2,7 @@ package com.example.protpetverso_1;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
@@ -14,6 +15,7 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import org.json.JSONObject;
 
+import java.text.Normalizer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -81,24 +83,59 @@ public class PetSignUpActivity extends AppCompatActivity {
         PetPorteSpinner.setAdapter(adapterPorte);
     }
 
+    /**
+     * Converte a data da tela para o formato da API: yyyy-MM-dd
+     * Aceita: 06/04/2020 | 06-04-2020 | 06042020 | 2020-04-06
+     */
     private String converterDataParaApi(String dataTela) {
-        String[] partes = dataTela.split("/");
-        if (partes.length != 3) return dataTela;
-        return partes[2] + "-" + partes[1] + "-" + partes[0];
+        if (dataTela == null) return "";
+
+        dataTela = dataTela.trim();
+
+        // 06/04/2020 ou 06-04-2020
+        if (dataTela.contains("/") || dataTela.contains("-")) {
+            // se já estiver yyyy-MM-dd
+            if (dataTela.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return dataTela;
+            }
+            String[] partes = dataTela.split("[/-]");
+            if (partes.length == 3) {
+                String dia = partes[0].length() == 1 ? "0" + partes[0] : partes[0];
+                String mes = partes[1].length() == 1 ? "0" + partes[1] : partes[1];
+                String ano = partes[2];
+                return ano + "-" + mes + "-" + dia;
+            }
+        }
+
+        // 06042020 (ddMMyyyy)
+        if (dataTela.matches("\\d{8}")) {
+            String dia = dataTela.substring(0, 2);
+            String mes = dataTela.substring(2, 4);
+            String ano = dataTela.substring(4, 8);
+            return ano + "-" + mes + "-" + dia;
+        }
+
+        return dataTela;
     }
 
     private String normalizarPorte(String porteTela) {
         if (porteTela == null) return "MEDIO";
-        String p = porteTela.trim().toUpperCase();
+        String p = Normalizer.normalize(porteTela, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .trim()
+                .toUpperCase();
         if (p.startsWith("PEQ")) return "PEQUENO";
         if (p.startsWith("MED")) return "MEDIO";
         if (p.startsWith("GRA")) return "GRANDE";
-        return p;
+        return "MEDIO";
     }
 
     private String normalizarSexo(String sexoTela) {
         if (sexoTela == null) return "MACHO";
-        String s = sexoTela.trim().toUpperCase();
+        String s = Normalizer.normalize(sexoTela, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .trim()
+                .toUpperCase();
         if (s.startsWith("F")) return "FEMEA";
         return "MACHO";
     }
@@ -173,7 +210,7 @@ public class PetSignUpActivity extends AppCompatActivity {
             final String nomeFinal = nome;
             final String racaFinal = raca;
             final String especieFinal = especie;
-            final String dataFinal = dataApi;
+            final String dataFinal = dataApi; // yyyy-MM-dd
             final String sexoFinal = sexo;
             final String porteFinal = porte;
             final String pesoFinal = pesoStr.isEmpty() ? "0" : pesoStr.replace(",", ".");
@@ -182,6 +219,8 @@ public class PetSignUpActivity extends AppCompatActivity {
                     nome, raca, especie, dataApi, porte, peso, sexo
             );
             JSONObject body = dto.toJsonObject();
+
+            Log.d("PET_CADASTRO", "Enviando: " + body.toString());
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
@@ -201,7 +240,7 @@ public class PetSignUpActivity extends AppCompatActivity {
                                         ? Long.parseLong((String) id)
                                         : response.getLong("idPet");
                             }
-                            android.util.Log.d("PET_CADASTRO", "Resposta: " + response.toString());
+                            Log.d("PET_CADASTRO", "Resposta: " + response.toString());
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -255,7 +294,7 @@ public class PetSignUpActivity extends AppCompatActivity {
                 String body = new String(error.networkResponse.data, java.nio.charset.StandardCharsets.UTF_8);
                 JSONObject json = new JSONObject(body);
                 mensagem = json.optString("mensagem", mensagem);
-                android.util.Log.e("PET_CADASTRO", body);
+                Log.e("PET_CADASTRO", body);
             } catch (Exception e) {
                 e.printStackTrace();
             }
