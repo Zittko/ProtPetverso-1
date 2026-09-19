@@ -145,51 +145,37 @@ public class HomeFragment extends Fragment {
         atualizarSaude(primeiroPet.getAlertasSaude());
 
         // Botão de próximo pet
-        btnProximo.setOnLongClickListener(v -> {
-            SessionManager sm = new SessionManager(requireContext());
-            long petId = sm.obterPetId();
+        // Clique longo no botão "próximo pet" → Perfil do Pet
+        if (btnProximo != null) {
+            btnProximo.setOnLongClickListener(v -> {
+                SessionManager sm = new SessionManager(requireContext());
+                long petId = sm.obterPetId();
 
-            if (petId <= 0) {
-                Toast.makeText(requireContext(), "Nenhum pet salvo. Cadastre um pet primeiro.", Toast.LENGTH_SHORT).show();
+                PerfilPetFragment fragment = new PerfilPetFragment();
+                Bundle args = new Bundle();
+                args.putLong("PET_ID", petId);
+                fragment.setArguments(args);
+
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragmentContainer, fragment)
+                        .addToBackStack(null)
+                        .commit();
                 return true;
-            }
+            });
+        }
 
-            PerfilPetFragment fragment = new PerfilPetFragment();
-            Bundle args = new Bundle();
-            args.putLong("PET_ID", petId);
-            fragment.setArguments(args);
-
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragmentContainer, fragment)
-                    .addToBackStack(null)
-                    .commit();
-
-            return true;
-        });
-
-        // Botão de pet anterior
-        btnAnterior.setOnClickListener(v -> {
-            int atual = viewPagerPets.getCurrentItem();
-            int anterior = (atual - 1 + listaPets.size()) % listaPets.size(); // vai para o último no início
-            viewPagerPets.setCurrentItem(anterior, true);
-        });
-
-        // Detecta quando o usuário muda de pet (seta ou deslize)
-        viewPagerPets.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                // position = índice do pet que está aparecendo agora
-                Pet petAtual = listaPets.get(position);
-
-
-                //Salva o pet selecionado para a agenda usar depois
-                PetSelecionado.setPet(petAtual);
-                // Atualiza as duas RecyclerViews com os dados desse pet
-                atualizarAgenda(petAtual.getTarefas());
-                atualizarSaude(petAtual.getAlertasSaude());
-            }
-        });
+// Clique longo no botão "pet anterior" → Perfil do Usuário
+        if (btnAnterior != null) {
+            btnAnterior.setOnLongClickListener(v -> {
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragmentContainer, new PerfilUsuarioFragment())
+                        .addToBackStack(null)
+                        .commit();
+                return true;
+            });
+        }
         // Conectado com: ViewPager2 + métodos atualizarAgenda e atualizarSaude
     }
 }

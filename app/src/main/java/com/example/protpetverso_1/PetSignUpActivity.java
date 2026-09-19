@@ -1,11 +1,17 @@
 package com.example.protpetverso_1;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
@@ -15,6 +21,7 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.text.Normalizer;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +35,28 @@ public class PetSignUpActivity extends AppCompatActivity {
 
     private com.google.android.material.button.MaterialButton btnCadastrar;
     private android.widget.ImageButton btnVoltar;
+    private ImageView imgFotoPetCadastro;
 
     private SessionManager sessionManager;
+    private String fotoBase64; // foto opcional do pet
+
+    /** Um toque na foto abre a galeria */
+    private final ActivityResultLauncher<String> selecionarFoto =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri == null) return;
+                try {
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                    bitmap = redimensionar(bitmap, 800);
+                    fotoBase64 = bitmapParaBase64(bitmap);
+                    if (imgFotoPetCadastro != null) {
+                        imgFotoPetCadastro.setImageBitmap(bitmap);
+                        imgFotoPetCadastro.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, "Erro ao carregar a foto", Toast.LENGTH_SHORT).show();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,11 +82,18 @@ public class PetSignUpActivity extends AppCompatActivity {
 
         btnCadastrar = findViewById(R.id.btnCadastrar);
         btnVoltar = findViewById(R.id.btnVoltar);
+        imgFotoPetCadastro = findViewById(R.id.imgPetFoto); // id do XML
 
         configurarSpinners();
+        configurarDatePicker();
 
         if (btnVoltar != null) {
             btnVoltar.setOnClickListener(v -> finish());
+        }
+
+        // Toque simples na foto → galeria
+        if (imgFotoPetCadastro != null) {
+            imgFotoPetCadastro.setOnClickListener(v -> selecionarFoto.launch("image/*"));
         }
 
         btnCadastrar.setOnClickListener(v -> {
@@ -83,21 +117,49 @@ public class PetSignUpActivity extends AppCompatActivity {
         PetPorteSpinner.setAdapter(adapterPorte);
     }
 
-    /**
-     * Converte a data da tela para o formato da API: yyyy-MM-dd
-     * Aceita: 06/04/2020 | 06-04-2020 | 06042020 | 2020-04-06
-     */
+    private void configurarDatePicker() {
+        if (edtPetDtn == null) return;
+        edtPetDtn.setOnClickListener(v -> abrirDatePicker());
+        if (ipPetDtn != null) {
+            ipPetDtn.setEndIconOnClickListener(v -> abrirDatePicker());
+        }
+    }
+
+    private void abrirDatePicker() {
+        final java.util.Calendar calendario = java.util.Calendar.getInstance();
+        String texto = String.valueOf(edtPetDtn.getText()).trim();
+        try {
+            if (texto.matches("\\d{2}/\\d{2}/\\d{4}")) {
+                String[] p = texto.split("/");
+                calendario.set(Integer.parseInt(p[2]), Integer.parseInt(p[1]) - 1, Integer.parseInt(p[0]));
+            }
+        } catch (Exception ignored) { }
+
+        new android.app.DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    String dataFormatada = String.format(
+                            java.util.Locale.getDefault(),
+                            "%02d/%02d/%04d",
+                            dayOfMonth, month + 1, year
+                    );
+                    edtPetDtn.setText(dataFormatada);
+                },
+                calendario.get(java.util.Calendar.YEAR),
+                calendario.get(java.util.Calendar.MONTH),
+                calendario.get(java.util.Calendar.DAY_OF_MONTH)
+        ).show();
+    }
+
     private String converterDataParaApi(String dataTela) {
         if (dataTela == null) return "";
-
         dataTela = dataTela.trim();
 
-        // 06/04/2020 ou 06-04-2020
+        if (dataTela.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            return dataTela;
+        }
+
         if (dataTela.contains("/") || dataTela.contains("-")) {
-            // se já estiver yyyy-MM-dd
-            if (dataTela.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                return dataTela;
-            }
             String[] partes = dataTela.split("[/-]");
             if (partes.length == 3) {
                 String dia = partes[0].length() == 1 ? "0" + partes[0] : partes[0];
@@ -107,7 +169,6 @@ public class PetSignUpActivity extends AppCompatActivity {
             }
         }
 
-        // 06042020 (ddMMyyyy)
         if (dataTela.matches("\\d{8}")) {
             String dia = dataTela.substring(0, 2);
             String mes = dataTela.substring(2, 4);
@@ -210,7 +271,7 @@ public class PetSignUpActivity extends AppCompatActivity {
             final String nomeFinal = nome;
             final String racaFinal = raca;
             final String especieFinal = especie;
-            final String dataFinal = dataApi; // yyyy-MM-dd
+            final String dataFinal = dataApi;
             final String sexoFinal = sexo;
             final String porteFinal = porte;
             final String pesoFinal = pesoStr.isEmpty() ? "0" : pesoStr.replace(",", ".");
@@ -219,6 +280,13 @@ public class PetSignUpActivity extends AppCompatActivity {
                     nome, raca, especie, dataApi, porte, peso, sexo
             );
             JSONObject body = dto.toJsonObject();
+
+            // Foto opcional — campo da API: fotoBase64
+            if (fotoBase64 != null && !fotoBase64.isEmpty()) {
+                body.put("fotoBase64", fotoBase64);
+            } else {
+                body.put("fotoBase64", JSONObject.NULL);
+            }
 
             Log.d("PET_CADASTRO", "Enviando: " + body.toString());
 
@@ -284,6 +352,24 @@ public class PetSignUpActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Erro ao preparar cadastro do pet.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private String bitmapParaBase64(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+        return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
+    }
+
+    private Bitmap redimensionar(Bitmap original, int maxLado) {
+        float escala = Math.min(
+                (float) maxLado / original.getWidth(),
+                (float) maxLado / original.getHeight());
+        if (escala >= 1f) return original;
+        return Bitmap.createScaledBitmap(
+                original,
+                Math.round(original.getWidth() * escala),
+                Math.round(original.getHeight() * escala),
+                true);
     }
 
     private void tratarErroHttp(com.android.volley.VolleyError error) {

@@ -22,6 +22,8 @@
             android:layout_height="130dp"
             android:layout_marginBottom="16dp"
             android:src="@drawable/luna"
+            android:clickable="true"
+            android:focusable="true"
             android:scaleType="centerCrop"
             android:background="@drawable/bg_circulo_perfil"
             android:clipToOutline="true"

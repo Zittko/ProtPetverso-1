@@ -1,6 +1,10 @@
 package com.example.protpetverso_1;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +13,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -17,17 +23,16 @@ import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.material.appbar.MaterialToolbar;
 
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Tela de Perfil do Usuário.
- * Busca os dados em:
- * GET /api/usuarios/perfil
- * Header: Authorization: Bearer <token>
- *
- * Campos da API (UsuarioPerfilDTO):
- * idUsuario, nome, apelido, email, telefone, fotoBase64
+ * Perfil do Usuário
+ * GET  /api/usuarios/perfil
+ * PUT  /api/usuarios/atualizarPerfil  (apelido + fotoBase64)
  */
 public class PerfilUsuarioFragment extends Fragment {
 
@@ -40,6 +45,31 @@ public class PerfilUsuarioFragment extends Fragment {
     private TextView txtEmail;
     private TextView txtTelefone;
     private ImageButton btnEditarPerfil;
+
+    private String fotoBase64Atual;
+    private String apelidoAtual = "";
+
+    /**
+     * Abre a galeria e, ao escolher a foto:
+     * 1) mostra no ImageView
+     * 2) converte para Base64
+     * 3) envia no PUT da API
+     */
+    private final ActivityResultLauncher<String> selecionarFoto =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri == null || getContext() == null) return;
+                try {
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(
+                            requireContext().getContentResolver(), uri);
+                    bitmap = redimensionar(bitmap, 800);
+                    fotoBase64Atual = bitmapParaBase64(bitmap);
+                    imgFotoPerfil.setImageBitmap(bitmap);
+                    enviarFotoUsuario();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(requireContext(), "Erro ao carregar foto", Toast.LENGTH_SHORT).show();
+                }
+            });
 
     public PerfilUsuarioFragment() {
     }
@@ -54,10 +84,8 @@ public class PerfilUsuarioFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Gerenciador da sessão (token, nome, e-mail, telefone...)
         sessionManager = new SessionManager(requireContext());
 
-        // Título da toolbar
         if (getActivity() != null) {
             MaterialToolbar toolbar = getActivity().findViewById(R.id.toolbarMenu);
             if (toolbar != null) {
@@ -68,12 +96,13 @@ public class PerfilUsuarioFragment extends Fragment {
         ligarComponentes(view);
         configurarBotaoEditar();
 
-        // Usuário não tem data de nascimento no cadastro/API
+        // Clique na foto → escolher nova imagem
+        imgFotoPerfil.setOnClickListener(v -> selecionarFoto.launch("image/*"));
+
         if (txtDataNascimento != null) {
             txtDataNascimento.setVisibility(View.GONE);
         }
 
-        // Busca os dados reais na API
         buscarUsuarioNaApi();
     }
 
@@ -88,7 +117,6 @@ public class PerfilUsuarioFragment extends Fragment {
         }
     }
 
-    /** Liga os IDs do XML às variáveis Java. */
     private void ligarComponentes(View view) {
         imgFotoPerfil = view.findViewById(R.id.imgFotoPerfil);
         txtUsername = view.findViewById(R.id.txtUsername);
@@ -99,7 +127,6 @@ public class PerfilUsuarioFragment extends Fragment {
         btnEditarPerfil = view.findViewById(R.id.btnEditarPerfil);
     }
 
-    /** Clique do botão de editar (ainda em desenvolvimento). */
     private void configurarBotaoEditar() {
         btnEditarPerfil.setOnClickListener(v ->
                 Toast.makeText(requireContext(),
@@ -109,13 +136,10 @@ public class PerfilUsuarioFragment extends Fragment {
     }
 
     /**
-     * Chama a API para buscar o perfil do usuário logado.
-     * Se falhar, usa os dados salvos no SessionManager.
+     * GET /api/usuarios/perfil
      */
     private void buscarUsuarioNaApi() {
         String token = sessionManager.obterToken();
-
-        // Sem token não dá para chamar endpoint protegido
         if (token == null || token.isEmpty()) {
             Toast.makeText(requireContext(),
                     "Sessão expirada. Faça login novamente.",
@@ -129,14 +153,15 @@ public class PerfilUsuarioFragment extends Fragment {
                 ApiConfig.URL_USUARIO_PERFIL,
                 null,
                 response -> {
-                    // Leitura segura: se o campo não existir, usa valor padrão
                     String nome = response.optString("nome", "");
                     String apelido = response.optString("apelido", "");
                     String email = response.optString("email", "");
                     String telefone = response.optString("telefone", "");
-                    // String fotoBase64 = response.optString("fotoBase64", "");
+                    String fotoBase64 = response.optString("fotoBase64", "");
 
-                    // Atualiza cache local
+                    apelidoAtual = apelido;
+                    fotoBase64Atual = fotoBase64;
+
                     if (!apelido.isEmpty()) {
                         sessionManager.salvarApelido(apelido);
                     }
@@ -150,6 +175,9 @@ public class PerfilUsuarioFragment extends Fragment {
                             email,
                             telefone.isEmpty() ? "—" : telefone
                     );
+
+                    // Mostra a foto salva na API
+                    mostrarFotoBase64(fotoBase64, imgFotoPerfil);
                 },
                 error -> {
                     String msg = "Erro ao carregar perfil.";
@@ -162,7 +190,6 @@ public class PerfilUsuarioFragment extends Fragment {
         ) {
             @Override
             public Map<String, String> getHeaders() {
-                // Token no header, como a API exige
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Authorization", "Bearer " + token);
                 headers.put("Content-Type", "application/json");
@@ -173,17 +200,66 @@ public class PerfilUsuarioFragment extends Fragment {
         VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
     }
 
-    /** Fallback: mostra o que já está salvo no aparelho. */
+    /**
+     * PUT /api/usuarios/atualizarPerfil
+     * Envia apelido atual + nova foto em Base64
+     */
+    private void enviarFotoUsuario() {
+        String token = sessionManager.obterToken();
+        if (token == null || token.isEmpty()) {
+            Toast.makeText(requireContext(), "Sessão expirada.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (fotoBase64Atual == null || fotoBase64Atual.isEmpty()) {
+            Toast.makeText(requireContext(), "Nenhuma foto selecionada.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            JSONObject body = new JSONObject();
+            body.put("apelido", apelidoAtual == null ? "" : apelidoAtual);
+            body.put("fotoBase64", fotoBase64Atual);
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.PUT,
+                    ApiConfig.URL_ATUALIZAR_PERFIL,
+                    body,
+                    response -> Toast.makeText(requireContext(),
+                            "Foto atualizada!", Toast.LENGTH_SHORT).show(),
+                    error -> {
+                        String msg = "Erro ao enviar foto.";
+                        if (error.networkResponse != null) {
+                            msg += " Código: " + error.networkResponse.statusCode;
+                        }
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+                    }
+            ) {
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer " + token);
+                    headers.put("Content-Type", "application/json");
+                    return headers;
+                }
+            };
+
+            VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(requireContext(), "Erro ao montar envio da foto.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void preencherComSessaoLocal() {
+        apelidoAtual = valorOuPadrao(sessionManager.obterApelido(), "usuário");
         preencherCampos(
-                valorOuPadrao(sessionManager.obterApelido(), "usuário"),
+                apelidoAtual,
                 valorOuPadrao(sessionManager.obterNome(), ""),
                 valorOuPadrao(sessionManager.obterEmail(), ""),
                 valorOuPadrao(sessionManager.obterTelefone(), "—")
         );
     }
 
-    /** Coloca os textos nos TextViews da tela. */
     private void preencherCampos(String username, String nome, String email, String telefone) {
         txtUsername.setText(username);
         txtNome.setText(nome);
@@ -197,12 +273,46 @@ public class PerfilUsuarioFragment extends Fragment {
         return (valor == null || valor.isEmpty()) ? padrao : valor;
     }
 
+    /** Converte Bitmap para Base64 (JPEG). */
+    private String bitmapParaBase64(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+        return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
+    }
+
+    /** Reduz a imagem para não gerar Base64 enorme. */
+    private Bitmap redimensionar(Bitmap original, int maxLado) {
+        float escala = Math.min(
+                (float) maxLado / original.getWidth(),
+                (float) maxLado / original.getHeight());
+        if (escala >= 1f) return original;
+        int novaL = Math.round(original.getWidth() * escala);
+        int novaA = Math.round(original.getHeight() * escala);
+        return Bitmap.createScaledBitmap(original, novaL, novaA, true);
+    }
+
+    /** Mostra foto que veio da API em Base64. */
+    private void mostrarFotoBase64(String base64, ImageView imageView) {
+        if (base64 == null || base64.isEmpty() || imageView == null) return;
+        try {
+            if (base64.contains(",")) {
+                base64 = base64.substring(base64.indexOf(",") + 1);
+            }
+            byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
+            Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            if (bmp != null) {
+                imageView.setImageBitmap(bmp);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        // Ao voltar para a tela, atualiza os dados
-        if (sessionManager != null) {
-            buscarUsuarioNaApi();
-        }
+        // Não chama GET toda vez se quiser evitar sobrescrever foto recém-escolhida.
+        // Se preferir sempre atualizar da API, descomente:
+        // if (sessionManager != null) buscarUsuarioNaApi();
     }
 }

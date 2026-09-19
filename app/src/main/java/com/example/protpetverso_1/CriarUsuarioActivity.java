@@ -29,6 +29,13 @@ public class CriarUsuarioActivity extends AppCompatActivity {
     private ImageView imgAvatar;
 
 
+    private String bitmapParaBase64(android.graphics.Bitmap bitmap) {
+        java.io.ByteArrayOutputStream stream = new java.io.ByteArrayOutputStream();
+        // compacta para não ficar um JSON enorme
+        bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 70, stream);
+        byte[] bytes = stream.toByteArray();
+        return android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +51,7 @@ public class CriarUsuarioActivity extends AppCompatActivity {
         imgAvatar = findViewById(R.id.imgAvatar);
 
         btnVoltar.setOnClickListener(v -> finish());
+        imgAvatar.setOnClickListener(v -> selecionarFoto.launch("image/*"));
 
         btnAvancar.setOnClickListener(v -> {
             ipNomeUsuario.setError(null);
@@ -143,4 +151,45 @@ public class CriarUsuarioActivity extends AppCompatActivity {
             Toast.makeText(this, "Sem conexão com o servidor.", Toast.LENGTH_LONG).show();
         }
     }
+
+    private android.graphics.Bitmap fotoSelecionada;
+    private String fotoBase64;
+
+    private final androidx.activity.result.ActivityResultLauncher<String> selecionarFoto =
+            registerForActivityResult(
+                    new androidx.activity.result.contract.ActivityResultContracts.GetContent(),
+                    uri -> {
+                        if (uri == null) return;
+                        try {
+                            android.graphics.Bitmap bitmap =
+                                    android.provider.MediaStore.Images.Media.getBitmap(
+                                            getContentResolver(), uri);
+
+                            // redimensiona para não estourar memória/JSON
+                            bitmap = redimensionar(bitmap, 800);
+
+                            fotoSelecionada = bitmap;
+                            fotoBase64 = bitmapParaBase64(bitmap);
+
+                            // mostra na tela
+                            imgAvatar.setImageBitmap(bitmap);
+                            imgAvatar.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(this, "Erro ao carregar a foto", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+            );
+
+    private android.graphics.Bitmap redimensionar(android.graphics.Bitmap original, int maxLado) {
+        int largura = original.getWidth();
+        int altura = original.getHeight();
+        float escala = Math.min((float) maxLado / largura, (float) maxLado / altura);
+        if (escala >= 1f) return original;
+        int novaL = Math.round(largura * escala);
+        int novaA = Math.round(altura * escala);
+        return android.graphics.Bitmap.createScaledBitmap(original, novaL, novaA, true);
+    }
+
+
 }
