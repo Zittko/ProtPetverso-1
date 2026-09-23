@@ -145,37 +145,18 @@ public class HomeFragment extends Fragment {
         atualizarSaude(primeiroPet.getAlertasSaude());
 
         // Botão de próximo pet
-        // Clique longo no botão "próximo pet" → Perfil do Pet
-        if (btnProximo != null) {
-            btnProximo.setOnLongClickListener(v -> {
-                SessionManager sm = new SessionManager(requireContext());
-                long petId = sm.obterPetId();
+        btnProximo.setOnClickListener(v -> {
+            int atual = viewPagerPets.getCurrentItem();
+            int proximo = (atual + 1) % listaPets.size();
+            viewPagerPets.setCurrentItem(proximo, true);
+        });
 
-                PerfilPetFragment fragment = new PerfilPetFragment();
-                Bundle args = new Bundle();
-                args.putLong("PET_ID", petId);
-                fragment.setArguments(args);
-
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragmentContainer, fragment)
-                        .addToBackStack(null)
-                        .commit();
-                return true;
-            });
-        }
-
-// Clique longo no botão "pet anterior" → Perfil do Usuário
-        if (btnAnterior != null) {
-            btnAnterior.setOnLongClickListener(v -> {
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragmentContainer, new PerfilUsuarioFragment())
-                        .addToBackStack(null)
-                        .commit();
-                return true;
-            });
-        }
+        //Botão de pet anterior
+        btnAnterior.setOnClickListener(v -> {
+            int atual = viewPagerPets.getCurrentItem();
+            int anterior = (atual - 1 + listaPets.size()) % listaPets.size();
+            viewPagerPets.setCurrentItem(anterior, true);
+        });
         // Conectado com: ViewPager2 + métodos atualizarAgenda e atualizarSaude
     }
 }

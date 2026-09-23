@@ -21,7 +21,7 @@
             android:layout_width="130dp"
             android:layout_height="130dp"
             android:layout_marginBottom="16dp"
-            android:src="@drawable/luna"
+            android:src="@drawable/bg_circulo_perfil"
             android:clickable="true"
             android:focusable="true"
             android:scaleType="centerCrop"
@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="36dp"
-            android:text="carlosbuenow"
+            android:text=""
             android:textSize="19sp"
             android:textStyle="bold"
             android:textColor="#5D4037" />
@@ -97,30 +97,12 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:layout_marginBottom="20dp"
-                    android:text="Carlos Henrique Bueno"
+                    android:text=""
                     android:textSize="14sp"
                     android:textColor="#000000"
                      />
 
                 <!-- Data de Nascimento -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Data de Nascimento"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#000000" />
-
-                <TextView
-                    android:id="@+id/txtDataNascimento"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:layout_marginBottom="20dp"
-                    android:text="02/08/1998"
-                    android:textSize="14sp"
-                    android:textColor="#000000"
-                     />
 
                 <!-- E-mail -->
                 <TextView
@@ -137,7 +119,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:layout_marginBottom="20dp"
-                    android:text="carlinhos290826@hotmail.com"
+                    android:text=""
                     android:textSize="14sp"
                     android:textColor="#000000" />
 
@@ -155,7 +137,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:text="(11) 98765-4321"
+                    android:text=""
                     android:textSize="14sp"
                     android:textColor="#000000" />
 

@@ -41,7 +41,6 @@ public class PerfilUsuarioFragment extends Fragment {
     private ImageView imgFotoPerfil;
     private TextView txtUsername;
     private TextView txtNome;
-    private TextView txtDataNascimento;
     private TextView txtEmail;
     private TextView txtTelefone;
     private ImageButton btnEditarPerfil;
@@ -99,9 +98,6 @@ public class PerfilUsuarioFragment extends Fragment {
         // Clique na foto → escolher nova imagem
         imgFotoPerfil.setOnClickListener(v -> selecionarFoto.launch("image/*"));
 
-        if (txtDataNascimento != null) {
-            txtDataNascimento.setVisibility(View.GONE);
-        }
 
         buscarUsuarioNaApi();
     }
@@ -121,7 +117,6 @@ public class PerfilUsuarioFragment extends Fragment {
         imgFotoPerfil = view.findViewById(R.id.imgFotoPerfil);
         txtUsername = view.findViewById(R.id.txtUsername);
         txtNome = view.findViewById(R.id.txtNome);
-        txtDataNascimento = view.findViewById(R.id.txtDataNascimento);
         txtEmail = view.findViewById(R.id.txtEmail);
         txtTelefone = view.findViewById(R.id.txtTelefone);
         btnEditarPerfil = view.findViewById(R.id.btnEditarPerfil);

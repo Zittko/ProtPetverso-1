@@ -32,7 +32,7 @@
                     android:layout_width="110dp"
                     android:layout_height="110dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/luna"
+                    android:src="@drawable/bg_foto_pet"
                     android:background="@drawable/bg_foto_pet"
                     android:clipToOutline="true"
                     android:contentDescription="Foto do pet" />
@@ -49,7 +49,7 @@
                         android:id="@+id/txtNomePet"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Thor"
+                        android:text=""
                         android:textSize="26sp"
                         android:textStyle="bold"
                         android:textColor="#3E2723" />
@@ -59,7 +59,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Vira-Lata  |  12 Kg"
+                        android:text=""
                         android:textSize="15sp"
                         android:textColor="#6D4C41" />
                 </LinearLayout>
