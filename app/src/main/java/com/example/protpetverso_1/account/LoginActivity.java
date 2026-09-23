@@ -1,4 +1,4 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.account;
 // Define o pacote do projeto.
 
 import android.content.Intent;
@@ -12,7 +12,6 @@ import android.widget.TextView;
 // Imports para Intent, Views e TextWatcher.
 
 //Imports para integração com a API
-import android.content.Intent;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -29,6 +28,11 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 // Imports para Edge-to-Edge e tratamento de teclado/barras do sistema.
 
+import com.example.protpetverso_1.ApiConfig;
+import com.example.protpetverso_1.MenuActivity;
+import com.example.protpetverso_1.R;
+import com.example.protpetverso_1.SessionManager;
+import com.example.protpetverso_1.VolleySingleton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 // Componentes Material dos campos de texto.

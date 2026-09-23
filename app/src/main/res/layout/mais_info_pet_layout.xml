@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#ffe8ce">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarMaisInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#f08c4b"
+        app:navigationIcon="@drawable/baseline_arrow_back"
+        app:navigationIconTint="@color/text_orange"
+        app:title="Mais Informações"
+        app:titleTextColor="@color/text_orange"
+        app:titleCentered="true" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- PERSONALIDADE -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Personalidade"
+                android:textColor="#5f2e16"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Chips pré-definidos + escolhidos -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@android:color/white"
+                app:cardCornerRadius="12dp"
+                app:strokeColor="#FF9800"
+                app:strokeWidth="1dp"
+                app:cardElevation="0dp"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupPersonalidades"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    app:chipSpacing="8dp"
+                    app:singleSelection="false" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Escreva a personalidade do seu pet"
+                android:textColor="#5f2e16"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Um único campo digitável -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/ipNovaPersonalidade"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Ex: Brincalhão"
+                app:boxBackgroundMode="outline"
+                app:boxStrokeColor="#FF9800"
+                android:layout_marginBottom="8dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edtNovaPersonalidade"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textCapSentences"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAdicionarCaracteristica"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Adicionar outra característica"
+                android:textAllCaps="false"
+                app:icon="@android:drawable/ic_input_add"
+                app:backgroundTint="#f08c4b"
+                android:layout_marginBottom="24dp" />
+
+            <!-- SENSIBILIDADES -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sensibilidades"
+                android:textColor="#5f2e16"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/ipSensibilidades"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Ex: Fica agitado com barulhos altos"
+                app:boxBackgroundMode="outline"
+                app:boxStrokeColor="#FF9800"
+                android:layout_marginBottom="24dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edtSensibilidades"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:minLines="3"
+                    android:gravity="top" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFinalizarCadastro"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Finalizar cadastro"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                app:backgroundTint="#f08c4b"
+                app:cornerRadius="8dp" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

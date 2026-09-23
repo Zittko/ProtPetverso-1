@@ -1,28 +1,26 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.account;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * DTO de resposta do cadastro.
- * Lê o JSON devolvido pela API (id, nome, email, token).
+ * DTO de resposta do login.
+ * Lê id, nome, email e token devolvidos pela API.
  */
-public class CadastroResponse {
+public class LoginResponse {
 
     private long idUsuario;
     private String nome;
     private String email;
     private String token;
 
-    public static CadastroResponse fromJsonObject(JSONObject json) throws JSONException {
-        CadastroResponse response = new CadastroResponse();
+    public static LoginResponse fromJsonObject(JSONObject json) throws JSONException {
+        LoginResponse response = new LoginResponse();
 
-        // A API devolve "idUsuario" (pode vir como String ou número)
-        if (json.has("idUsuario")) {
-            Object id = json.get("idUsuario");
-            response.idUsuario = (id instanceof String)
-                    ? Long.parseLong((String) id)
-                    : json.getLong("idUsuario");
+        if (json.has("id_usuario")) {
+            response.idUsuario = json.getLong("id_usuario");
+        } else if (json.has("id")) {
+            response.idUsuario = json.getLong("id");
         }
 
         response.nome = json.optString("nome", "");

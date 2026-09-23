@@ -1,4 +1,4 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.pet;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -8,6 +8,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -16,6 +17,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.protpetverso_1.ApiConfig;
+import com.example.protpetverso_1.account.LoginActivity;
+import com.example.protpetverso_1.MenuActivity;
+import com.example.protpetverso_1.R;
+import com.example.protpetverso_1.SessionManager;
+import com.example.protpetverso_1.VolleySingleton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -36,11 +43,11 @@ public class PetSignUpActivity extends AppCompatActivity {
     private com.google.android.material.button.MaterialButton btnCadastrar;
     private android.widget.ImageButton btnVoltar;
     private ImageView imgFotoPetCadastro;
+    private TextView txtMaisInformacoes;
 
     private SessionManager sessionManager;
-    private String fotoBase64; // foto opcional do pet
+    private String fotoBase64;
 
-    /** Um toque na foto abre a galeria */
     private final ActivityResultLauncher<String> selecionarFoto =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri == null) return;
@@ -82,7 +89,8 @@ public class PetSignUpActivity extends AppCompatActivity {
 
         btnCadastrar = findViewById(R.id.btnCadastrar);
         btnVoltar = findViewById(R.id.btnVoltar);
-        imgFotoPetCadastro = findViewById(R.id.imgPetFoto); // id do XML
+        imgFotoPetCadastro = findViewById(R.id.imgPetFoto);
+        txtMaisInformacoes = findViewById(R.id.txtMaisInformacoes); // id do texto "Mais Informações" no XML
 
         configurarSpinners();
         configurarDatePicker();
@@ -91,15 +99,23 @@ public class PetSignUpActivity extends AppCompatActivity {
             btnVoltar.setOnClickListener(v -> finish());
         }
 
-        // Toque simples na foto → galeria
         if (imgFotoPetCadastro != null) {
             imgFotoPetCadastro.setOnClickListener(v -> selecionarFoto.launch("image/*"));
         }
 
+        // Cadastrar → Home (sem tela extra)
         btnCadastrar.setOnClickListener(v -> {
             if (!validarCampos()) return;
-            cadastrarPetNaApi();
+            cadastrarPetNaApi(false);
         });
+
+        // Mais Informações → cadastra e abre tela de personalidade/sensibilidade
+        if (txtMaisInformacoes != null) {
+            txtMaisInformacoes.setOnClickListener(v -> {
+                if (!validarCampos()) return;
+                cadastrarPetNaApi(true);
+            });
+        }
     }
 
     private void configurarSpinners() {
@@ -238,7 +254,11 @@ public class PetSignUpActivity extends AppCompatActivity {
         return ok;
     }
 
-    private void cadastrarPetNaApi() {
+    /**
+     * @param abrirMaisInfo true  = depois do POST abre MaisInfoPetActivity
+     *                      false = depois do POST vai para a Home
+     */
+    private void cadastrarPetNaApi(boolean abrirMaisInfo) {
         btnCadastrar.setEnabled(false);
 
         String token = sessionManager.obterToken();
@@ -281,7 +301,6 @@ public class PetSignUpActivity extends AppCompatActivity {
             );
             JSONObject body = dto.toJsonObject();
 
-            // Foto opcional — campo da API: fotoBase64
             if (fotoBase64 != null && !fotoBase64.isEmpty()) {
                 body.put("fotoBase64", fotoBase64);
             } else {
@@ -326,9 +345,15 @@ public class PetSignUpActivity extends AppCompatActivity {
 
                         Toast.makeText(PetSignUpActivity.this, "Pet cadastrado com sucesso!", Toast.LENGTH_SHORT).show();
 
-                        Intent intent = new Intent(PetSignUpActivity.this, MenuActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
+                        if (abrirMaisInfo) {
+                            Intent intent = new Intent(PetSignUpActivity.this, MaisInfoPetActivity.class);
+                            intent.putExtra("PET_ID", petId > 0 ? petId : sessionManager.obterPetId());
+                            startActivity(intent);
+                        } else {
+                            Intent intent = new Intent(PetSignUpActivity.this, MenuActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                        }
                         finish();
                     },
                     error -> {

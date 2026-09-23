@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
 
     <application
         android:allowBackup="true"
@@ -14,7 +17,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProtPetverso1">
         <activity
-            android:name=".SignUpActivity"
+            android:name=".pet.MaisInfoPetActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MaisInfoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".account.SignUpActivity"
             android:exported="false"
             android:theme="@style/Theme.ProtPetverso1"
             android:windowSoftInputMode="adjustResize" />
@@ -22,7 +31,7 @@
             android:name=".MenuActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".account.LoginActivity"
             android:exported="false"
             android:theme="@style/Theme.ProtPetverso1"
             android:windowSoftInputMode="adjustResize" />
@@ -40,19 +49,19 @@
             android:name=".MainActivity"
             android:exported="true" />
         <activity
-            android:name=".PetSignUpActivity"
+            android:name=".pet.PetSignUpActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".EscolhaPetActivity"
+            android:name=".pet.EscolhaPetActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".CriarUsuarioActivity"
+            android:name=".user.CriarUsuarioActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".RecuperarSenhaActivity"
+            android:name=".account.RecuperarSenhaActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
     </application>

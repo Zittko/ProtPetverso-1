@@ -1,7 +1,6 @@
 package com.example.protpetverso_1;
 // Define o pacote do projeto.
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +8,6 @@ import android.view.ViewGroup;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import android.widget.ImageButton;
-import android.widget.Toast;
 // Imports básicos de View e botões.
 
 import androidx.annotation.NonNull;
@@ -20,7 +18,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 // Imports do Fragment, RecyclerView e ViewPager2.
 
-import java.time.LocalTime;
+import com.example.protpetverso_1.pet.Pet;
+import com.example.protpetverso_1.pet.PetAdapter;
+import com.example.protpetverso_1.pet.PetSelecionado;
+import com.example.protpetverso_1.schedule.Tarefa;
+import com.example.protpetverso_1.schedule.TarefaAdapter;
+import com.example.protpetverso_1.vaccine.AlertaSaude;
+import com.example.protpetverso_1.vaccine.AlertaSaudeAdapter;
+
 import java.util.ArrayList;
 import java.util.List;
 // Usados para criar as listas de Pets, Tarefas e Alertas.

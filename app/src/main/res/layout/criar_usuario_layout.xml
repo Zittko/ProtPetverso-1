@@ -26,16 +26,23 @@
         android:layout_weight="0.6" />
 
     <!-- Avatar -->
-    <ImageView
-        android:id="@+id/imgAvatar"
-        android:layout_width="130dp"
-        android:layout_height="130dp"
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="120dp"
+        android:layout_height="120dp"
         android:layout_gravity="center_horizontal"
-        android:src="@android:drawable/ic_input_add"
-        android:scaleType="center"
-        android:background="@drawable/bg_circulo_perfil"
-        android:padding="30dp"
-        android:contentDescription="Escolher avatar" />
+        app:cardCornerRadius="60dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="2dp"
+        app:strokeColor="#FF9800">
+
+        <ImageView
+            android:id="@+id/imgAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/baseline_add"
+            android:scaleType="centerCrop"
+            android:contentDescription="Foto do usuário" />
+    </com.google.android.material.card.MaterialCardView>
 
     <TextView
         android:layout_width="wrap_content"

@@ -1,9 +1,10 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.pet;
 
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.protpetverso_1.R;
 import com.google.android.material.card.MaterialCardView;
 
 public class EscolhaPetActivity extends AppCompatActivity {

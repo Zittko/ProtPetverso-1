@@ -1,7 +1,9 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.account;
 
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.protpetverso_1.R;
 
 public class RecuperarSenhaActivity extends AppCompatActivity {
 

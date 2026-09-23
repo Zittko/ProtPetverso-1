@@ -1,22 +1,39 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.user;
 
-import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
+import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Bundle;
+import android.util.Base64;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.protpetverso_1.ApiConfig;
+import com.example.protpetverso_1.pet.EscolhaPetActivity;
+import com.example.protpetverso_1.account.LoginActivity;
+import com.example.protpetverso_1.R;
+import com.example.protpetverso_1.SessionManager;
+import com.example.protpetverso_1.VolleySingleton;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.yalantis.ucrop.UCrop;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,19 +45,35 @@ public class CriarUsuarioActivity extends AppCompatActivity {
     private MaterialButton btnAvancar, btnVoltar;
     private ImageView imgAvatar;
 
+    private String fotoBase64;
 
-    private String bitmapParaBase64(android.graphics.Bitmap bitmap) {
-        java.io.ByteArrayOutputStream stream = new java.io.ByteArrayOutputStream();
-        // compacta para não ficar um JSON enorme
-        bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 70, stream);
-        byte[] bytes = stream.toByteArray();
-        return android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
-    }
+    /** 1) Galeria */
+    private final ActivityResultLauncher<String> selecionarFoto =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri == null) return;
+                iniciarRecorte(uri);
+            });
+
+    /** 2) Retorno do uCrop */
+    private final ActivityResultLauncher<Intent> recortarFoto =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri resultUri = UCrop.getOutput(result.getData());
+                    if (resultUri != null) {
+                        processarFotoRecortada(resultUri);
+                    }
+                } else if (result.getResultCode() == UCrop.RESULT_ERROR && result.getData() != null) {
+                    Throwable cropError = UCrop.getError(result.getData());
+                    Toast.makeText(this,
+                            "Erro no recorte: " + (cropError != null ? cropError.getMessage() : ""),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.criar_usuario_layout); // seu layout
+        setContentView(R.layout.criar_usuario_layout);
 
         sessionManager = new SessionManager(this);
 
@@ -51,31 +84,77 @@ public class CriarUsuarioActivity extends AppCompatActivity {
         imgAvatar = findViewById(R.id.imgAvatar);
 
         btnVoltar.setOnClickListener(v -> finish());
-        imgAvatar.setOnClickListener(v -> selecionarFoto.launch("image/*"));
+
+        if (imgAvatar != null) {
+            imgAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imgAvatar.setOnClickListener(v -> selecionarFoto.launch("image/*"));
+        }
 
         btnAvancar.setOnClickListener(v -> {
             ipNomeUsuario.setError(null);
 
             String apelido = String.valueOf(edtNomeUsuario.getText()).trim();
-
             if (apelido.isEmpty()) {
                 ipNomeUsuario.setError("Digite um nome de usuário");
                 return;
             }
 
-            // Por enquanto sem foto (null). Depois podemos enviar Base64.
-            atualizarPerfil(apelido, null);
+            // Envia apelido + foto (se escolhida)
+            atualizarPerfil(apelido, fotoBase64);
         });
     }
 
+    private void iniciarRecorte(Uri origem) {
+        Uri destino = Uri.fromFile(new File(getCacheDir(), "crop_criar_usuario.jpg"));
+
+        UCrop.Options options = new UCrop.Options();
+        options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
+        options.setCompressionQuality(80);
+        options.setToolbarTitle("Ajustar foto");
+        options.setFreeStyleCropEnabled(false);
+
+        Intent intent = UCrop.of(origem, destino)
+                .withAspectRatio(1, 1)
+                .withMaxResultSize(800, 800)
+                .withOptions(options)
+                .getIntent(this);
+
+        recortarFoto.launch(intent);
+    }
+
+    private void processarFotoRecortada(Uri uri) {
+        try {
+            InputStream input = getContentResolver().openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(input);
+            if (input != null) input.close();
+
+            if (bitmap == null) {
+                Toast.makeText(this, "Não foi possível ler a foto", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            fotoBase64 = bitmapParaBase64(bitmap);
+            imgAvatar.setImageBitmap(bitmap);
+            imgAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erro ao processar foto", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String bitmapParaBase64(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+        return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
+    }
+
     /**
-     * Envia apelido (e foto opcional) para a API.
-     * Usa o token salvo no SessionManager no header Authorization.
+     * PUT /api/usuarios/atualizarPerfil
+     * Header: Authorization Bearer token
      */
     private void atualizarPerfil(String apelido, String fotoBase64) {
         btnAvancar.setEnabled(false);
 
-        // 1) Recupera o token salvo no cadastro/login
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
             Toast.makeText(this, "Sessão expirada. Faça login novamente.", Toast.LENGTH_SHORT).show();
@@ -86,28 +165,24 @@ public class CriarUsuarioActivity extends AppCompatActivity {
         }
 
         try {
-            // 2) Monta o JSON
             AtualizarPerfilRequest dto = new AtualizarPerfilRequest(apelido, fotoBase64);
             JSONObject body = dto.toJsonObject();
 
-            // 3) Cria a requisição PUT
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.PUT,
                     ApiConfig.URL_ATUALIZAR_PERFIL,
                     body,
                     response -> {
-                        // Sucesso
+                        sessionManager.salvarApelido(apelido);
                         Toast.makeText(this, "Perfil atualizado!", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(CriarUsuarioActivity.this, EscolhaPetActivity.class));
                         finish();
                     },
                     error -> {
-                        // Erro
                         btnAvancar.setEnabled(true);
                         tratarErroHttp(error);
                     }
             ) {
-                // 4) Aqui vai o HEADER com o token
                 @Override
                 public Map<String, String> getHeaders() {
                     Map<String, String> headers = new HashMap<>();
@@ -117,8 +192,6 @@ public class CriarUsuarioActivity extends AppCompatActivity {
                 }
             };
 
-
-            // 5) Envia a requisição
             VolleySingleton.getInstance(this).addToRequestQueue(request);
 
         } catch (JSONException e) {
@@ -126,7 +199,6 @@ public class CriarUsuarioActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Erro ao montar os dados.", Toast.LENGTH_SHORT).show();
         }
-
     }
 
     private void tratarErroHttp(VolleyError error) {
@@ -151,45 +223,4 @@ public class CriarUsuarioActivity extends AppCompatActivity {
             Toast.makeText(this, "Sem conexão com o servidor.", Toast.LENGTH_LONG).show();
         }
     }
-
-    private android.graphics.Bitmap fotoSelecionada;
-    private String fotoBase64;
-
-    private final androidx.activity.result.ActivityResultLauncher<String> selecionarFoto =
-            registerForActivityResult(
-                    new androidx.activity.result.contract.ActivityResultContracts.GetContent(),
-                    uri -> {
-                        if (uri == null) return;
-                        try {
-                            android.graphics.Bitmap bitmap =
-                                    android.provider.MediaStore.Images.Media.getBitmap(
-                                            getContentResolver(), uri);
-
-                            // redimensiona para não estourar memória/JSON
-                            bitmap = redimensionar(bitmap, 800);
-
-                            fotoSelecionada = bitmap;
-                            fotoBase64 = bitmapParaBase64(bitmap);
-
-                            // mostra na tela
-                            imgAvatar.setImageBitmap(bitmap);
-                            imgAvatar.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Toast.makeText(this, "Erro ao carregar a foto", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-            );
-
-    private android.graphics.Bitmap redimensionar(android.graphics.Bitmap original, int maxLado) {
-        int largura = original.getWidth();
-        int altura = original.getHeight();
-        float escala = Math.min((float) maxLado / largura, (float) maxLado / altura);
-        if (escala >= 1f) return original;
-        int novaL = Math.round(largura * escala);
-        int novaA = Math.round(altura * escala);
-        return android.graphics.Bitmap.createScaledBitmap(original, novaL, novaA, true);
-    }
-
-
 }

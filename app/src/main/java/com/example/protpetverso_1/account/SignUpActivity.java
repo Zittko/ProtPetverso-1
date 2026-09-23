@@ -1,4 +1,4 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.account;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,11 +18,19 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.protpetverso_1.ApiConfig;
+import com.example.protpetverso_1.R;
+import com.example.protpetverso_1.SessionManager;
+import com.example.protpetverso_1.VolleySingleton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.example.protpetverso_1.user.CadastroRequest;
+import com.example.protpetverso_1.user.CadastroResponse;
+import com.example.protpetverso_1.user.CriarUsuarioActivity;
 
 /**
  * Tela de Cadastro.

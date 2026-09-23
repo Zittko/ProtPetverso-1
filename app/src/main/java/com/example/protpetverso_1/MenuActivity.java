@@ -12,9 +12,15 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
+import com.example.protpetverso_1.pet.PerfilPetFragment;
+import com.example.protpetverso_1.pet.PetsFragment;
+import com.example.protpetverso_1.schedule.AgendaFragment;
+import com.example.protpetverso_1.vaccine.VacinaFragment;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
+
+import com.example.protpetverso_1.user.PerfilUsuarioFragment;
 
 /**
  * Activity principal após o login.

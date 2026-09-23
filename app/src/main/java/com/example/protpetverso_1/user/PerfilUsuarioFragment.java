@@ -1,9 +1,10 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.user;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,11 +22,18 @@ import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.protpetverso_1.ApiConfig;
+import com.example.protpetverso_1.R;
+import com.example.protpetverso_1.SessionManager;
+import com.example.protpetverso_1.VolleySingleton;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.yalantis.ucrop.UCrop;
 
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +41,8 @@ import java.util.Map;
  * Perfil do Usuário
  * GET  /api/usuarios/perfil
  * PUT  /api/usuarios/atualizarPerfil  (apelido + fotoBase64)
+ *
+ * Foto: galeria → recorte (uCrop 1:1) → Base64 → API
  */
 public class PerfilUsuarioFragment extends Fragment {
 
@@ -48,25 +58,26 @@ public class PerfilUsuarioFragment extends Fragment {
     private String fotoBase64Atual;
     private String apelidoAtual = "";
 
-    /**
-     * Abre a galeria e, ao escolher a foto:
-     * 1) mostra no ImageView
-     * 2) converte para Base64
-     * 3) envia no PUT da API
-     */
+    /** 1) Escolhe a foto na galeria */
     private final ActivityResultLauncher<String> selecionarFoto =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri == null || getContext() == null) return;
-                try {
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(
-                            requireContext().getContentResolver(), uri);
-                    bitmap = redimensionar(bitmap, 800);
-                    fotoBase64Atual = bitmapParaBase64(bitmap);
-                    imgFotoPerfil.setImageBitmap(bitmap);
-                    enviarFotoUsuario();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Toast.makeText(requireContext(), "Erro ao carregar foto", Toast.LENGTH_SHORT).show();
+                iniciarRecorte(uri);
+            });
+
+    /** 2) Volta do uCrop com a foto já enquadrada */
+    private final ActivityResultLauncher<android.content.Intent> recortarFoto =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri resultUri = UCrop.getOutput(result.getData());
+                    if (resultUri != null) {
+                        processarFotoRecortada(resultUri);
+                    }
+                } else if (result.getResultCode() == UCrop.RESULT_ERROR && result.getData() != null) {
+                    Throwable cropError = UCrop.getError(result.getData());
+                    Toast.makeText(requireContext(),
+                            "Erro no recorte: " + (cropError != null ? cropError.getMessage() : ""),
+                            Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -95,9 +106,9 @@ public class PerfilUsuarioFragment extends Fragment {
         ligarComponentes(view);
         configurarBotaoEditar();
 
-        // Clique na foto → escolher nova imagem
+        // Um toque na foto → galeria → recorte
         imgFotoPerfil.setOnClickListener(v -> selecionarFoto.launch("image/*"));
-
+        imgFotoPerfil.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
         buscarUsuarioNaApi();
     }
@@ -131,8 +142,50 @@ public class PerfilUsuarioFragment extends Fragment {
     }
 
     /**
-     * GET /api/usuarios/perfil
+     * Abre o uCrop em formato quadrado (ideal para foto circular).
+     * O usuário move/aplica zoom no enquadramento.
      */
+    private void iniciarRecorte(Uri origem) {
+        Uri destino = Uri.fromFile(new File(requireContext().getCacheDir(), "crop_perfil.jpg"));
+
+        UCrop.Options options = new UCrop.Options();
+        options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
+        options.setCompressionQuality(80);
+        options.setFreeStyleCropEnabled(false); // mantém proporção 1:1
+        options.setHideBottomControls(false);
+        options.setToolbarTitle("Ajustar foto");
+
+        android.content.Intent intent = UCrop.of(origem, destino)
+                .withAspectRatio(1, 1)
+                .withMaxResultSize(800, 800)
+                .withOptions(options)
+                .getIntent(requireContext());
+
+        recortarFoto.launch(intent);
+    }
+
+    /** Lê a foto recortada, mostra na tela e envia para a API. */
+    private void processarFotoRecortada(Uri uri) {
+        try {
+            InputStream input = requireContext().getContentResolver().openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(input);
+            if (input != null) input.close();
+
+            if (bitmap == null) {
+                Toast.makeText(requireContext(), "Não foi possível ler a foto", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            fotoBase64Atual = bitmapParaBase64(bitmap);
+            imgFotoPerfil.setImageBitmap(bitmap);
+            imgFotoPerfil.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            enviarFotoUsuario();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(requireContext(), "Erro ao processar foto", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void buscarUsuarioNaApi() {
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
@@ -157,12 +210,8 @@ public class PerfilUsuarioFragment extends Fragment {
                     apelidoAtual = apelido;
                     fotoBase64Atual = fotoBase64;
 
-                    if (!apelido.isEmpty()) {
-                        sessionManager.salvarApelido(apelido);
-                    }
-                    if (!telefone.isEmpty()) {
-                        sessionManager.salvarTelefone(telefone);
-                    }
+                    if (!apelido.isEmpty()) sessionManager.salvarApelido(apelido);
+                    if (!telefone.isEmpty()) sessionManager.salvarTelefone(telefone);
 
                     preencherCampos(
                             apelido.isEmpty() ? "usuário" : apelido,
@@ -170,8 +219,6 @@ public class PerfilUsuarioFragment extends Fragment {
                             email,
                             telefone.isEmpty() ? "—" : telefone
                     );
-
-                    // Mostra a foto salva na API
                     mostrarFotoBase64(fotoBase64, imgFotoPerfil);
                 },
                 error -> {
@@ -195,10 +242,6 @@ public class PerfilUsuarioFragment extends Fragment {
         VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
     }
 
-    /**
-     * PUT /api/usuarios/atualizarPerfil
-     * Envia apelido atual + nova foto em Base64
-     */
     private void enviarFotoUsuario() {
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
@@ -259,34 +302,19 @@ public class PerfilUsuarioFragment extends Fragment {
         txtUsername.setText(username);
         txtNome.setText(nome);
         txtEmail.setText(email);
-        if (txtTelefone != null) {
-            txtTelefone.setText(telefone);
-        }
+        if (txtTelefone != null) txtTelefone.setText(telefone);
     }
 
     private String valorOuPadrao(String valor, String padrao) {
         return (valor == null || valor.isEmpty()) ? padrao : valor;
     }
 
-    /** Converte Bitmap para Base64 (JPEG). */
     private String bitmapParaBase64(Bitmap bitmap) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
         return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
     }
 
-    /** Reduz a imagem para não gerar Base64 enorme. */
-    private Bitmap redimensionar(Bitmap original, int maxLado) {
-        float escala = Math.min(
-                (float) maxLado / original.getWidth(),
-                (float) maxLado / original.getHeight());
-        if (escala >= 1f) return original;
-        int novaL = Math.round(original.getWidth() * escala);
-        int novaA = Math.round(original.getHeight() * escala);
-        return Bitmap.createScaledBitmap(original, novaL, novaA, true);
-    }
-
-    /** Mostra foto que veio da API em Base64. */
     private void mostrarFotoBase64(String base64, ImageView imageView) {
         if (base64 == null || base64.isEmpty() || imageView == null) return;
         try {
@@ -297,17 +325,10 @@ public class PerfilUsuarioFragment extends Fragment {
             Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
             if (bmp != null) {
                 imageView.setImageBitmap(bmp);
+                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        // Não chama GET toda vez se quiser evitar sobrescrever foto recém-escolhida.
-        // Se preferir sempre atualizar da API, descomente:
-        // if (sessionManager != null) buscarUsuarioNaApi();
     }
 }

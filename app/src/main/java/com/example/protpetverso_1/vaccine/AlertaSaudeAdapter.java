@@ -1,4 +1,4 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.vaccine;
 // Define o pacote do projeto.
 
 import android.content.Context;
@@ -12,6 +12,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 // Base do Adapter e do ViewHolder da RecyclerView.
+
+import com.example.protpetverso_1.R;
 
 import java.util.List;
 // Tipo da lista de alertas de saúde.

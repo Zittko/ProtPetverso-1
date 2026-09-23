@@ -1,4 +1,4 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.pet;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -16,6 +16,10 @@ import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.protpetverso_1.ApiConfig;
+import com.example.protpetverso_1.R;
+import com.example.protpetverso_1.SessionManager;
+import com.example.protpetverso_1.VolleySingleton;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 

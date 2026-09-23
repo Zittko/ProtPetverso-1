@@ -1,4 +1,4 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.pet;
 
 public class PetSelecionado {
 

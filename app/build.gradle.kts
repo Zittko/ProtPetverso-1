@@ -41,6 +41,7 @@ dependencies {
     implementation("com.android.volley:volley:1.2.1")
     // EncryptedSharedPreferences para armazenamento seguro do Token
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("com.github.yalantis:ucrop:2.2.8")
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)
@@ -49,6 +50,7 @@ dependencies {
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
     testImplementation(libs.junit)
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
     androidTestImplementation(libs.ext.junit)
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")

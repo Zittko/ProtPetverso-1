@@ -1,4 +1,4 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.vaccine;
 // Define o pacote do projeto.
 
 public class AlertaSaude {

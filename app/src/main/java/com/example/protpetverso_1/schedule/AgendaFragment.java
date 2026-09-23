@@ -1,4 +1,4 @@
-package com.example.protpetverso_1;
+package com.example.protpetverso_1.schedule;
 // Define o pacote do projeto. Todos os arquivos deste app pertencem a este pacote.
 
 import android.os.Bundle;
@@ -15,6 +15,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.protpetverso_1.R;
+import com.example.protpetverso_1.pet.Pet;
+import com.example.protpetverso_1.pet.PetSelecionado;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.time.LocalDate;
