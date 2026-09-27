@@ -16,5 +16,12 @@ public class ApiConfig {
     // Base do perfil do pet: complete com o id na hora da requisição
     // Exemplo final: https://petversorestfull.onrender.com/api/pets/3/perfil
     public static final String URL_PET_PERFIL = BASE_URL + "/api/pets/";
+
+    public static final String URL_ATUALIZAR_PERFIL_PET = BASE_URL + "/api/pets/";
+
+    public static final String URL_SOLICITAR_VINCULO = BASE_URL + "/api/pets/solicitarVinculo";
+    public static final String URL_LISTAR_SOLICITACOES = BASE_URL + "/api/pets/listarSolicitacoes";
+    public static final String URL_PROCESSAR_SOLICITACAO = BASE_URL + "/api/pets/processarSolicitacao";
+    public static final String URL_MEUS_PETS = BASE_URL + "/api/pets/meusPets";
 // uso: URL_PET_PERFIL + id + "/perfil"
 }

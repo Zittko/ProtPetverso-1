@@ -126,6 +126,11 @@ public class MaisInfoPetActivity extends AppCompatActivity {
 
     /** PUT personalidades + sensibilidades na API. */
     private void enviarParaApi() {
+        long petId = getIntent().getLongExtra("PET_ID", -1);
+        if (petId <= 0) {
+            petId = sessionManager.obterPetId();
+        }
+
         if (petId <= 0) {
             Toast.makeText(this, "Pet não identificado.", Toast.LENGTH_SHORT).show();
             return;
@@ -137,19 +142,19 @@ public class MaisInfoPetActivity extends AppCompatActivity {
             return;
         }
 
-        String sensibilidade = String.valueOf(edtSensibilidades.getText()).trim();
+        // URL final: .../api/pets/3/atualizarPetPerfil
+        String url = ApiConfig.URL_ATUALIZAR_PERFIL_PET + petId + "/atualizarPetPerfil";
 
         try {
             JSONObject body = new JSONObject();
-            body.put("perfilDeSensibilidade", sensibilidade);
+            body.put("perfilDeSensibilidade",
+                    String.valueOf(edtSensibilidades.getText()).trim());
 
             JSONArray arr = new JSONArray();
             for (String p : personalidadesSelecionadas) {
                 arr.put(p);
             }
             body.put("personalidades", arr);
-
-            String url = ApiConfig.URL_ATUALIZAR_PET_PERFIL + petId + "/atualizarPetPerfil";
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.PUT,
@@ -166,14 +171,15 @@ public class MaisInfoPetActivity extends AppCompatActivity {
             ) {
                 @Override
                 public Map<String, String> getHeaders() {
-                    Map<String, String> h = new HashMap<>();
-                    h.put("Authorization", "Bearer " + token);
-                    h.put("Content-Type", "application/json");
-                    return h;
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer " + token);
+                    headers.put("Content-Type", "application/json");
+                    return headers;
                 }
             };
 
             VolleySingleton.getInstance(this).addToRequestQueue(request);
+
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Erro ao montar dados.", Toast.LENGTH_SHORT).show();
