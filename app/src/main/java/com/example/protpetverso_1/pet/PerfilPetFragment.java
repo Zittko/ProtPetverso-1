@@ -141,29 +141,30 @@ public class PerfilPetFragment extends Fragment {
 
         String url = ApiConfig.URL_PET_PERFIL + idPet + "/perfil";
 
+        android.util.Log.d("PET_PERFIL", "GET URL: " + url);
+        android.util.Log.d("PET_PERFIL", "PetId: " + idPet);
+
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
                 url,
                 null,
                 response -> {
+                    android.util.Log.d("PET_PERFIL", "GET resposta: " + response.toString());
+
                     String nome = response.optString("nome", "—");
                     String raca = response.optString("raca", "—");
                     double peso = response.optDouble("peso", 0);
-
-                    // Linha principal da tela: raça e peso
                     String racaPeso = raca + "  |  " + peso + " Kg";
 
-                    // Opcional: sensibilidade
                     String sensibilidades = response.optString("perfilDeSensibilidade", "—");
                     if (sensibilidades.isEmpty()) {
                         sensibilidades = "—";
                     }
 
-                    // Opcional: lista de personalidades
                     String personalidade = "—";
                     if (response.has("personalidades") && !response.isNull("personalidades")) {
                         try {
-                            JSONArray arr = response.getJSONArray("personalidades");
+                            org.json.JSONArray arr = response.getJSONArray("personalidades");
                             StringBuilder sb = new StringBuilder();
                             for (int i = 0; i < arr.length(); i++) {
                                 if (i > 0) sb.append(", ");
@@ -173,19 +174,39 @@ public class PerfilPetFragment extends Fragment {
                                 personalidade = sb.toString();
                             }
                         } catch (Exception ignored) {
-                            // se não for array, mantém "—"
                         }
                     }
 
-                    String codigo = "Código do Pet: —";
-                    int fotoResId = R.drawable.thor; // até tratar fotoPetBase64
+                    // código de vínculo, se a API mandar em algum campo
+                    String codigoVinculo = response.optString("codigoVinculo", "");
+                    String codigo = codigoVinculo.isEmpty()
+                            ? "Código do Pet: —"
+                            : "Código do Pet: " + codigoVinculo;
 
+                    int fotoResId = R.drawable.thor;
                     preencherCampos(nome, racaPeso, codigo, personalidade, sensibilidades, fotoResId);
+
+                    // se vier foto em Base64
+                    String fotoBase64 = response.optString("fotoPetBase64", "");
+                    if (!fotoBase64.isEmpty() && imgFotoPet != null) {
+                        mostrarFotoBase64(fotoBase64, imgFotoPet);
+                    }
                 },
                 error -> {
                     String msg = "Erro ao carregar pet.";
                     if (error.networkResponse != null) {
-                        msg += " Código: " + error.networkResponse.statusCode;
+                        int status = error.networkResponse.statusCode;
+                        msg += " Código: " + status;
+                        try {
+                            String errBody = new String(
+                                    error.networkResponse.data,
+                                    java.nio.charset.StandardCharsets.UTF_8
+                            );
+                            android.util.Log.e("PET_PERFIL", "GET erro " + status + ": " + errBody);
+                        } catch (Exception ignored) {
+                        }
+                    } else {
+                        android.util.Log.e("PET_PERFIL", "GET sem resposta do servidor");
                     }
                     Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
                     carregarDadosLocais();
@@ -193,7 +214,7 @@ public class PerfilPetFragment extends Fragment {
         ) {
             @Override
             public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
+                Map<String, String> headers = new java.util.HashMap<>();
                 headers.put("Authorization", "Bearer " + token);
                 headers.put("Content-Type", "application/json");
                 return headers;
@@ -201,6 +222,24 @@ public class PerfilPetFragment extends Fragment {
         };
 
         VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
+    }
+
+    /** Opcional: mostrar foto Base64 no ImageView */
+    private void mostrarFotoBase64(String base64, ImageView imageView) {
+        try {
+            if (base64.contains(",")) {
+                base64 = base64.substring(base64.indexOf(",") + 1);
+            }
+            byte[] bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+            android.graphics.Bitmap bmp =
+                    android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            if (bmp != null) {
+                imageView.setImageBitmap(bmp);
+                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
