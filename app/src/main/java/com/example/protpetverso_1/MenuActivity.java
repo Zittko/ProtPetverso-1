@@ -1,5 +1,6 @@
 package com.example.protpetverso_1;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -12,20 +13,20 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
+import com.example.protpetverso_1.account.LoginActivity;
+import com.example.protpetverso_1.pet.EscolhaPetActivity;
 import com.example.protpetverso_1.pet.PerfilPetFragment;
 import com.example.protpetverso_1.pet.PetsFragment;
 import com.example.protpetverso_1.schedule.AgendaFragment;
+import com.example.protpetverso_1.user.PerfilUsuarioFragment;
 import com.example.protpetverso_1.vaccine.VacinaFragment;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
-import com.example.protpetverso_1.user.PerfilUsuarioFragment;
-
 /**
- * Activity principal após o login.
- * Toolbar + Drawer lateral + BottomNavigation + Fragments.
- * Itens do drawer identificados pelo título (Opção B).
+ * Tela principal após o login.
+ * Toolbar + Drawer + BottomNavigation + troca de Fragments.
  */
 public class MenuActivity extends AppCompatActivity {
 
@@ -43,6 +44,7 @@ public class MenuActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         NavigationView navigationView = findViewById(R.id.navigationView);
 
+        // Padding da status bar / navigation bar
         if (toolbar != null) {
             ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -50,7 +52,6 @@ public class MenuActivity extends AppCompatActivity {
                 return insets;
             });
         }
-
         if (bottomNav != null) {
             ViewCompat.setOnApplyWindowInsetsListener(bottomNav, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -59,14 +60,11 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
-        // Abre/fecha o menu lateral pelas 3 barras
+        // Ícone das 3 barras abre/fecha o drawer
         if (drawerLayout != null && toolbar != null) {
             ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                    this,
-                    drawerLayout,
-                    toolbar,
-                    R.string.app_name,
-                    R.string.app_name
+                    this, drawerLayout, toolbar,
+                    R.string.app_name, R.string.app_name
             );
             drawerLayout.addDrawerListener(toggle);
             toggle.syncState();
@@ -80,23 +78,25 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
-        // Itens do drawer pelo título (não usa R.id.drawerPerfil...)
+        // Itens do menu lateral
         if (navigationView != null) {
             navigationView.setNavigationItemSelectedListener(item -> {
                 CharSequence title = item.getTitle();
+                String t = title != null ? title.toString() : "";
 
-                if (title != null && title.toString().equalsIgnoreCase("Perfil do Usuário")) {
+                if (t.equalsIgnoreCase("Perfil do Usuário")) {
                     abrirFragment(new PerfilUsuarioFragment(), "Perfil do Usuário");
-                } else if (title != null && title.toString().equalsIgnoreCase("Perfil do Pet")) {
-                    SessionManager sm = new SessionManager(this);
-                    long petId = sm.obterPetId();
 
-                    PerfilPetFragment fragment = new PerfilPetFragment();
-                    Bundle args = new Bundle();
-                    args.putLong("PET_ID", petId);
-                    fragment.setArguments(args);
+                } else if (t.equalsIgnoreCase("Perfil do Pet")) {
+                    abrirPerfilPetSelecionado();
 
-                    abrirFragment(fragment, "Perfil do Pet");
+                } else if (t.toLowerCase().contains("vincular")
+                        || t.toLowerCase().contains("cadastrar")) {
+                    // Abre a tela de escolha (cadastrar ou vincular pet)
+                    startActivity(new Intent(this, EscolhaPetActivity.class));
+
+                } else if (t.equalsIgnoreCase("Sair")) {
+                    fazerLogout();
                 }
 
                 if (drawerLayout != null) {
@@ -106,6 +106,7 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
+        // Fragment inicial
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
@@ -116,6 +117,7 @@ public class MenuActivity extends AppCompatActivity {
             }
         }
 
+        // Bottom navigation
         if (bottomNav != null) {
             bottomNav.setOnItemSelectedListener(item -> {
                 Fragment selectedFragment = null;
@@ -151,6 +153,31 @@ public class MenuActivity extends AppCompatActivity {
         }
     }
 
+    /** Abre o perfil do pet usando o id salvo no SessionManager. */
+    private void abrirPerfilPetSelecionado() {
+        SessionManager sm = new SessionManager(this);
+        long petId = sm.obterPetId();
+
+        PerfilPetFragment fragment = new PerfilPetFragment();
+        Bundle args = new Bundle();
+        args.putLong("PET_ID", petId);
+        fragment.setArguments(args);
+
+        abrirFragment(fragment, "Perfil do Pet");
+    }
+
+    /** Limpa a sessão e volta para a tela de Login. */
+    private void fazerLogout() {
+        SessionManager sm = new SessionManager(this);
+        sm.limparSessao();
+
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    /** Troca o fragment do container e atualiza o título da toolbar. */
     private void abrirFragment(Fragment fragment, String tituloToolbar) {
         getSupportFragmentManager()
                 .beginTransaction()

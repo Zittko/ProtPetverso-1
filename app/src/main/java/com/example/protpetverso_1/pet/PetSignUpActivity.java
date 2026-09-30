@@ -18,28 +18,36 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.protpetverso_1.ApiConfig;
-import com.example.protpetverso_1.account.LoginActivity;
 import com.example.protpetverso_1.MenuActivity;
 import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.account.LoginActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.text.Normalizer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Cadastro do pet.
+ * Fluxo:
+ * - Mais Informações → abre tela extra SEM cadastrar (pode voltar e editar)
+ * - Cadastrar → POST /api/pets/cadastrar
+ *              → se houver personalidade/sensibilidade, PUT atualizarPetPerfil
+ *              → Home
+ */
 public class PetSignUpActivity extends AppCompatActivity {
 
     private TextInputEditText edtPetNome, edtPetEspecie, edtPetRaca, edtPetDtn, edtPetPeso;
     private TextInputLayout ipPetEdtNome, ipPetEspecie, ipPetRaca, ipPetDtn, ipPetPeso;
-
     private androidx.appcompat.widget.AppCompatSpinner PetSexoSpinner, PetPorteSpinner;
-
     private com.google.android.material.button.MaterialButton btnCadastrar;
     private android.widget.ImageButton btnVoltar;
     private ImageView imgFotoPetCadastro;
@@ -48,11 +56,17 @@ public class PetSignUpActivity extends AppCompatActivity {
     private SessionManager sessionManager;
     private String fotoBase64;
 
+    /** Dados opcionais vindos da MaisInfoPetActivity (ainda não foram para a API). */
+    private ArrayList<String> personalidadesTemp = new ArrayList<>();
+    private String sensibilidadeTemp = "";
+
+    /** Galeria → corte central → Base64. */
     private final ActivityResultLauncher<String> selecionarFoto =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri == null) return;
                 try {
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                    bitmap = cortarCentroQuadrado(bitmap);
                     bitmap = redimensionar(bitmap, 800);
                     fotoBase64 = bitmapParaBase64(bitmap);
                     if (imgFotoPetCadastro != null) {
@@ -65,13 +79,58 @@ public class PetSignUpActivity extends AppCompatActivity {
                 }
             });
 
+    /**
+     * Retorno da tela Mais Informações.
+     * Não cadastra o pet; só guarda personalidade/sensibilidade na memória.
+     */
+    private final ActivityResultLauncher<Intent> maisInfoLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Intent data = result.getData();
+                    ArrayList<String> lista = data.getStringArrayListExtra("PERSONALIDADES");
+                    personalidadesTemp = lista != null ? lista : new ArrayList<>();
+                    sensibilidadeTemp = data.getStringExtra("SENSIBILIDADE");
+                    if (sensibilidadeTemp == null) sensibilidadeTemp = "";
+
+                    Toast.makeText(this,
+                            "Informações extras guardadas. Toque em Cadastrar para finalizar.",
+                            Toast.LENGTH_LONG).show();
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pet_sign_up_layout);
 
         sessionManager = new SessionManager(this);
+        ligarComponentes();
+        configurarSpinners();
+        configurarDatePicker();
 
+        if (btnVoltar != null) {
+            btnVoltar.setOnClickListener(v -> finish());
+        }
+
+        if (imgFotoPetCadastro != null) {
+            imgFotoPetCadastro.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imgFotoPetCadastro.setOnClickListener(v -> selecionarFoto.launch("image/*"));
+        }
+
+        // Único ponto que grava o pet na API
+        btnCadastrar.setOnClickListener(v -> {
+            if (!validarCampos()) return;
+            cadastrarPetNaApi();
+        });
+
+        // Só abre a tela extra — NÃO chama a API
+        if (txtMaisInformacoes != null) {
+            txtMaisInformacoes.setOnClickListener(v -> abrirMaisInformacoes());
+        }
+    }
+
+    /** Liga IDs do XML. */
+    private void ligarComponentes() {
         edtPetNome = findViewById(R.id.edtPetNome);
         edtPetEspecie = findViewById(R.id.edtPetEspecie);
         edtPetRaca = findViewById(R.id.edtPetRaca);
@@ -90,32 +149,19 @@ public class PetSignUpActivity extends AppCompatActivity {
         btnCadastrar = findViewById(R.id.btnCadastrar);
         btnVoltar = findViewById(R.id.btnVoltar);
         imgFotoPetCadastro = findViewById(R.id.imgPetFoto);
-        txtMaisInformacoes = findViewById(R.id.txtMaisInformacoes); // id do texto "Mais Informações" no XML
+        txtMaisInformacoes = findViewById(R.id.txtMaisInformacoes);
+    }
 
-        configurarSpinners();
-        configurarDatePicker();
-
-        if (btnVoltar != null) {
-            btnVoltar.setOnClickListener(v -> finish());
-        }
-
-        if (imgFotoPetCadastro != null) {
-            imgFotoPetCadastro.setOnClickListener(v -> selecionarFoto.launch("image/*"));
-        }
-
-        // Cadastrar → Home (sem tela extra)
-        btnCadastrar.setOnClickListener(v -> {
-            if (!validarCampos()) return;
-            cadastrarPetNaApi(false);
-        });
-
-        // Mais Informações → cadastra e abre tela de personalidade/sensibilidade
-        if (txtMaisInformacoes != null) {
-            txtMaisInformacoes.setOnClickListener(v -> {
-                if (!validarCampos()) return;
-                cadastrarPetNaApi(true);
-            });
-        }
+    /**
+     * Abre MaisInfoPetActivity em modo rascunho (sem petId).
+     * O usuário pode voltar e ainda editar o formulário.
+     */
+    private void abrirMaisInformacoes() {
+        Intent intent = new Intent(this, MaisInfoPetActivity.class);
+        intent.putExtra("MODO_RASCUNHO", true);
+        intent.putStringArrayListExtra("PERSONALIDADES", personalidadesTemp);
+        intent.putExtra("SENSIBILIDADE", sensibilidadeTemp);
+        maisInfoLauncher.launch(intent);
     }
 
     private void configurarSpinners() {
@@ -153,14 +199,9 @@ public class PetSignUpActivity extends AppCompatActivity {
 
         new android.app.DatePickerDialog(
                 this,
-                (view, year, month, dayOfMonth) -> {
-                    String dataFormatada = String.format(
-                            java.util.Locale.getDefault(),
-                            "%02d/%02d/%04d",
-                            dayOfMonth, month + 1, year
-                    );
-                    edtPetDtn.setText(dataFormatada);
-                },
+                (view, year, month, dayOfMonth) -> edtPetDtn.setText(String.format(
+                        java.util.Locale.getDefault(),
+                        "%02d/%02d/%04d", dayOfMonth, month + 1, year)),
                 calendario.get(java.util.Calendar.YEAR),
                 calendario.get(java.util.Calendar.MONTH),
                 calendario.get(java.util.Calendar.DAY_OF_MONTH)
@@ -170,37 +211,25 @@ public class PetSignUpActivity extends AppCompatActivity {
     private String converterDataParaApi(String dataTela) {
         if (dataTela == null) return "";
         dataTela = dataTela.trim();
-
-        if (dataTela.matches("\\d{4}-\\d{2}-\\d{2}")) {
-            return dataTela;
-        }
-
+        if (dataTela.matches("\\d{4}-\\d{2}-\\d{2}")) return dataTela;
         if (dataTela.contains("/") || dataTela.contains("-")) {
             String[] partes = dataTela.split("[/-]");
             if (partes.length == 3) {
                 String dia = partes[0].length() == 1 ? "0" + partes[0] : partes[0];
                 String mes = partes[1].length() == 1 ? "0" + partes[1] : partes[1];
-                String ano = partes[2];
-                return ano + "-" + mes + "-" + dia;
+                return partes[2] + "-" + mes + "-" + dia;
             }
         }
-
         if (dataTela.matches("\\d{8}")) {
-            String dia = dataTela.substring(0, 2);
-            String mes = dataTela.substring(2, 4);
-            String ano = dataTela.substring(4, 8);
-            return ano + "-" + mes + "-" + dia;
+            return dataTela.substring(4, 8) + "-" + dataTela.substring(2, 4) + "-" + dataTela.substring(0, 2);
         }
-
         return dataTela;
     }
 
     private String normalizarPorte(String porteTela) {
         if (porteTela == null) return "MEDIO";
         String p = Normalizer.normalize(porteTela, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .trim()
-                .toUpperCase();
+                .replaceAll("\\p{M}", "").trim().toUpperCase();
         if (p.startsWith("PEQ")) return "PEQUENO";
         if (p.startsWith("MED")) return "MEDIO";
         if (p.startsWith("GRA")) return "GRANDE";
@@ -210,16 +239,12 @@ public class PetSignUpActivity extends AppCompatActivity {
     private String normalizarSexo(String sexoTela) {
         if (sexoTela == null) return "MACHO";
         String s = Normalizer.normalize(sexoTela, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .trim()
-                .toUpperCase();
-        if (s.startsWith("F")) return "FEMEA";
-        return "MACHO";
+                .replaceAll("\\p{M}", "").trim().toUpperCase();
+        return s.startsWith("F") ? "FEMEA" : "MACHO";
     }
 
     private boolean validarCampos() {
         boolean ok = true;
-
         String nome = String.valueOf(edtPetNome.getText()).trim();
         String data = String.valueOf(edtPetDtn.getText()).trim();
         String sexo = PetSexoSpinner.getSelectedItem() != null
@@ -230,35 +255,29 @@ public class PetSignUpActivity extends AppCompatActivity {
         if (nome.isEmpty()) {
             ipPetEdtNome.setError("Informe o nome");
             ok = false;
-        } else {
-            ipPetEdtNome.setError(null);
-        }
+        } else ipPetEdtNome.setError(null);
 
         if (data.isEmpty()) {
             ipPetDtn.setError("Informe a data");
             ok = false;
-        } else {
-            ipPetDtn.setError(null);
-        }
+        } else ipPetDtn.setError(null);
 
         if (sexo.isEmpty() || sexo.equalsIgnoreCase("Selecione")) {
             Toast.makeText(this, "Selecione o sexo", Toast.LENGTH_SHORT).show();
             ok = false;
         }
-
         if (porte.isEmpty() || porte.equalsIgnoreCase("Selecione")) {
             Toast.makeText(this, "Selecione o porte", Toast.LENGTH_SHORT).show();
             ok = false;
         }
-
         return ok;
     }
 
     /**
-     * @param abrirMaisInfo true  = depois do POST abre MaisInfoPetActivity
-     *                      false = depois do POST vai para a Home
+     * POST /api/pets/cadastrar.
+     * Depois, se o usuário preencheu Mais Informações, chama o PUT do perfil clínico.
      */
-    private void cadastrarPetNaApi(boolean abrirMaisInfo) {
+    private void cadastrarPetNaApi() {
         btnCadastrar.setEnabled(false);
 
         String token = sessionManager.obterToken();
@@ -274,8 +293,7 @@ public class PetSignUpActivity extends AppCompatActivity {
             String nome = String.valueOf(edtPetNome.getText()).trim();
             String especie = String.valueOf(edtPetEspecie.getText()).trim();
             String raca = String.valueOf(edtPetRaca.getText()).trim();
-            String dataTela = String.valueOf(edtPetDtn.getText()).trim();
-            String dataApi = converterDataParaApi(dataTela);
+            String dataApi = converterDataParaApi(String.valueOf(edtPetDtn.getText()).trim());
             String sexo = normalizarSexo(PetSexoSpinner.getSelectedItem().toString());
             String porte = normalizarPorte(PetPorteSpinner.getSelectedItem().toString());
 
@@ -284,7 +302,6 @@ public class PetSignUpActivity extends AppCompatActivity {
             if (!pesoStr.isEmpty()) {
                 peso = Double.parseDouble(pesoStr.replace(",", "."));
             }
-
             if (especie.isEmpty()) especie = "Não informado";
             if (raca.isEmpty()) raca = "SRD";
 
@@ -314,47 +331,25 @@ public class PetSignUpActivity extends AppCompatActivity {
                     ApiConfig.URL_CADASTRAR_PET,
                     body,
                     response -> {
-                        long petId = -1;
-                        try {
-                            if (response.has("id")) {
-                                Object id = response.get("id");
-                                petId = (id instanceof String)
-                                        ? Long.parseLong((String) id)
-                                        : response.getLong("id");
-                            } else if (response.has("idPet")) {
-                                Object id = response.get("idPet");
-                                petId = (id instanceof String)
-                                        ? Long.parseLong((String) id)
-                                        : response.getLong("idPet");
-                            }
-                            Log.d("PET_CADASTRO", "Resposta: " + response.toString());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        long petId = lerPetId(response);
+                        Log.d("PET_CADASTRO", "Resposta: " + response.toString());
 
                         sessionManager.salvarPet(
                                 petId > 0 ? petId : 1,
-                                nomeFinal,
-                                racaFinal,
-                                especieFinal,
-                                pesoFinal,
-                                sexoFinal,
-                                porteFinal,
-                                dataFinal
+                                nomeFinal, racaFinal, especieFinal,
+                                pesoFinal, sexoFinal, porteFinal, dataFinal
                         );
 
-                        Toast.makeText(PetSignUpActivity.this, "Pet cadastrado com sucesso!", Toast.LENGTH_SHORT).show();
+                        // Se preencheu personalidade/sensibilidade, envia o PUT
+                        boolean temExtras = !personalidadesTemp.isEmpty()
+                                || (sensibilidadeTemp != null && !sensibilidadeTemp.trim().isEmpty());
 
-                        if (abrirMaisInfo) {
-                            Intent intent = new Intent(PetSignUpActivity.this, MaisInfoPetActivity.class);
-                            intent.putExtra("PET_ID", petId > 0 ? petId : sessionManager.obterPetId());
-                            startActivity(intent);
+                        if (temExtras && petId > 0) {
+                            enviarPerfilClinico(petId, token);
                         } else {
-                            Intent intent = new Intent(PetSignUpActivity.this, MenuActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
+                            Toast.makeText(this, "Pet cadastrado com sucesso!", Toast.LENGTH_SHORT).show();
+                            irParaHome();
                         }
-                        finish();
                     },
                     error -> {
                         btnCadastrar.setEnabled(true);
@@ -371,12 +366,101 @@ public class PetSignUpActivity extends AppCompatActivity {
             };
 
             VolleySingleton.getInstance(this).addToRequestQueue(request);
-
         } catch (Exception e) {
             btnCadastrar.setEnabled(true);
             e.printStackTrace();
             Toast.makeText(this, "Erro ao preparar cadastro do pet.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /** Lê id ou idPet da resposta do POST. */
+    private long lerPetId(JSONObject response) {
+        try {
+            if (response.has("id")) {
+                Object id = response.get("id");
+                return (id instanceof String) ? Long.parseLong((String) id) : response.getLong("id");
+            }
+            if (response.has("idPet")) {
+                Object id = response.get("idPet");
+                return (id instanceof String) ? Long.parseLong((String) id) : response.getLong("idPet");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    /**
+     * PUT /api/pets/{id}/atualizarPetPerfil
+     * Envia o que o usuário escolheu na tela Mais Informações.
+     */
+    private void enviarPerfilClinico(long petId, String token) {
+        try {
+            String url = ApiConfig.URL_ATUALIZAR_PERFIL_PET + petId + "/atualizarPetPerfil";
+
+            JSONObject body = new JSONObject();
+            body.put("perfilDeSensibilidade", sensibilidadeTemp != null ? sensibilidadeTemp : "");
+
+            JSONArray arr = new JSONArray();
+            for (String p : personalidadesTemp) {
+                arr.put(p);
+            }
+            body.put("personalidades", arr);
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.PUT,
+                    url,
+                    body,
+                    response -> {
+                        Toast.makeText(this, "Pet cadastrado com sucesso!", Toast.LENGTH_SHORT).show();
+                        irParaHome();
+                    },
+                    error -> {
+                        // Pet já foi criado; extras falharam — ainda assim vai à Home
+                        Toast.makeText(this,
+                                "Pet criado, mas houve erro ao salvar personalidade/sensibilidade.",
+                                Toast.LENGTH_LONG).show();
+                        irParaHome();
+                    }
+            ) {
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer " + token);
+                    headers.put("Content-Type", "application/json");
+                    return headers;
+                }
+            };
+
+            VolleySingleton.getInstance(this).addToRequestQueue(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            irParaHome();
+        }
+    }
+
+    private void irParaHome() {
+        Intent intent = new Intent(this, MenuActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    private Bitmap cortarCentroQuadrado(Bitmap src) {
+        int lado = Math.min(src.getWidth(), src.getHeight());
+        int x = (src.getWidth() - lado) / 2;
+        int y = (src.getHeight() - lado) / 2;
+        return Bitmap.createBitmap(src, x, y, lado, lado);
+    }
+
+    private Bitmap redimensionar(Bitmap original, int maxLado) {
+        float escala = Math.min(
+                (float) maxLado / original.getWidth(),
+                (float) maxLado / original.getHeight());
+        if (escala >= 1f) return original;
+        return Bitmap.createScaledBitmap(original,
+                Math.round(original.getWidth() * escala),
+                Math.round(original.getHeight() * escala), true);
     }
 
     private String bitmapParaBase64(Bitmap bitmap) {
@@ -385,26 +469,13 @@ public class PetSignUpActivity extends AppCompatActivity {
         return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
     }
 
-    private Bitmap redimensionar(Bitmap original, int maxLado) {
-        float escala = Math.min(
-                (float) maxLado / original.getWidth(),
-                (float) maxLado / original.getHeight());
-        if (escala >= 1f) return original;
-        return Bitmap.createScaledBitmap(
-                original,
-                Math.round(original.getWidth() * escala),
-                Math.round(original.getHeight() * escala),
-                true);
-    }
-
     private void tratarErroHttp(com.android.volley.VolleyError error) {
         if (error.networkResponse != null) {
             int status = error.networkResponse.statusCode;
             String mensagem = "Erro na requisição.";
             try {
                 String body = new String(error.networkResponse.data, java.nio.charset.StandardCharsets.UTF_8);
-                JSONObject json = new JSONObject(body);
-                mensagem = json.optString("mensagem", mensagem);
+                mensagem = new JSONObject(body).optString("mensagem", mensagem);
                 Log.e("PET_CADASTRO", body);
             } catch (Exception e) {
                 e.printStackTrace();

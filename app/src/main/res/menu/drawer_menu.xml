@@ -6,4 +6,11 @@
     <item
         android:id="@+id/drawerPerfilPet"
         android:title="Perfil do Pet" />
+    <item
+        android:id="@+id/drawerEscolhaPet"
+        android:title="Novo Pet" />
+
+    <item
+        android:id="@+id/drawerLogout"
+        android:title="Sair" />
 </menu>
