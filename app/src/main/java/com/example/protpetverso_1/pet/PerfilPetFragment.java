@@ -47,7 +47,7 @@ public class PerfilPetFragment extends Fragment {
     private String codigoVinculoAtual = "";
 
     private ImageView imgFotoPet;
-    private TextView txtNomePet, txtRacaPeso, txtCodigoPet, txtPersonalidade, txtSensibilidades;
+    private TextView txtNomePet, txtRacaPeso, txtPorte, txtSexo, txtCodigoPet, txtPersonalidade, txtSensibilidades, txtDataDeNascimento;
     private LinearLayout containerTutores;
     private ImageButton btnEditarTutores;
     private MaterialButton btnCopiarCodigo, btnGerarQrCode;
@@ -122,6 +122,8 @@ public class PerfilPetFragment extends Fragment {
         imgFotoPet = view.findViewById(R.id.imgFotoPet);
         txtNomePet = view.findViewById(R.id.txtNomePet);
         txtRacaPeso = view.findViewById(R.id.txtRacaPeso);
+        txtPorte = view.findViewById(R.id.txtPorte);
+        txt
         txtCodigoPet = view.findViewById(R.id.txtCodigoPet);
         txtPersonalidade = view.findViewById(R.id.txtPersonalidade);
         txtSensibilidades = view.findViewById(R.id.txtSensibilidades);
