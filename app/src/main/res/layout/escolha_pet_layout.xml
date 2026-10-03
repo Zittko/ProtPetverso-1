@@ -14,14 +14,12 @@
         android:layout_height="0dp"
         android:layout_weight="0.4" />
 
-    <!-- ===== CONTEÚDO CENTRAL ===== -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal">
 
-        <!-- Título -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -30,7 +28,6 @@
             android:textStyle="bold"
             android:textColor="#5D4037" />
 
-        <!-- Subtítulo -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -40,7 +37,7 @@
             android:textSize="16sp"
             android:textColor="#8D6E63" />
 
-        <!-- Card Cadastrar novo pet -->
+        <!-- Cadastrar novo pet -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardCadastrarPet"
             android:layout_width="match_parent"
@@ -94,7 +91,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Texto "Ou" -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -104,9 +100,9 @@
             android:textStyle="bold"
             android:textColor="#5D4037" />
 
-        <!-- Card Entrar como suporte -->
+        <!-- Vincular / suporte -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardEntrarSuporte"
+            android:id="@+id/cardVincularPet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -131,11 +127,11 @@
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@android:drawable/ic_input_add"
+                        android:src="@android:drawable/ic_menu_share"
                         app:tint="#FF9800"
                         android:background="@drawable/bg_circulo_laranja"
                         android:padding="10dp"
-                        android:contentDescription="Entrar como suporte" />
+                        android:contentDescription="Vincular pet" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -162,9 +158,8 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Campo do código -->
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/ipCodigoPet"
+                    android:id="@+id/ipCodigoVinculo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
@@ -179,30 +174,40 @@
                     app:hintEnabled="false">
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/edtCodigoPet"
+                        android:id="@+id/edtCodigoVinculo"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:gravity="center"
                         android:hint="Ex: QKZ-2813"
                         android:inputType="textCapCharacters"
-                        android:maxLength="10"
+                        android:maxLength="16"
                         android:textColor="@color/black"
                         android:textColorHint="#AAAAAA"
                         android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVincular"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="12dp"
+                    android:text="Vincular"
+                    android:textAllCaps="false"
+                    android:textSize="15sp"
+                    android:textColor="@android:color/white"
+                    app:backgroundTint="#FF9800"
+                    app:cornerRadius="10dp" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 
-    <!-- Espaçador de baixo -->
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1.2" />
 
-    <!-- Botão Voltar -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnVoltar"
         android:layout_width="match_parent"

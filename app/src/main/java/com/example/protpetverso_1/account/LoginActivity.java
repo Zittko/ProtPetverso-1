@@ -213,6 +213,9 @@ public class LoginActivity extends AppCompatActivity {
 
                             Toast.makeText(this, "Login realizado com sucesso!", Toast.LENGTH_SHORT).show();
 
+// Restaura pets da API (importante após logout)
+                            carregarMeusPetsESeguir(responseDto.getToken());
+
                             // Por enquanto vai para a Home.
                             // Depois: verificar se tem pet e decidir entre EscolhaPet e Menu.
                             Intent intent = new Intent(LoginActivity.this, MenuActivity.class);
@@ -239,6 +242,69 @@ public class LoginActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Erro ao montar os dados de login", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Busca os pets do usuário e grava o primeiro no SessionManager.
+     * Depois navega para a próxima tela.
+     */
+    private void carregarMeusPetsESeguir(String token) {
+        com.android.volley.toolbox.JsonArrayRequest request =
+                new com.android.volley.toolbox.JsonArrayRequest(
+                        Request.Method.GET,
+                        ApiConfig.URL_MEUS_PETS,
+                        null,
+                        response -> {
+                            try {
+                                if (response.length() > 0) {
+                                    JSONObject p = response.getJSONObject(0);
+                                    long id = p.optLong("idPet", -1);
+                                    if (id <= 0) id = p.optLong("id", -1);
+
+                                    String nome = p.optString("nome", "");
+                                    String raca = p.optString("raca", "");
+                                    String especie = p.optString("especie", "");
+                                    String peso = String.valueOf(p.optDouble("peso", 0));
+                                    String sexo = p.optString("sexo", "");
+                                    String porte = p.optString("porte", "");
+                                    String data = p.optString("dataDeNascimento", "");
+
+                                    if (id > 0) {
+                                        sessionManager.salvarPet(
+                                                id, nome, raca, especie, peso, sexo, porte, data
+                                        );
+                                        android.util.Log.d("LOGIN", "Pet restaurado: id=" + id);
+                                    }
+                                } else {
+                                    android.util.Log.d("LOGIN", "Usuário sem pets");
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            irParaHome();
+                        },
+                        error -> {
+                            // Mesmo se falhar a lista, entra no app
+                            android.util.Log.e("LOGIN", "Erro meusPets", error);
+                            irParaHome();
+                        }
+                ) {
+                    @Override
+                    public java.util.Map<String, String> getHeaders() {
+                        java.util.Map<String, String> h = new java.util.HashMap<>();
+                        h.put("Authorization", "Bearer " + token);
+                        return h;
+                    }
+                };
+
+        VolleySingleton.getInstance(this).addToRequestQueue(request);
+    }
+
+    private void irParaHome() {
+        Intent intent = new Intent(LoginActivity.this, MenuActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     /**

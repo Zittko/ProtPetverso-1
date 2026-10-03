@@ -156,3 +156,5 @@ public class SessionManager {
         return obterPetId() > 0 || !obterPetNome().isEmpty();
     }
 }
+
+//Antes de alterar o código

@@ -161,3 +161,5 @@ public class SolicitacoesVinculoActivity extends AppCompatActivity
         }
     }
 }
+
+//Antes de alterar o código
