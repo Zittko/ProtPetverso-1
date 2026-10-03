@@ -91,7 +91,26 @@
                         android:textStyle="bold"
                         android:textColor="#3E2723" />
 
-                    <!-- Sexo -->
+                    <!-- Espécie -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Espécie"
+                        android:textSize="13sp"
+                        android:textColor="#888888" />
+
+                    <TextView
+                        android:id="@+id/txtEspecie"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginBottom="14dp"
+                        android:text="Cachorro"
+                        android:textSize="15sp"
+                        android:textColor="#333333"
+                        android:textStyle="bold" />
+
+                    <!-- Porte -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -110,7 +129,7 @@
                         android:textColor="#333333"
                         android:textStyle="bold" />
 
-                    <!-- Porte -->
+                    <!-- Sexo -->
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -177,7 +196,7 @@
                         android:textColor="#888888" />
 
                     <TextView
-                        android:id="@+id/txtDataDeNascimento"
+                        android:id="@+id/txtDataNascimento"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"

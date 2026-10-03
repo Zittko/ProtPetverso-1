@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,30 +33,27 @@ import com.example.protpetverso_1.VolleySingleton;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 
-import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Perfil do Pet — GET /api/pets/{id}/perfil
- * Mostra dados clínicos e permite trocar a foto (corte central, sem uCrop).
  */
 public class PerfilPetFragment extends Fragment {
+
+    private static final String TAG = "PET_PERFIL";
 
     private SessionManager sessionManager;
     private long petId = -1;
     private String codigoVinculoAtual = "";
 
     private ImageView imgFotoPet;
-    private TextView txtNomePet, txtRacaPeso, txtPorte, txtSexo, txtCodigoPet, txtPersonalidade, txtSensibilidades, txtDataDeNascimento;
+    private TextView txtNomePet, txtRacaPeso, txtEspecie, txtPorte, txtSexo;
+    private TextView txtCodigoPet, txtPersonalidade, txtSensibilidades, txtDataNascimento;
     private LinearLayout containerTutores;
     private ImageButton btnEditarTutores;
     private MaterialButton btnCopiarCodigo, btnGerarQrCode;
 
-    /**
-     * Galeria → corta centro → mostra na tela.
-     * (Persistir na API só quando existir endpoint de update de foto do pet.)
-     */
     private final ActivityResultLauncher<String> selecionarFoto =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri == null || getContext() == null) return;
@@ -70,17 +68,16 @@ public class PerfilPetFragment extends Fragment {
                         imgFotoPet.setScaleType(ImageView.ScaleType.CENTER_CROP);
                     }
                     Toast.makeText(requireContext(),
-                            "Foto atualizada na tela. Envio à API quando o endpoint estiver disponível.",
+                            "Foto atualizada na tela.",
                             Toast.LENGTH_SHORT).show();
-                    // TODO: enviar Base64 para API quando houver PUT de foto do pet
-                    // String b64 = bitmapParaBase64(bitmap);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Erro ao carregar foto", e);
                     Toast.makeText(requireContext(), "Erro ao carregar foto", Toast.LENGTH_SHORT).show();
                 }
             });
 
-    public PerfilPetFragment() { }
+    public PerfilPetFragment() {
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -96,7 +93,6 @@ public class PerfilPetFragment extends Fragment {
         ligarComponentes(view);
         configurarBotoes();
 
-        // Toque na foto → galeria
         if (imgFotoPet != null) {
             imgFotoPet.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imgFotoPet.setOnClickListener(v -> selecionarFoto.launch("image/*"));
@@ -105,9 +101,11 @@ public class PerfilPetFragment extends Fragment {
         if (getArguments() != null) {
             petId = getArguments().getLong("PET_ID", -1);
         }
-        if (petId <= 0) {
+        if (petId <= 0 && sessionManager != null) {
             petId = sessionManager.obterPetId();
         }
+
+        Log.d(TAG, "petId final: " + petId);
 
         if (petId > 0) {
             buscarPetNaApi(petId);
@@ -117,13 +115,14 @@ public class PerfilPetFragment extends Fragment {
         }
     }
 
-    /** Liga views do XML. */
     private void ligarComponentes(View view) {
         imgFotoPet = view.findViewById(R.id.imgFotoPet);
         txtNomePet = view.findViewById(R.id.txtNomePet);
         txtRacaPeso = view.findViewById(R.id.txtRacaPeso);
+        txtEspecie = view.findViewById(R.id.txtEspecie);
         txtPorte = view.findViewById(R.id.txtPorte);
-        txt
+        txtSexo = view.findViewById(R.id.txtSexo);
+        txtDataNascimento = view.findViewById(R.id.txtDataNascimento);
         txtCodigoPet = view.findViewById(R.id.txtCodigoPet);
         txtPersonalidade = view.findViewById(R.id.txtPersonalidade);
         txtSensibilidades = view.findViewById(R.id.txtSensibilidades);
@@ -133,31 +132,34 @@ public class PerfilPetFragment extends Fragment {
         btnGerarQrCode = view.findViewById(R.id.btnGerarQrCode);
     }
 
-    /** Ações dos botões da tela. */
+    /** Null-safe: se o botão não existir no XML, não quebra a tela. */
     private void configurarBotoes() {
-        btnEditarTutores.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Editar tutores em desenvolvimento", Toast.LENGTH_SHORT).show());
+        if (btnEditarTutores != null) {
+            btnEditarTutores.setOnClickListener(v ->
+                    Toast.makeText(requireContext(), "Editar tutores em desenvolvimento", Toast.LENGTH_SHORT).show());
+        }
 
-        // Copia o código de vínculo para a área de transferência
-        btnCopiarCodigo.setOnClickListener(v -> {
-            if (codigoVinculoAtual == null || codigoVinculoAtual.isEmpty()) {
-                Toast.makeText(requireContext(), "Código indisponível", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            ClipboardManager clipboard =
-                    (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
-            clipboard.setPrimaryClip(ClipData.newPlainText("codigoVinculo", codigoVinculoAtual));
-            Toast.makeText(requireContext(), "Código copiado!", Toast.LENGTH_SHORT).show();
-        });
+        if (btnCopiarCodigo != null) {
+            btnCopiarCodigo.setOnClickListener(v -> {
+                if (codigoVinculoAtual == null || codigoVinculoAtual.isEmpty()) {
+                    Toast.makeText(requireContext(), "Código indisponível", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                ClipboardManager clipboard =
+                        (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                if (clipboard != null) {
+                    clipboard.setPrimaryClip(ClipData.newPlainText("codigoVinculo", codigoVinculoAtual));
+                    Toast.makeText(requireContext(), "Código copiado!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
 
-        btnGerarQrCode.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Gerar QR Code em desenvolvimento", Toast.LENGTH_SHORT).show());
+        if (btnGerarQrCode != null) {
+            btnGerarQrCode.setOnClickListener(v ->
+                    Toast.makeText(requireContext(), "Gerar QR Code em desenvolvimento", Toast.LENGTH_SHORT).show());
+        }
     }
 
-    /**
-     * GET /api/pets/{id}/perfil
-     * Preenche nome, raça, peso, personalidade, sensibilidade, código e foto.
-     */
     private void buscarPetNaApi(long idPet) {
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
@@ -166,19 +168,33 @@ public class PerfilPetFragment extends Fragment {
             return;
         }
 
+        // Confirme no ApiConfig: BASE + "/api/pets/"
         String url = ApiConfig.URL_PET_PERFIL + idPet + "/perfil";
-        android.util.Log.d("PET_PERFIL", "GET URL: " + url);
-        android.util.Log.d("PET_PERFIL", "PetId: " + idPet);
+        Log.d(TAG, "GET URL: " + url);
+        Log.d(TAG, "PetId: " + idPet);
 
         JsonObjectRequest request = new JsonObjectRequest(
-                Request.Method.GET, url, null,
+                Request.Method.GET,
+                url,
+                null,
                 response -> {
-                    android.util.Log.d("PET_PERFIL", "GET resposta: " + response.toString());
+                    Log.d(TAG, "GET resposta: " + response.toString());
 
                     String nome = response.optString("nome", "—");
                     String raca = response.optString("raca", "—");
                     double peso = response.optDouble("peso", 0);
                     String racaPeso = raca + "  |  " + peso + " Kg";
+
+                    String especie = response.optString("especie", "—");
+                    if (especie.isEmpty()) especie = "—";
+
+                    String sexo = formatarSexo(response.optString("sexo", "—"));
+                    String porte = formatarPorte(response.optString("porte", "—"));
+
+                    String dataNasc = response.optString("dataDeNascimento", "");
+                    if (dataNasc.isEmpty()) dataNasc = response.optString("dataNascimento", "");
+                    if (dataNasc.isEmpty()) dataNasc = "—";
+                    else dataNasc = formatarDataTela(dataNasc);
 
                     String sensibilidades = response.optString("perfilDeSensibilidade", "—");
                     if (sensibilidades.isEmpty()) sensibilidades = "—";
@@ -193,7 +209,9 @@ public class PerfilPetFragment extends Fragment {
                                 sb.append(arr.getString(i));
                             }
                             if (sb.length() > 0) personalidade = sb.toString();
-                        } catch (Exception ignored) { }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Erro ao ler personalidades", e);
+                        }
                     }
 
                     codigoVinculoAtual = response.optString("codigoVinculo", "");
@@ -201,7 +219,9 @@ public class PerfilPetFragment extends Fragment {
                             ? "Código do Pet: —"
                             : "Código do Pet: " + codigoVinculoAtual;
 
-                    preencherCampos(nome, racaPeso, codigo, personalidade, sensibilidades, R.drawable.thor);
+                    // Não força drawable se formos mostrar Base64 em seguida
+                    preencherCampos(nome, racaPeso, especie, sexo, porte, dataNasc,
+                            codigo, personalidade, sensibilidades, R.drawable.thor);
 
                     String fotoBase64 = response.optString("fotoPetBase64", "");
                     if (fotoBase64.isEmpty()) {
@@ -214,7 +234,17 @@ public class PerfilPetFragment extends Fragment {
                 error -> {
                     String msg = "Erro ao carregar pet.";
                     if (error.networkResponse != null) {
-                        msg += " Código: " + error.networkResponse.statusCode;
+                        int status = error.networkResponse.statusCode;
+                        msg += " Código: " + status;
+                        try {
+                            String errBody = new String(
+                                    error.networkResponse.data,
+                                    java.nio.charset.StandardCharsets.UTF_8);
+                            Log.e(TAG, "GET erro " + status + ": " + errBody);
+                        } catch (Exception ignored) {
+                        }
+                    } else {
+                        Log.e(TAG, "GET sem resposta do servidor", error);
                     }
                     Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
                     carregarDadosLocais();
@@ -232,7 +262,6 @@ public class PerfilPetFragment extends Fragment {
         VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
     }
 
-    /** Decodifica Base64 da API e coloca no ImageView. */
     private void mostrarFotoBase64(String base64, ImageView imageView) {
         try {
             if (base64.contains(",")) {
@@ -245,30 +274,67 @@ public class PerfilPetFragment extends Fragment {
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Erro ao decodificar foto", e);
         }
     }
 
-    /** Fallback com dados do SessionManager. */
+    private String formatarSexo(String sexoApi) {
+        if (sexoApi == null || sexoApi.isEmpty() || sexoApi.equals("—")) return "—";
+        String s = sexoApi.toUpperCase();
+        if (s.startsWith("F") || s.contains("FEMEA")) return "Fêmea";
+        if (s.startsWith("M") || s.contains("MACHO")) return "Macho";
+        return sexoApi;
+    }
+
+    private String formatarPorte(String porteApi) {
+        if (porteApi == null || porteApi.isEmpty() || porteApi.equals("—")) return "—";
+        switch (porteApi.toUpperCase()) {
+            case "PEQUENO": return "Pequeno";
+            case "MEDIO": return "Médio";
+            case "GRANDE": return "Grande";
+            default: return porteApi;
+        }
+    }
+
+    private String formatarDataTela(String dataApi) {
+        if (dataApi == null || dataApi.isEmpty() || dataApi.equals("—")) return "—";
+        if (dataApi.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            String[] p = dataApi.split("-");
+            return p[2] + "/" + p[1] + "/" + p[0];
+        }
+        return dataApi;
+    }
+
     private void carregarDadosLocais() {
         if (sessionManager != null && sessionManager.temPetSalvo()) {
             String racaPeso = sessionManager.obterPetRaca() + "  |  " + sessionManager.obterPetPeso() + " Kg";
-            preencherCampos(sessionManager.obterPetNome(), racaPeso,
-                    "Código do Pet: —", "—", "—", R.drawable.thor);
+            preencherCampos(
+                    sessionManager.obterPetNome(),
+                    racaPeso,
+                    "—", "—", "—", "—",
+                    "Código do Pet: —", "—", "—",
+                    R.drawable.thor
+            );
         } else {
-            preencherCampos("Pet", "—", "Código do Pet: —", "—", "—", R.drawable.thor);
+            preencherCampos("Pet", "—", "—", "—", "—", "—",
+                    "Código do Pet: —", "—", "—", R.drawable.thor);
         }
     }
 
-    /** Atualiza os TextViews e a foto padrão da tela. */
-    private void preencherCampos(String nome, String racaPeso, String codigo,
-                                 String personalidade, String sensibilidades, int fotoResId) {
-        txtNomePet.setText(nome);
-        txtRacaPeso.setText(racaPeso);
-        txtCodigoPet.setText(codigo);
-        txtPersonalidade.setText(personalidade);
-        txtSensibilidades.setText(sensibilidades);
-        imgFotoPet.setImageResource(fotoResId);
+    private void preencherCampos(String nome, String racaPeso,
+                                 String especie, String sexo, String porte, String dataNasc,
+                                 String codigo, String personalidade, String sensibilidades,
+                                 int fotoResId) {
+        if (txtNomePet != null) txtNomePet.setText(nome);
+        if (txtRacaPeso != null) txtRacaPeso.setText(racaPeso);
+        if (txtEspecie != null) txtEspecie.setText("Espécie: " + especie);
+        if (txtSexo != null) txtSexo.setText("Sexo: " + sexo);
+        if (txtPorte != null) txtPorte.setText("Porte: " + porte);
+        if (txtDataNascimento != null) txtDataNascimento.setText("Nascimento: " + dataNasc);
+        if (txtCodigoPet != null) txtCodigoPet.setText(codigo);
+        if (txtPersonalidade != null) txtPersonalidade.setText(personalidade);
+        if (txtSensibilidades != null) txtSensibilidades.setText(sensibilidades);
+        if (imgFotoPet != null) imgFotoPet.setImageResource(fotoResId);
     }
 
     private Bitmap cortarCentroQuadrado(Bitmap src) {

@@ -20,7 +20,7 @@
             android:name=".pet.MaisInfoPetActivity"
             android:exported="false" />
         <activity
-            android:name=".MaisInfoActivity"
+            android:name=".pet.EscolhaPetActivity"
             android:exported="false" />
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"

@@ -8,7 +8,7 @@
         android:title="Perfil do Pet" />
     <item
         android:id="@+id/drawerEscolhaPet"
-        android:title="Novo Pet" />
+        android:title="Cadastrar / Vincular Pet" />
 
     <item
         android:id="@+id/drawerLogout"
