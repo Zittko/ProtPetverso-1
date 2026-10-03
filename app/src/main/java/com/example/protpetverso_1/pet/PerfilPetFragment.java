@@ -327,10 +327,10 @@ public class PerfilPetFragment extends Fragment {
                                  int fotoResId) {
         if (txtNomePet != null) txtNomePet.setText(nome);
         if (txtRacaPeso != null) txtRacaPeso.setText(racaPeso);
-        if (txtEspecie != null) txtEspecie.setText("Espécie: " + especie);
-        if (txtSexo != null) txtSexo.setText("Sexo: " + sexo);
-        if (txtPorte != null) txtPorte.setText("Porte: " + porte);
-        if (txtDataNascimento != null) txtDataNascimento.setText("Nascimento: " + dataNasc);
+        if (txtEspecie != null) txtEspecie.setText(especie);
+        if (txtSexo != null) txtSexo.setText(sexo);
+        if (txtPorte != null) txtPorte.setText(porte);
+        if (txtDataNascimento != null) txtDataNascimento.setText(dataNasc);
         if (txtCodigoPet != null) txtCodigoPet.setText(codigo);
         if (txtPersonalidade != null) txtPersonalidade.setText(personalidade);
         if (txtSensibilidades != null) txtSensibilidades.setText(sensibilidades);

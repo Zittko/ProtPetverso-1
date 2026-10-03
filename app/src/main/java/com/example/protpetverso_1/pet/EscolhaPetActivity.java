@@ -64,6 +64,14 @@ public class EscolhaPetActivity extends AppCompatActivity {
                         boolean sucesso = response.optBoolean("sucesso", true);
                         String mensagem = response.optString("mensagem", "Solicitação enviada.");
                         String status = response.optString("statusDeVinculo", "");
+                        if (status.equalsIgnoreCase("ACEITO")) {
+                            // vínculo já liberado (raro no fluxo atual)
+                            irParaHome();
+                        } else if (status.equalsIgnoreCase("PENDENTE")) {
+                            Toast.makeText(this, "Aguardando o tutor principal aceitar.", Toast.LENGTH_LONG).show();
+                        } else if (status.equalsIgnoreCase("RECUSADO")) {
+                            Toast.makeText(this, "Solicitação recusada.", Toast.LENGTH_SHORT).show();
+                        }
 
                         // Se vierem dados da solicitação / pet
                         JSONObject dados = response.optJSONObject("dadosSolicitacaoDTO");

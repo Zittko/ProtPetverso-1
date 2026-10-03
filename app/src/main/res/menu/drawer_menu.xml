@@ -9,7 +9,9 @@
     <item
         android:id="@+id/drawerEscolhaPet"
         android:title="Cadastrar / Vincular Pet" />
-
+    <item
+        android:id="@+id/drawerSolicitacoes"
+        android:title="Solicitações de vínculo" />
     <item
         android:id="@+id/drawerLogout"
         android:title="Sair" />
