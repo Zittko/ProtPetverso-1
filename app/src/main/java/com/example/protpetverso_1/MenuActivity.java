@@ -2,6 +2,7 @@ package com.example.protpetverso_1;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -17,6 +18,7 @@ import com.example.protpetverso_1.account.LoginActivity;
 import com.example.protpetverso_1.pet.EscolhaPetActivity;
 import com.example.protpetverso_1.pet.PerfilPetFragment;
 import com.example.protpetverso_1.pet.PetsFragment;
+import com.example.protpetverso_1.pet.SolicitacoesVinculoActivity;
 import com.example.protpetverso_1.schedule.AgendaFragment;
 import com.example.protpetverso_1.user.PerfilUsuarioFragment;
 import com.example.protpetverso_1.vaccine.VacinaFragment;
@@ -44,7 +46,6 @@ public class MenuActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         NavigationView navigationView = findViewById(R.id.navigationView);
 
-        // Padding da status bar / navigation bar
         if (toolbar != null) {
             ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -60,7 +61,6 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
-        // Ícone das 3 barras abre/fecha o drawer
         if (drawerLayout != null && toolbar != null) {
             ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                     this, drawerLayout, toolbar,
@@ -81,21 +81,30 @@ public class MenuActivity extends AppCompatActivity {
         // Itens do menu lateral
         if (navigationView != null) {
             navigationView.setNavigationItemSelectedListener(item -> {
-                CharSequence title = item.getTitle();
-                String t = title != null ? title.toString() : "";
+                int id = item.getItemId();
+                String t = item.getTitle() != null ? item.getTitle().toString().trim() : "";
 
-                if (t.equalsIgnoreCase("Perfil do Usuário")) {
+                // Preferência: ID do item (mais estável que o texto)
+                if (id == R.id.drawerPerfilUsuario
+                        || t.equalsIgnoreCase("Perfil do Usuário")) {
                     abrirFragment(new PerfilUsuarioFragment(), "Perfil do Usuário");
 
-                } else if (t.equalsIgnoreCase("Perfil do Pet")) {
+                } else if (id == R.id.drawerPerfilPet
+                        || t.equalsIgnoreCase("Perfil do Pet")) {
                     abrirPerfilPetSelecionado();
 
-                } else if (t.toLowerCase().contains("vincular")
-                        || t.toLowerCase().contains("cadastrar")) {
-                    // Abre a tela de escolha (cadastrar ou vincular pet)
-                    startActivity(new Intent(this, EscolhaPetActivity.class));
+                } else if (id == R.id.drawerSolicitacoes
+                        || t.toLowerCase().contains("solicit")) {
+                    // Conta A: lista e aceita/recusa vínculos
+                    startActivity(new Intent(MenuActivity.this, SolicitacoesVinculoActivity.class));
 
-                } else if (t.equalsIgnoreCase("Sair")) {
+                } else if (id == R.id.drawerEscolhaPet
+                        || t.toLowerCase().contains("vincular")
+                        || t.toLowerCase().contains("cadastrar")) {
+                    startActivity(new Intent(MenuActivity.this, EscolhaPetActivity.class));
+
+                } else if (id == R.id.drawerLogout
+                        || t.equalsIgnoreCase("Sair")) {
                     fazerLogout();
                 }
 
@@ -106,7 +115,6 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
-        // Fragment inicial
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
@@ -117,7 +125,6 @@ public class MenuActivity extends AppCompatActivity {
             }
         }
 
-        // Bottom navigation
         if (bottomNav != null) {
             bottomNav.setOnItemSelectedListener(item -> {
                 Fragment selectedFragment = null;
@@ -153,7 +160,6 @@ public class MenuActivity extends AppCompatActivity {
         }
     }
 
-    /** Abre o perfil do pet usando o id salvo no SessionManager. */
     private void abrirPerfilPetSelecionado() {
         SessionManager sm = new SessionManager(this);
         long petId = sm.obterPetId();
@@ -166,7 +172,6 @@ public class MenuActivity extends AppCompatActivity {
         abrirFragment(fragment, "Perfil do Pet");
     }
 
-    /** Limpa a sessão e volta para a tela de Login. */
     private void fazerLogout() {
         SessionManager sm = new SessionManager(this);
         sm.limparSessao();
@@ -177,7 +182,6 @@ public class MenuActivity extends AppCompatActivity {
         finish();
     }
 
-    /** Troca o fragment do container e atualiza o título da toolbar. */
     private void abrirFragment(Fragment fragment, String tituloToolbar) {
         getSupportFragmentManager()
                 .beginTransaction()

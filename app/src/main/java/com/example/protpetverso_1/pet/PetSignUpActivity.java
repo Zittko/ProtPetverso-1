@@ -1,9 +1,11 @@
 package com.example.protpetverso_1.pet;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.widget.ArrayAdapter;
@@ -25,11 +27,14 @@ import com.example.protpetverso_1.VolleySingleton;
 import com.example.protpetverso_1.account.LoginActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.yalantis.ucrop.UCrop;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,11 +42,17 @@ import java.util.Map;
 
 /**
  * Cadastro do pet.
- * Fluxo:
- * - Mais Informações → abre tela extra SEM cadastrar (pode voltar e editar)
+ *
+ * Foto (igual criar usuário):
+ * 1) Toque na imagem → galeria
+ * 2) uCrop → usuário enquadra (1:1)
+ * 3) Resultado → Base64 → envio no POST
+ *
+ * Fluxo geral:
+ * - Mais Informações → rascunho (sem API)
  * - Cadastrar → POST /api/pets/cadastrar
- *              → se houver personalidade/sensibilidade, PUT atualizarPetPerfil
- *              → Home
+ *            → PUT personalidade/sensibilidade se houver
+ *            → Home
  */
 public class PetSignUpActivity extends AppCompatActivity {
 
@@ -56,33 +67,35 @@ public class PetSignUpActivity extends AppCompatActivity {
     private SessionManager sessionManager;
     private String fotoBase64;
 
-    /** Dados opcionais vindos da MaisInfoPetActivity (ainda não foram para a API). */
     private ArrayList<String> personalidadesTemp = new ArrayList<>();
     private String sensibilidadeTemp = "";
 
-    /** Galeria → corte central → Base64. */
+    // ---------- FOTO: galeria → uCrop ----------
+
+    /** Abre a galeria. */
     private final ActivityResultLauncher<String> selecionarFoto =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri == null) return;
-                try {
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                    bitmap = cortarCentroQuadrado(bitmap);
-                    bitmap = redimensionar(bitmap, 800);
-                    fotoBase64 = bitmapParaBase64(bitmap);
-                    if (imgFotoPetCadastro != null) {
-                        imgFotoPetCadastro.setImageBitmap(bitmap);
-                        imgFotoPetCadastro.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                iniciarRecorte(uri);
+            });
+
+    /** Recebe o resultado do uCrop. */
+    private final ActivityResultLauncher<Intent> recortarFoto =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri resultUri = UCrop.getOutput(result.getData());
+                    if (resultUri != null) {
+                        processarFotoRecortada(resultUri);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Toast.makeText(this, "Erro ao carregar a foto", Toast.LENGTH_SHORT).show();
+                } else if (result.getResultCode() == UCrop.RESULT_ERROR && result.getData() != null) {
+                    Throwable cropError = UCrop.getError(result.getData());
+                    Toast.makeText(this,
+                            "Erro no recorte: " + (cropError != null ? cropError.getMessage() : ""),
+                            Toast.LENGTH_SHORT).show();
                 }
             });
 
-    /**
-     * Retorno da tela Mais Informações.
-     * Não cadastra o pet; só guarda personalidade/sensibilidade na memória.
-     */
+    /** Retorno da tela Mais Informações (só memória). */
     private final ActivityResultLauncher<Intent> maisInfoLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
@@ -112,24 +125,24 @@ public class PetSignUpActivity extends AppCompatActivity {
             btnVoltar.setOnClickListener(v -> finish());
         }
 
+        // Toque na foto → galeria → uCrop
         if (imgFotoPetCadastro != null) {
             imgFotoPetCadastro.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imgFotoPetCadastro.setOnClickListener(v -> selecionarFoto.launch("image/*"));
+        } else {
+            Log.w("PET_CADASTRO", "imgPetFoto não encontrado no XML — foto não clicável");
         }
 
-        // Único ponto que grava o pet na API
         btnCadastrar.setOnClickListener(v -> {
             if (!validarCampos()) return;
             cadastrarPetNaApi();
         });
 
-        // Só abre a tela extra — NÃO chama a API
         if (txtMaisInformacoes != null) {
             txtMaisInformacoes.setOnClickListener(v -> abrirMaisInformacoes());
         }
     }
 
-    /** Liga IDs do XML. */
     private void ligarComponentes() {
         edtPetNome = findViewById(R.id.edtPetNome);
         edtPetEspecie = findViewById(R.id.edtPetEspecie);
@@ -148,14 +161,63 @@ public class PetSignUpActivity extends AppCompatActivity {
 
         btnCadastrar = findViewById(R.id.btnCadastrar);
         btnVoltar = findViewById(R.id.btnVoltar);
+        // ID do XML do cadastro do pet — confirme se é imgPetFoto
         imgFotoPetCadastro = findViewById(R.id.imgPetFoto);
         txtMaisInformacoes = findViewById(R.id.txtMaisInformacoes);
     }
 
-    /**
-     * Abre MaisInfoPetActivity em modo rascunho (sem petId).
-     * O usuário pode voltar e ainda editar o formulário.
-     */
+    // ==================== UCROP (igual CriarUsuarioActivity) ====================
+
+    /** Abre a tela de recorte 1:1 para o usuário enquadrar. */
+    private void iniciarRecorte(Uri origem) {
+        Uri destino = Uri.fromFile(new File(getCacheDir(), "crop_pet_" + System.currentTimeMillis() + ".jpg"));
+
+        UCrop.Options options = new UCrop.Options();
+        options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
+        options.setCompressionQuality(80);
+        options.setToolbarTitle("Ajustar foto do pet");
+        options.setFreeStyleCropEnabled(false);
+
+        Intent intent = UCrop.of(origem, destino)
+                .withAspectRatio(1, 1)
+                .withMaxResultSize(800, 800)
+                .withOptions(options)
+                .getIntent(this);
+
+        recortarFoto.launch(intent);
+    }
+
+    /** Lê o arquivo recortado, mostra na ImageView e gera Base64. */
+    private void processarFotoRecortada(Uri uri) {
+        try {
+            InputStream input = getContentResolver().openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(input);
+            if (input != null) input.close();
+
+            if (bitmap == null) {
+                Toast.makeText(this, "Não foi possível ler a foto", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            fotoBase64 = bitmapParaBase64(bitmap);
+            if (imgFotoPetCadastro != null) {
+                imgFotoPetCadastro.setImageBitmap(bitmap);
+                imgFotoPetCadastro.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erro ao processar foto", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String bitmapParaBase64(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+        return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
+    }
+
+    // ==================== MAIS INFORMAÇÕES ====================
+
     private void abrirMaisInformacoes() {
         Intent intent = new Intent(this, MaisInfoPetActivity.class);
         intent.putExtra("MODO_RASCUNHO", true);
@@ -163,6 +225,8 @@ public class PetSignUpActivity extends AppCompatActivity {
         intent.putExtra("SENSIBILIDADE", sensibilidadeTemp);
         maisInfoLauncher.launch(intent);
     }
+
+    // ==================== SPINNERS / DATA ====================
 
     private void configurarSpinners() {
         String[] opcoesSexo = {"Selecione", "Macho", "Fêmea"};
@@ -220,9 +284,6 @@ public class PetSignUpActivity extends AppCompatActivity {
                 return partes[2] + "-" + mes + "-" + dia;
             }
         }
-        if (dataTela.matches("\\d{8}")) {
-            return dataTela.substring(4, 8) + "-" + dataTela.substring(2, 4) + "-" + dataTela.substring(0, 2);
-        }
         return dataTela;
     }
 
@@ -255,12 +316,16 @@ public class PetSignUpActivity extends AppCompatActivity {
         if (nome.isEmpty()) {
             ipPetEdtNome.setError("Informe o nome");
             ok = false;
-        } else ipPetEdtNome.setError(null);
+        } else {
+            ipPetEdtNome.setError(null);
+        }
 
         if (data.isEmpty()) {
             ipPetDtn.setError("Informe a data");
             ok = false;
-        } else ipPetDtn.setError(null);
+        } else {
+            ipPetDtn.setError(null);
+        }
 
         if (sexo.isEmpty() || sexo.equalsIgnoreCase("Selecione")) {
             Toast.makeText(this, "Selecione o sexo", Toast.LENGTH_SHORT).show();
@@ -273,10 +338,8 @@ public class PetSignUpActivity extends AppCompatActivity {
         return ok;
     }
 
-    /**
-     * POST /api/pets/cadastrar.
-     * Depois, se o usuário preencheu Mais Informações, chama o PUT do perfil clínico.
-     */
+    // ==================== API ====================
+
     private void cadastrarPetNaApi() {
         btnCadastrar.setEnabled(false);
 
@@ -324,7 +387,7 @@ public class PetSignUpActivity extends AppCompatActivity {
                 body.put("fotoBase64", JSONObject.NULL);
             }
 
-            Log.d("PET_CADASTRO", "Enviando: " + body.toString());
+            Log.d("PET_CADASTRO", "Enviando cadastro (foto? " + (fotoBase64 != null) + ")");
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
@@ -334,13 +397,13 @@ public class PetSignUpActivity extends AppCompatActivity {
                         long petId = lerPetId(response);
                         Log.d("PET_CADASTRO", "Resposta: " + response.toString());
 
-                        sessionManager.salvarPet(
-                                petId > 0 ? petId : 1,
-                                nomeFinal, racaFinal, especieFinal,
-                                pesoFinal, sexoFinal, porteFinal, dataFinal
-                        );
+                        if (petId > 0) {
+                            sessionManager.salvarPet(
+                                    petId, nomeFinal, racaFinal, especieFinal,
+                                    pesoFinal, sexoFinal, porteFinal, dataFinal
+                            );
+                        }
 
-                        // Se preencheu personalidade/sensibilidade, envia o PUT
                         boolean temExtras = !personalidadesTemp.isEmpty()
                                 || (sensibilidadeTemp != null && !sensibilidadeTemp.trim().isEmpty());
 
@@ -373,7 +436,6 @@ public class PetSignUpActivity extends AppCompatActivity {
         }
     }
 
-    /** Lê id ou idPet da resposta do POST. */
     private long lerPetId(JSONObject response) {
         try {
             if (response.has("id")) {
@@ -390,17 +452,12 @@ public class PetSignUpActivity extends AppCompatActivity {
         return -1;
     }
 
-    /**
-     * PUT /api/pets/{id}/atualizarPetPerfil
-     * Envia o que o usuário escolheu na tela Mais Informações.
-     */
     private void enviarPerfilClinico(long petId, String token) {
         try {
             String url = ApiConfig.URL_ATUALIZAR_PERFIL_PET + petId + "/atualizarPetPerfil";
 
             JSONObject body = new JSONObject();
             body.put("perfilDeSensibilidade", sensibilidadeTemp != null ? sensibilidadeTemp : "");
-
             JSONArray arr = new JSONArray();
             for (String p : personalidadesTemp) {
                 arr.put(p);
@@ -416,7 +473,6 @@ public class PetSignUpActivity extends AppCompatActivity {
                         irParaHome();
                     },
                     error -> {
-                        // Pet já foi criado; extras falharam — ainda assim vai à Home
                         Toast.makeText(this,
                                 "Pet criado, mas houve erro ao salvar personalidade/sensibilidade.",
                                 Toast.LENGTH_LONG).show();
@@ -444,29 +500,6 @@ public class PetSignUpActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
-    }
-
-    private Bitmap cortarCentroQuadrado(Bitmap src) {
-        int lado = Math.min(src.getWidth(), src.getHeight());
-        int x = (src.getWidth() - lado) / 2;
-        int y = (src.getHeight() - lado) / 2;
-        return Bitmap.createBitmap(src, x, y, lado, lado);
-    }
-
-    private Bitmap redimensionar(Bitmap original, int maxLado) {
-        float escala = Math.min(
-                (float) maxLado / original.getWidth(),
-                (float) maxLado / original.getHeight());
-        if (escala >= 1f) return original;
-        return Bitmap.createScaledBitmap(original,
-                Math.round(original.getWidth() * escala),
-                Math.round(original.getHeight() * escala), true);
-    }
-
-    private String bitmapParaBase64(Bitmap bitmap) {
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
-        return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
     }
 
     private void tratarErroHttp(com.android.volley.VolleyError error) {

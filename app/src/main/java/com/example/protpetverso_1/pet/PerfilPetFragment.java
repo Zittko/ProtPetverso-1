@@ -1,12 +1,14 @@
 package com.example.protpetverso_1.pet;
 
+import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,12 +34,23 @@ import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.yalantis.ucrop.UCrop;
 
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Perfil do Pet — GET /api/pets/{id}/perfil
+ *
+ * Foto:
+ * 1) Toque na imagem → galeria
+ * 2) uCrop → usuário enquadra (1:1)
+ * 3) Resultado aparece na tela (Base64 guardado para futuro PUT de foto)
  */
 public class PerfilPetFragment extends Fragment {
 
@@ -46,6 +59,8 @@ public class PerfilPetFragment extends Fragment {
     private SessionManager sessionManager;
     private long petId = -1;
     private String codigoVinculoAtual = "";
+    /** Foto recém-escolhida (para enviar à API quando houver endpoint). */
+    private String fotoBase64Atual;
 
     private ImageView imgFotoPet;
     private TextView txtNomePet, txtRacaPeso, txtEspecie, txtPorte, txtSexo;
@@ -54,25 +69,30 @@ public class PerfilPetFragment extends Fragment {
     private ImageButton btnEditarTutores;
     private MaterialButton btnCopiarCodigo, btnGerarQrCode;
 
+    // ==================== FOTO: GALERIA → UCROP ====================
+
+    /** 1) Abre a galeria. */
     private final ActivityResultLauncher<String> selecionarFoto =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri == null || getContext() == null) return;
-                try {
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(
-                            requireContext().getContentResolver(), uri);
-                    bitmap = cortarCentroQuadrado(bitmap);
-                    bitmap = redimensionar(bitmap, 800);
+                iniciarRecorte(uri);
+            });
 
-                    if (imgFotoPet != null) {
-                        imgFotoPet.setImageBitmap(bitmap);
-                        imgFotoPet.setScaleType(ImageView.ScaleType.CENTER_CROP);
+    /** 2) Recebe o resultado do uCrop. */
+    private final ActivityResultLauncher<Intent> recortarFoto =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (getContext() == null) return;
+
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri resultUri = UCrop.getOutput(result.getData());
+                    if (resultUri != null) {
+                        processarFotoRecortada(resultUri);
                     }
+                } else if (result.getResultCode() == UCrop.RESULT_ERROR && result.getData() != null) {
+                    Throwable cropError = UCrop.getError(result.getData());
                     Toast.makeText(requireContext(),
-                            "Foto atualizada na tela.",
+                            "Erro no recorte: " + (cropError != null ? cropError.getMessage() : ""),
                             Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    Log.e(TAG, "Erro ao carregar foto", e);
-                    Toast.makeText(requireContext(), "Erro ao carregar foto", Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -93,8 +113,11 @@ public class PerfilPetFragment extends Fragment {
         ligarComponentes(view);
         configurarBotoes();
 
+        // Toque na foto → galeria → uCrop
         if (imgFotoPet != null) {
             imgFotoPet.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imgFotoPet.setClickable(true);
+            imgFotoPet.setFocusable(true);
             imgFotoPet.setOnClickListener(v -> selecionarFoto.launch("image/*"));
         }
 
@@ -132,7 +155,6 @@ public class PerfilPetFragment extends Fragment {
         btnGerarQrCode = view.findViewById(R.id.btnGerarQrCode);
     }
 
-    /** Null-safe: se o botão não existir no XML, não quebra a tela. */
     private void configurarBotoes() {
         if (btnEditarTutores != null) {
             btnEditarTutores.setOnClickListener(v ->
@@ -160,6 +182,72 @@ public class PerfilPetFragment extends Fragment {
         }
     }
 
+    // ==================== UCROP ====================
+
+    /** Abre a tela de recorte 1:1. */
+    private void iniciarRecorte(Uri origem) {
+        if (getContext() == null) return;
+
+        Uri destino = Uri.fromFile(new File(
+                requireContext().getCacheDir(),
+                "crop_perfil_pet_" + System.currentTimeMillis() + ".jpg"
+        ));
+
+        UCrop.Options options = new UCrop.Options();
+        options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
+        options.setCompressionQuality(80);
+        options.setToolbarTitle("Ajustar foto do pet");
+        options.setFreeStyleCropEnabled(false);
+
+        Intent intent = UCrop.of(origem, destino)
+                .withAspectRatio(1, 1)
+                .withMaxResultSize(800, 800)
+                .withOptions(options)
+                .getIntent(requireContext());
+
+        recortarFoto.launch(intent);
+    }
+
+    /** Lê a foto recortada, mostra na ImageView e guarda Base64. */
+    private void processarFotoRecortada(Uri uri) {
+        try {
+            InputStream input = requireContext().getContentResolver().openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(input);
+            if (input != null) input.close();
+
+            if (bitmap == null) {
+                Toast.makeText(requireContext(), "Não foi possível ler a foto", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            fotoBase64Atual = bitmapParaBase64(bitmap);
+
+            if (imgFotoPet != null) {
+                imgFotoPet.setImageBitmap(bitmap);
+                imgFotoPet.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            }
+
+            Toast.makeText(requireContext(),
+                    "Foto atualizada na tela.",
+                    Toast.LENGTH_SHORT).show();
+
+            // TODO: quando a API tiver endpoint de update de foto do pet, chamar aqui:
+            // enviarFotoParaApi(fotoBase64Atual);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Erro ao processar foto", e);
+            Toast.makeText(requireContext(), "Erro ao processar foto", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String bitmapParaBase64(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+        return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
+    }
+
+    // ==================== GET PERFIL ====================
+
     private void buscarPetNaApi(long idPet) {
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
@@ -168,7 +256,6 @@ public class PerfilPetFragment extends Fragment {
             return;
         }
 
-        // Confirme no ApiConfig: BASE + "/api/pets/"
         String url = ApiConfig.URL_PET_PERFIL + idPet + "/perfil";
         Log.d(TAG, "GET URL: " + url);
         Log.d(TAG, "PetId: " + idPet);
@@ -219,7 +306,7 @@ public class PerfilPetFragment extends Fragment {
                             ? "Código do Pet: —"
                             : "Código do Pet: " + codigoVinculoAtual;
 
-                    // Não força drawable se formos mostrar Base64 em seguida
+                    // Textos (placeholder de imagem; a foto da API sobrescreve depois)
                     preencherCampos(nome, racaPeso, especie, sexo, porte, dataNasc,
                             codigo, personalidade, sensibilidades, R.drawable.thor);
 
@@ -262,6 +349,7 @@ public class PerfilPetFragment extends Fragment {
         VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
     }
 
+    /** Decodifica Base64 da API e coloca no ImageView. */
     private void mostrarFotoBase64(String base64, ImageView imageView) {
         try {
             if (base64.contains(",")) {
@@ -335,23 +423,6 @@ public class PerfilPetFragment extends Fragment {
         if (txtPersonalidade != null) txtPersonalidade.setText(personalidade);
         if (txtSensibilidades != null) txtSensibilidades.setText(sensibilidades);
         if (imgFotoPet != null) imgFotoPet.setImageResource(fotoResId);
-    }
-
-    private Bitmap cortarCentroQuadrado(Bitmap src) {
-        int lado = Math.min(src.getWidth(), src.getHeight());
-        int x = (src.getWidth() - lado) / 2;
-        int y = (src.getHeight() - lado) / 2;
-        return Bitmap.createBitmap(src, x, y, lado, lado);
-    }
-
-    private Bitmap redimensionar(Bitmap original, int maxLado) {
-        float escala = Math.min(
-                (float) maxLado / original.getWidth(),
-                (float) maxLado / original.getHeight());
-        if (escala >= 1f) return original;
-        return Bitmap.createScaledBitmap(original,
-                Math.round(original.getWidth() * escala),
-                Math.round(original.getHeight() * escala), true);
     }
 
     private void atualizarTituloToolbar(String titulo) {
