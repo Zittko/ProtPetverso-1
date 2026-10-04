@@ -18,6 +18,7 @@ import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.protpetverso_1.ApiConfig;
+import com.example.protpetverso_1.UCropHelper;
 import com.example.protpetverso_1.pet.EscolhaPetActivity;
 import com.example.protpetverso_1.account.LoginActivity;
 import com.example.protpetverso_1.R;
@@ -105,20 +106,11 @@ public class CriarUsuarioActivity extends AppCompatActivity {
     }
 
     private void iniciarRecorte(Uri origem) {
-        Uri destino = Uri.fromFile(new File(getCacheDir(), "crop_criar_usuario.jpg"));
-
-        UCrop.Options options = new UCrop.Options();
-        options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
-        options.setCompressionQuality(80);
-        options.setToolbarTitle("Ajustar foto");
-        options.setFreeStyleCropEnabled(false);
-
-        Intent intent = UCrop.of(origem, destino)
-                .withAspectRatio(1, 1)
-                .withMaxResultSize(800, 800)
-                .withOptions(options)
-                .getIntent(this);
-
+        Intent intent = UCropHelper.criarIntentRecorte(
+                this,           // ou requireContext() no Fragment
+                origem,
+                "Ajustar foto"  // ou "Ajustar foto"
+        );
         recortarFoto.launch(intent);
     }
 

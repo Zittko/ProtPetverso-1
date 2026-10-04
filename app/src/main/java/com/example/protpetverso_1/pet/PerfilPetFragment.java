@@ -31,6 +31,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.protpetverso_1.ApiConfig;
 import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
+import com.example.protpetverso_1.UCropHelper;
 import com.example.protpetverso_1.VolleySingleton;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
@@ -186,25 +187,11 @@ public class PerfilPetFragment extends Fragment {
 
     /** Abre a tela de recorte 1:1. */
     private void iniciarRecorte(Uri origem) {
-        if (getContext() == null) return;
-
-        Uri destino = Uri.fromFile(new File(
-                requireContext().getCacheDir(),
-                "crop_perfil_pet_" + System.currentTimeMillis() + ".jpg"
-        ));
-
-        UCrop.Options options = new UCrop.Options();
-        options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
-        options.setCompressionQuality(80);
-        options.setToolbarTitle("Ajustar foto do pet");
-        options.setFreeStyleCropEnabled(false);
-
-        Intent intent = UCrop.of(origem, destino)
-                .withAspectRatio(1, 1)
-                .withMaxResultSize(800, 800)
-                .withOptions(options)
-                .getIntent(requireContext());
-
+        Intent intent = UCropHelper.criarIntentRecorte(
+                requireContext(),
+                origem,
+                "Ajustar foto do pet"
+        );
         recortarFoto.launch(intent);
     }
 

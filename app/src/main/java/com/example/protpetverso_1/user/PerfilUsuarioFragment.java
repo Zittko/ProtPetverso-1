@@ -1,6 +1,7 @@
 package com.example.protpetverso_1.user;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -25,6 +26,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.protpetverso_1.ApiConfig;
 import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
+import com.example.protpetverso_1.UCropHelper;
 import com.example.protpetverso_1.VolleySingleton;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.yalantis.ucrop.UCrop;
@@ -146,21 +148,11 @@ public class PerfilUsuarioFragment extends Fragment {
      * O usuário move/aplica zoom no enquadramento.
      */
     private void iniciarRecorte(Uri origem) {
-        Uri destino = Uri.fromFile(new File(requireContext().getCacheDir(), "crop_perfil.jpg"));
-
-        UCrop.Options options = new UCrop.Options();
-        options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
-        options.setCompressionQuality(80);
-        options.setFreeStyleCropEnabled(false); // mantém proporção 1:1
-        options.setHideBottomControls(false);
-        options.setToolbarTitle("Ajustar foto");
-
-        android.content.Intent intent = UCrop.of(origem, destino)
-                .withAspectRatio(1, 1)
-                .withMaxResultSize(800, 800)
-                .withOptions(options)
-                .getIntent(requireContext());
-
+        Intent intent = UCropHelper.criarIntentRecorte(
+                requireContext(),           // ou requireContext() no Fragment
+                origem,
+                "Ajustar foto"  // ou "Ajustar foto"
+        );
         recortarFoto.launch(intent);
     }
 

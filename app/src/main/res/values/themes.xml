@@ -31,4 +31,14 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+    <style name="Theme.PetVerso.UCrop" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Barra de status visível; conteúdo abaixo do notch -->
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:fitsSystemWindows">true</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <!-- API 28+: não desenhar por cima do furo da câmera -->
+        <item name="android:windowLayoutInDisplayCutoutMode">never</item>
+    </style>
 </resources>
