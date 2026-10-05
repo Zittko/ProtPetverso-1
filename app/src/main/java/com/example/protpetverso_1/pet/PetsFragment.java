@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Aba Pets — lista meusPets + card Adicionar.
+ * Aba Pets — lista GET /api/pets/meusPets + card Adicionar.
  * Clique no pet → seleciona e abre PerfilPetFragment.
  */
 public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
@@ -68,7 +68,10 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
         }
     }
 
-    /** GET /api/pets/meusPets */
+    /**
+     * GET /api/pets/meusPets
+     * JSON: idPet, nome, papel, fotoPetBase64
+     */
     private void carregarMeusPets() {
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
@@ -81,31 +84,41 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
                 ApiConfig.URL_MEUS_PETS,
                 null,
                 response -> {
-                    Log.d(TAG, "meusPets: " + response.toString());
+                    Log.d(TAG, "meusPets qtd=" + response.length());
                     List<PetResumo> lista = new ArrayList<>();
+
                     for (int i = 0; i < response.length(); i++) {
                         try {
                             JSONObject o = response.getJSONObject(i);
+
                             long id = o.optLong("idPet", -1);
                             if (id <= 0) {
                                 id = o.optLong("id", -1);
                             }
+
                             String nome = o.optString("nome", "Pet");
                             String papel = o.optString("papel", "");
-                            String codigo = o.optString("codigoVinculo", "");
+
+                            String foto = o.optString("fotoPetBase64", "");
+                            if (foto.isEmpty()) {
+                                foto = o.optString("fotoBase64", "");
+                            }
+
                             if (id > 0) {
-                                lista.add(new PetResumo(id, nome, papel, codigo));
+                                lista.add(new PetResumo(id, nome, papel, foto));
                             }
                         } catch (Exception e) {
                             Log.e(TAG, "Erro item " + i, e);
                         }
                     }
+
                     adapter.setItens(lista);
                 },
                 error -> {
                     String msg = "Erro ao carregar pets.";
                     if (error.networkResponse != null) {
                         msg += " (" + error.networkResponse.statusCode + ")";
+                        Log.e(TAG, "Erro GET meusPets: " + error.networkResponse.statusCode);
                     }
                     Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
                 }

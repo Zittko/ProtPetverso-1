@@ -47,7 +47,7 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public int getItemCount() {
-        return lista.size() + 1; // + card Adicionar
+        return lista.size() + 1;
     }
 
     @NonNull
@@ -72,25 +72,34 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         h.txtNome.setText(pet.getNome());
         h.txtPapel.setText(pet.getPapelLabel());
+        h.imgFoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-        // ===== FOTO DA API (Base64) =====
         if (pet.hasFoto()) {
-            try {
-                byte[] decoded = Base64.decode(pet.getFotoPetBase64(), Base64.DEFAULT);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
-                if (bitmap != null) {
-                    h.imgFoto.setImageBitmap(bitmap);
-                } else {
-                    h.imgFoto.setImageResource(R.drawable.thor); // fallback
-                }
-            } catch (Exception e) {
-                h.imgFoto.setImageResource(R.drawable.thor); // fallback em caso de erro
+            Bitmap bmp = decodificarBase64(pet.getFotoPetBase64());
+            if (bmp != null) {
+                h.imgFoto.setImageBitmap(bmp);
+            } else {
+                h.imgFoto.setImageResource(R.drawable.thor);
             }
         } else {
-            h.imgFoto.setImageResource(R.drawable.thor); // sem foto → imagem padrão
+            h.imgFoto.setImageResource(R.drawable.thor);
         }
 
         h.itemView.setOnClickListener(v -> listener.onPetClick(pet));
+    }
+
+    /** Remove prefixo data:image/...;base64, se existir. */
+    private Bitmap decodificarBase64(String base64) {
+        try {
+            if (base64 == null || base64.isEmpty()) return null;
+            if (base64.contains(",")) {
+                base64 = base64.substring(base64.indexOf(",") + 1);
+            }
+            byte[] decoded = Base64.decode(base64, Base64.DEFAULT);
+            return BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     static class PetVH extends RecyclerView.ViewHolder {
