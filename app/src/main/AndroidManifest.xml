@@ -20,9 +20,6 @@
             android:name=".pet.MaisInfoPetActivity"
             android:exported="false" />
         <activity
-            android:name=".pet.SolicitacoesVinculoActivity"
-            android:exported="false"/>
-        <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.PetVerso.UCrop"

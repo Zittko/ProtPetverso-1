@@ -18,7 +18,7 @@ import com.example.protpetverso_1.account.LoginActivity;
 import com.example.protpetverso_1.pet.EscolhaPetActivity;
 import com.example.protpetverso_1.pet.PerfilPetFragment;
 import com.example.protpetverso_1.pet.PetsFragment;
-import com.example.protpetverso_1.pet.SolicitacoesVinculoActivity;
+import com.example.protpetverso_1.pet.SolicitacoesVinculoFragment;
 import com.example.protpetverso_1.schedule.AgendaFragment;
 import com.example.protpetverso_1.user.PerfilUsuarioFragment;
 import com.example.protpetverso_1.vaccine.VacinaFragment;
@@ -95,8 +95,7 @@ public class MenuActivity extends AppCompatActivity {
 
                 } else if (id == R.id.drawerSolicitacoes
                         || t.toLowerCase().contains("solicit")) {
-                    // Conta A: lista e aceita/recusa vínculos
-                    startActivity(new Intent(MenuActivity.this, SolicitacoesVinculoActivity.class));
+                    abrirFragment(new SolicitacoesVinculoFragment(), "Solicitações de Vínculo");
 
                 } else if (id == R.id.drawerEscolhaPet
                         || t.toLowerCase().contains("vincular")

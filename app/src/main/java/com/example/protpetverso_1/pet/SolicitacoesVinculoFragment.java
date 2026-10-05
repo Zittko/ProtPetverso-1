@@ -2,11 +2,15 @@ package com.example.protpetverso_1.pet;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,7 +23,6 @@ import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
 import com.google.android.material.appbar.MaterialToolbar;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -28,46 +31,65 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Conta A (tutor principal): lista pedidos de vínculo e permite Aceitar/Recusar.
+ * Solicitações de vínculo (Conta A — tutor principal).
  * GET  /api/pets/listarSolicitacoes
- * POST /api/pets/processarSolicitacao
+ * POST /api/pets/processarSolicitacao  (ACEITO / RECUSADO)
+ *
+ * Aberta pela MenuActivity (drawer) — usa toolbar e bottom nav do Menu.
  */
-public class SolicitacoesVinculoActivity extends AppCompatActivity
+public class SolicitacoesVinculoFragment extends Fragment
         implements SolicitacaoVinculoAdapter.Listener {
+
+    private static final String TAG = "VINCULO_SOLICIT";
 
     private SessionManager sessionManager;
     private SolicitacaoVinculoAdapter adapter;
     private TextView txtVazio;
     private RecyclerView recycler;
 
+    public SolicitacoesVinculoFragment() {
+    }
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_solicitacoes_vinculo);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_solicitacoes_vinculo, container, false);
+    }
 
-        sessionManager = new SessionManager(this);
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        MaterialToolbar toolbar = findViewById(R.id.toolbarSolicitacoes);
-        if (toolbar != null) {
-            toolbar.setNavigationOnClickListener(v -> finish());
-            // Se o XML não tiver navigationIcon, pode usar só o botão voltar do sistema
-        }
+        sessionManager = new SessionManager(requireContext());
+        atualizarTituloToolbar("Solicitações de Vínculo");
 
-        txtVazio = findViewById(R.id.txtVazio);
-        recycler = findViewById(R.id.recyclerSolicitacoes);
-        recycler.setLayoutManager(new LinearLayoutManager(this));
+        txtVazio = view.findViewById(R.id.txtVazio);
+        recycler = view.findViewById(R.id.recyclerSolicitacoes);
+
+        recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        // Se o XML usa NestedScrollView, deixe nestedScrollingEnabled=false no RecyclerView
+        recycler.setNestedScrollingEnabled(false);
+
         adapter = new SolicitacaoVinculoAdapter(this);
         recycler.setAdapter(adapter);
 
         carregarSolicitacoes();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        atualizarTituloToolbar("Solicitações de Vínculo");
+        if (sessionManager != null) {
+            carregarSolicitacoes();
+        }
+    }
+
     /** GET lista de pendentes do usuário logado (dono dos pets). */
     private void carregarSolicitacoes() {
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
-            Toast.makeText(this, "Sessão expirada.", Toast.LENGTH_SHORT).show();
-            finish();
+            Toast.makeText(requireContext(), "Sessão expirada.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -88,19 +110,24 @@ public class SolicitacoesVinculoActivity extends AppCompatActivity
                                 lista.add(new SolicitacaoVinculo(id, solicitante, pet, data));
                             }
                         } catch (Exception e) {
-                            Log.e("VINCULO", "Erro item " + i, e);
+                            Log.e(TAG, "Erro item " + i, e);
                         }
                     }
                     adapter.setItens(lista);
-                    txtVazio.setVisibility(lista.isEmpty() ? View.VISIBLE : View.GONE);
-                    recycler.setVisibility(lista.isEmpty() ? View.GONE : View.VISIBLE);
+                    boolean vazio = lista.isEmpty();
+                    if (txtVazio != null) {
+                        txtVazio.setVisibility(vazio ? View.VISIBLE : View.GONE);
+                    }
+                    if (recycler != null) {
+                        recycler.setVisibility(vazio ? View.GONE : View.VISIBLE);
+                    }
                 },
                 error -> {
                     String msg = "Erro ao carregar solicitações.";
                     if (error.networkResponse != null) {
                         msg += " (" + error.networkResponse.statusCode + ")";
                     }
-                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
                 }
         ) {
             @Override
@@ -111,12 +138,11 @@ public class SolicitacoesVinculoActivity extends AppCompatActivity
             }
         };
 
-        VolleySingleton.getInstance(this).addToRequestQueue(request);
+        VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
     }
 
     @Override
     public void onAceitar(SolicitacaoVinculo item) {
-        // Confirme com a API o valor exato do enum (APROVADO, ACEITO, etc.)
         processar(item.idSolicitacao, "ACEITO");
     }
 
@@ -125,7 +151,7 @@ public class SolicitacoesVinculoActivity extends AppCompatActivity
         processar(item.idSolicitacao, "RECUSADO");
     }
 
-    /** POST processarSolicitacao */
+    /** POST /api/pets/processarSolicitacao */
     private void processar(long idSolicitacao, String novoStatus) {
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) return;
@@ -141,10 +167,11 @@ public class SolicitacoesVinculoActivity extends AppCompatActivity
                     body,
                     response -> {
                         String msg = response.optString("mensagem", "Solicitação processada.");
-                        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-                        carregarSolicitacoes(); // atualiza a lista
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+                        carregarSolicitacoes();
                     },
-                    error -> Toast.makeText(this, "Erro ao processar solicitação.", Toast.LENGTH_SHORT).show()
+                    error -> Toast.makeText(requireContext(),
+                            "Erro ao processar solicitação.", Toast.LENGTH_SHORT).show()
             ) {
                 @Override
                 public Map<String, String> getHeaders() {
@@ -155,11 +182,24 @@ public class SolicitacoesVinculoActivity extends AppCompatActivity
                 }
             };
 
-            VolleySingleton.getInstance(this).addToRequestQueue(request);
+            VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Erro ao montar processar", e);
         }
     }
-}
 
-//Antes de alterar o código
+    private void atualizarTituloToolbar(String titulo) {
+        if (getActivity() == null) return;
+        MaterialToolbar toolbar = getActivity().findViewById(R.id.toolbarMenu);
+        if (toolbar != null) {
+            toolbar.setTitle(titulo);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Volta o título padrão ao sair (opcional)
+        atualizarTituloToolbar("Tela Inicial");
+    }
+}

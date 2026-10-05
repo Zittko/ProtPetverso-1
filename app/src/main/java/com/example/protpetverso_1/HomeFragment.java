@@ -22,7 +22,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.example.protpetverso_1.pet.Pet;
 import com.example.protpetverso_1.pet.PetAdapter;
 import com.example.protpetverso_1.pet.PetSelecionado;
-import com.example.protpetverso_1.pet.SolicitacoesVinculoActivity;
+import com.example.protpetverso_1.pet.SolicitacoesVinculoFragment;
 import com.example.protpetverso_1.schedule.Tarefa;
 import com.example.protpetverso_1.schedule.TarefaAdapter;
 import com.example.protpetverso_1.vaccine.AlertaSaude;
@@ -152,14 +152,13 @@ public class HomeFragment extends Fragment {
         atualizarSaude(primeiroPet.getAlertasSaude());
 
         // Botão de próximo pet
-        // O clique simples agora abre a tela diretamente
         btnProximo.setOnClickListener(v -> {
-            Intent intent = new Intent(v.getContext(), SolicitacoesVinculoActivity.class);
-            v.getContext().startActivity(intent);
+            int atual = viewPagerPets.getCurrentItem();
+            int proximo = (atual + 1) % listaPets.size();
+            viewPagerPets.setCurrentItem(proximo, true);
         });
 
-
-        //Botão de pet anterior
+        // Botão de pet anterior
         btnAnterior.setOnClickListener(v -> {
             int atual = viewPagerPets.getCurrentItem();
             int anterior = (atual - 1 + listaPets.size()) % listaPets.size();
