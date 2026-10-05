@@ -1,5 +1,8 @@
 package com.example.protpetverso_1.pet;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,11 +66,30 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             holder.itemView.setOnClickListener(v -> listener.onAdicionarClick());
             return;
         }
+
         PetResumo pet = lista.get(position);
         PetVH h = (PetVH) holder;
+
         h.txtNome.setText(pet.getNome());
         h.txtPapel.setText(pet.getPapelLabel());
-        h.imgFoto.setImageResource(R.drawable.thor);
+
+        // ===== FOTO DA API (Base64) =====
+        if (pet.hasFoto()) {
+            try {
+                byte[] decoded = Base64.decode(pet.getFotoPetBase64(), Base64.DEFAULT);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
+                if (bitmap != null) {
+                    h.imgFoto.setImageBitmap(bitmap);
+                } else {
+                    h.imgFoto.setImageResource(R.drawable.thor); // fallback
+                }
+            } catch (Exception e) {
+                h.imgFoto.setImageResource(R.drawable.thor); // fallback em caso de erro
+            }
+        } else {
+            h.imgFoto.setImageResource(R.drawable.thor); // sem foto → imagem padrão
+        }
+
         h.itemView.setOnClickListener(v -> listener.onPetClick(pet));
     }
 
