@@ -21,14 +21,14 @@
             android:exported="false" />
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
+            android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PetVerso.UCrop"
-            android:exported="false" />
+            android:theme="@style/Theme.PetVerso.UCrop" />
         <activity
-            android:name="CenterTitleUCropActivity"
+            android:name=".CenterTitleUCropActivity"
+            android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PetVerso.UCrop"
-            android:exported="false" />
+            android:theme="@style/Theme.PetVerso.UCrop" />
         <activity
             android:name=".account.SignUpActivity"
             android:exported="false"
@@ -41,6 +41,10 @@
             android:name=".account.LoginActivity"
             android:exported="false"
             android:theme="@style/Theme.ProtPetverso1"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".schedule.CriarTarefaActivity"
+            android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".SplashActivity"
@@ -69,6 +73,10 @@
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".account.RecuperarSenhaActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".CriarTarefaActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
     </application>

@@ -23,5 +23,9 @@ public class ApiConfig {
     public static final String URL_LISTAR_SOLICITACOES = BASE_URL + "/api/pets/listarSolicitacoes";
     public static final String URL_PROCESSAR_SOLICITACAO = BASE_URL + "/api/pets/processarSolicitacao";
     public static final String URL_MEUS_PETS = BASE_URL + "/api/pets/meusPets";
-// uso: URL_PET_PERFIL + id + "/perfil"
+
+    // Tarefas
+    public static final String URL_TAREFAS_DO_PET = BASE_URL + "/api/pets/"; // + id + "/tarefas"
+    public static final String URL_TAREFAS_POR_DIA = BASE_URL + "/api/tarefas"; // ?data=yyyy-MM-dd
+    public static final String URL_FOTO_PET = BASE_URL + "/api/pets/"; // + id + "/foto"
 }

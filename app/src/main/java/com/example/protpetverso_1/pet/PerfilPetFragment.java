@@ -227,6 +227,44 @@ public class PerfilPetFragment extends Fragment {
         }
     }
 
+    private void enviarFotoParaApi(String fotoBase64) {
+        if (petId <= 0 || fotoBase64 == null || fotoBase64.isEmpty()) return;
+
+        String token = sessionManager.obterToken();
+        if (token == null || token.isEmpty()) return;
+
+        try {
+            String url = ApiConfig.URL_FOTO_PET + petId + "/foto";
+            JSONObject body = new JSONObject();
+            body.put("fotoBase64", fotoBase64);
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.PUT,
+                    url,
+                    body,
+                    response -> Toast.makeText(requireContext(), "Foto salva!", Toast.LENGTH_SHORT).show(),
+                    error -> {
+                        String msg = "Erro ao salvar foto.";
+                        if (error.networkResponse != null && error.networkResponse.statusCode == 403) {
+                            msg = "Apenas o tutor principal pode alterar a foto.";
+                        }
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+                    }
+            ) {
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> h = new HashMap<>();
+                    h.put("Authorization", "Bearer " + token);
+                    h.put("Content-Type", "application/json");
+                    return h;
+                }
+            };
+            VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private String bitmapParaBase64(Bitmap bitmap) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);

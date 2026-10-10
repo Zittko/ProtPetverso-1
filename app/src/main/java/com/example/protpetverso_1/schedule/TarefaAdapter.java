@@ -13,16 +13,26 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.protpetverso_1.R;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TarefaAdapter extends RecyclerView.Adapter<TarefaAdapter.TarefaViewHolder> {
 
-    private List<Tarefa> listaTarefas;
-    private Context context;
+    private final List<Tarefa> listaTarefas = new ArrayList<>();
+    private final Context context;
 
     public TarefaAdapter(Context context, List<Tarefa> listaTarefas) {
         this.context = context;
-        this.listaTarefas = listaTarefas;
+        if (listaTarefas != null) {
+            this.listaTarefas.addAll(listaTarefas);
+        }
+    }
+
+    /** Atualiza a lista exibida (após GET da API). */
+    public void setItens(List<Tarefa> novas) {
+        listaTarefas.clear();
+        if (novas != null) listaTarefas.addAll(novas);
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -37,30 +47,38 @@ public class TarefaAdapter extends RecyclerView.Adapter<TarefaAdapter.TarefaView
     public void onBindViewHolder(@NonNull TarefaViewHolder holder, int position) {
         Tarefa tarefa = listaTarefas.get(position);
 
-        // ===== Título com horário =====
-        String tituloCompleto;
+        // Título com horário
         if (tarefa.getHorario() != null) {
-            // Formata o horário (ex: 08:00)
-            LocalTime horario = tarefa.getHorario();
-            String horaFormatada = String.format("%02d:%02d", horario.getHour(), horario.getMinute());
-            tituloCompleto = horaFormatada + " - " + tarefa.getTitulo();
+            LocalTime h = tarefa.getHorario();
+            String horaFormatada = String.format("%02d:%02d", h.getHour(), h.getMinute());
+            holder.titleTarefa.setText(horaFormatada + " - " + tarefa.getTitulo());
         } else {
-            tituloCompleto = tarefa.getTitulo();
+            holder.titleTarefa.setText(tarefa.getTitulo());
         }
-        holder.titleTarefa.setText(tituloCompleto);
 
-        // ===== Descrição =====
         holder.descTarefa.setText(tarefa.getDesc());
+        holder.imgTarefa.setImageResource(
+                tarefa.getImagemResId() != 0
+                        ? tarefa.getImagemResId()
+                        : android.R.drawable.ic_menu_my_calendar
+        );
 
-        // ===== Imagem =====
-        holder.imgTarefa.setImageResource(tarefa.getImagemResId());
+        // Status concluída
+        if (tarefa.isConcluida()) {
+            holder.imgStatus.setImageResource(android.R.drawable.checkbox_on_background);
+        } else {
+            holder.imgStatus.setImageResource(android.R.drawable.checkbox_off_background);
+        }
 
-        // ===== Status (por enquanto fixo - depois melhoramos) =====
-        // Se quiser, depois adicionamos um campo "concluida" na classe Tarefa
-        holder.imgStatus.setImageResource(android.R.drawable.checkbox_off_background);
-
-        // ===== Rodapé (por enquanto genérico) =====
-        holder.txtRodape.setText("");
+        // Rodapé: quem executou ou pet
+        if (tarefa.isConcluida() && tarefa.getExecutadoPorNome() != null
+                && !tarefa.getExecutadoPorNome().isEmpty()) {
+            holder.txtRodape.setText("Feito por: " + tarefa.getExecutadoPorNome());
+        } else if (tarefa.getNomePet() != null && !tarefa.getNomePet().isEmpty()) {
+            holder.txtRodape.setText("Pet: " + tarefa.getNomePet());
+        } else {
+            holder.txtRodape.setText("");
+        }
     }
 
     @Override
@@ -69,7 +87,6 @@ public class TarefaAdapter extends RecyclerView.Adapter<TarefaAdapter.TarefaView
     }
 
     static class TarefaViewHolder extends RecyclerView.ViewHolder {
-
         TextView titleTarefa, descTarefa, txtRodape;
         ImageView imgTarefa, imgStatus;
 
