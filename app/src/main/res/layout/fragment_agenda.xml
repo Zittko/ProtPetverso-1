@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="#FFF3E0"
+    android:background="#FFE8CE"
     tools:context=".schedule.AgendaFragment">
 
     <LinearLayout
@@ -12,80 +13,167 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <!-- ===== ÁREA DO CALENDÁRIO ===== -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#FFF3E0"
             android:orientation="vertical"
-            android:paddingTop="12dp"
+            android:paddingTop="8dp"
             android:paddingBottom="4dp">
 
-            <androidx.recyclerview.widget.RecyclerView
+            <!-- Título: Domingo, 11 de Outubro 2026 -->
+            <TextView
+                android:id="@+id/txtMesAno"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:clipToPadding="false"
+                android:layout_height="wrap_content"
+                android:gravity="center"
                 android:paddingHorizontal="12dp"
-                android:overScrollMode="never"
-                android:id="@+id/recyclerDias"/>
-            
+                android:paddingBottom="6dp"
+                android:textColor="#000000"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:text="—" />
+
+            <!-- Chips da semana (visível só quando COLAPSADO) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerDias"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:clipToPadding="false"
+                android:paddingHorizontal="8dp"
+                android:overScrollMode="never" />
+
+            <!-- Calendário mensal (visível só quando EXPANDIDO) -->
+            <LinearLayout
+                android:id="@+id/containerCalendarioMes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="12dp"
+                android:visibility="gone">
+
+                <!-- Navegação do mês: &lt;  Outubro 2026  &gt; -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="4dp">
+
+                    <ImageButton
+                        android:id="@+id/btnMesAnterior"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Mês anterior"
+                        android:src="@android:drawable/ic_media_previous"
+                        app:tint="#DF945D" />
+
+                    <TextView
+                        android:id="@+id/txtNomeMesExpandido"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#000000"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:text="Outubro 2026" />
+
+                    <ImageButton
+                        android:id="@+id/btnMesProximo"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Próximo mês"
+                        android:src="@android:drawable/ic_media_next"
+                        app:tint="#DF945D" />
+                </LinearLayout>
+
+                <!-- Cabeçalho Seg Ter ... Dom -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="4dp">
+
+                    <TextView style="@style/DiaSemanaHeader" android:text="Seg" />
+                    <TextView style="@style/DiaSemanaHeader" android:text="Ter" />
+                    <TextView style="@style/DiaSemanaHeader" android:text="Qua" />
+                    <TextView style="@style/DiaSemanaHeader" android:text="Qui" />
+                    <TextView style="@style/DiaSemanaHeader" android:text="Sex" />
+                    <TextView style="@style/DiaSemanaHeader" android:text="Sáb" />
+                    <TextView style="@style/DiaSemanaHeader" android:text="Dom" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerMes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:overScrollMode="never" />
+            </LinearLayout>
+
             <ImageView
                 android:id="@+id/btnExpandirCalendario"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="end"
-                android:layout_marginEnd="16dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_horizontal"
+                android:contentDescription="Expandir calendário"
+                android:padding="8dp"
                 android:src="@android:drawable/arrow_down_float"
-                android:contentDescription="Expandir Calendário"/>
-
-
+                app:tint="#DF945D" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/txtTituloLista"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Tarefas do Dia"
-            android:textSize="16sp"
-            android:textStyle="bold"
             android:paddingHorizontal="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"/>
+            android:paddingTop="4dp"
+            android:paddingBottom="8dp"
+            android:text="Tarefas do Dia"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerTarefas"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:paddingHorizontal="12dp"
-            android:paddingBottom="100dp"/>
+            android:layout_weight="1">
 
-        <TextView
-            android:id="@+id/txtSemTarefas"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Nenhuma tarefa para este dia"
-            android:textSize="15sp"
-            android:textColor="#999999"
-            android:visibility="gone" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerTarefas"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingHorizontal="12dp"
+                android:paddingBottom="100dp" />
 
-
+            <TextView
+                android:id="@+id/txtSemTarefas"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="Nenhuma tarefa para este dia"
+                android:textColor="#999999"
+                android:textSize="15sp"
+                android:visibility="gone" />
+        </FrameLayout>
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:layout_width="wrap_content"
         android:id="@+id/btnNovaTarefa"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="90dp"
-        android:contentDescription="Nova Tarefa"
-        app:backgroundTint="#E67E22"
-        android:tint="@android:color/white"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+        android:contentDescription="Nova tarefa"
+        android:src="@android:drawable/ic_input_add"
+        app:backgroundTint="#DF945D"
         app:elevation="6dp"
-        />
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+        app:tint="@android:color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

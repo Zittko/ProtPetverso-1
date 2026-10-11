@@ -196,6 +196,7 @@ public class PerfilPetFragment extends Fragment {
     }
 
     /** Lê a foto recortada, mostra na ImageView e guarda Base64. */
+    /** Lê a foto recortada, mostra na ImageView e envia para a API. */
     private void processarFotoRecortada(Uri uri) {
         try {
             InputStream input = requireContext().getContentResolver().openInputStream(uri);
@@ -214,12 +215,8 @@ public class PerfilPetFragment extends Fragment {
                 imgFotoPet.setScaleType(ImageView.ScaleType.CENTER_CROP);
             }
 
-            Toast.makeText(requireContext(),
-                    "Foto atualizada na tela.",
-                    Toast.LENGTH_SHORT).show();
-
-            // TODO: quando a API tiver endpoint de update de foto do pet, chamar aqui:
-            // enviarFotoParaApi(fotoBase64Atual);
+            // Grava no servidor (PUT /api/pets/{id}/foto)
+            enviarFotoParaApi(fotoBase64Atual);
 
         } catch (Exception e) {
             Log.e(TAG, "Erro ao processar foto", e);
@@ -227,28 +224,64 @@ public class PerfilPetFragment extends Fragment {
         }
     }
 
+    /**
+     * PUT /api/pets/{id}/foto
+     * Body: { "fotoBase64": "..." }
+     * Só tutor DONO consegue alterar (API retorna 403 para SUPORTE).
+     */
     private void enviarFotoParaApi(String fotoBase64) {
-        if (petId <= 0 || fotoBase64 == null || fotoBase64.isEmpty()) return;
+        if (petId <= 0) {
+            Toast.makeText(requireContext(), "Pet inválido.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (fotoBase64 == null || fotoBase64.isEmpty()) return;
+
+        if (fotoBase64.contains(",")) {
+            fotoBase64 = fotoBase64.substring(fotoBase64.indexOf(",") + 1);
+        }
 
         String token = sessionManager.obterToken();
-        if (token == null || token.isEmpty()) return;
+        if (token == null || token.isEmpty()) {
+            Toast.makeText(requireContext(), "Sessão expirada.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         try {
             String url = ApiConfig.URL_FOTO_PET + petId + "/foto";
             JSONObject body = new JSONObject();
             body.put("fotoBase64", fotoBase64);
 
+            Log.d(TAG, "PUT foto: " + url);
+
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.PUT,
                     url,
                     body,
-                    response -> Toast.makeText(requireContext(), "Foto salva!", Toast.LENGTH_SHORT).show(),
+                    response -> {
+                        Log.d(TAG, "Foto salva na API");
+                        Toast.makeText(requireContext(), "Foto salva!", Toast.LENGTH_SHORT).show();
+                        String fotoVolta = response.optString("fotoBase64", "");
+                        if (!fotoVolta.isEmpty() && imgFotoPet != null) {
+                            mostrarFotoBase64(fotoVolta, imgFotoPet);
+                        }
+                    },
                     error -> {
                         String msg = "Erro ao salvar foto.";
-                        if (error.networkResponse != null && error.networkResponse.statusCode == 403) {
-                            msg = "Apenas o tutor principal pode alterar a foto.";
+                        if (error.networkResponse != null) {
+                            int s = error.networkResponse.statusCode;
+                            if (s == 403) {
+                                msg = "Apenas o tutor principal pode alterar a foto.";
+                            } else {
+                                msg += " (" + s + ")";
+                            }
+                            try {
+                                String err = new String(error.networkResponse.data,
+                                        java.nio.charset.StandardCharsets.UTF_8);
+                                Log.e(TAG, "PUT foto erro: " + err);
+                            } catch (Exception ignored) {
+                            }
                         }
-                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show();
                     }
             ) {
                 @Override
@@ -259,9 +292,11 @@ public class PerfilPetFragment extends Fragment {
                     return h;
                 }
             };
+
             VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Erro ao montar PUT foto", e);
+            Toast.makeText(requireContext(), "Erro ao enviar foto.", Toast.LENGTH_SHORT).show();
         }
     }
 

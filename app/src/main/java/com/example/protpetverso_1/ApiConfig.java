@@ -27,5 +27,5 @@ public class ApiConfig {
     // Tarefas
     public static final String URL_TAREFAS_DO_PET = BASE_URL + "/api/pets/"; // + id + "/tarefas"
     public static final String URL_TAREFAS_POR_DIA = BASE_URL + "/api/tarefas"; // ?data=yyyy-MM-dd
-    public static final String URL_FOTO_PET = BASE_URL + "/api/pets/"; // + id + "/foto"
+    public static final String URL_FOTO_PET = BASE_URL + "/api/pets/";
 }

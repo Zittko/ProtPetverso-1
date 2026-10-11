@@ -95,10 +95,14 @@ public class CriarTarefaActivity extends AppCompatActivity {
     private void abrirDatePicker() {
         Calendar c = Calendar.getInstance();
         c.set(dataSelecionada.getYear(), dataSelecionada.getMonthValue() - 1, dataSelecionada.getDayOfMonth());
-        new DatePickerDialog(this, (view, y, m, d) -> {
+        DatePickerDialog dialog = new DatePickerDialog(this, (view, y, m, d) -> {
             dataSelecionada = LocalDate.of(y, m + 1, d);
             atualizarTextoData();
-        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
+        }, dataSelecionada.getYear(), dataSelecionada.getMonthValue() - 1, dataSelecionada.getDayOfMonth());
+
+        // Mínimo = hoje
+        dialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        dialog.show();
     }
 
     private void abrirTimePicker() {

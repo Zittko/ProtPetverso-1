@@ -31,6 +31,15 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+    <style name="DiaSemanaHeader">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#000000</item>
+    </style>
     <style name="Theme.PetVerso.UCrop" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Barra de status visível; conteúdo abaixo do notch -->
         <item name="android:windowFullscreen">false</item>
