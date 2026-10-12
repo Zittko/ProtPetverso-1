@@ -1,53 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootMaisInfo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#FFE8CE">
 
+    <!-- Toolbar laranja que sobe até o topo (status bar por cima) -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbarMaisInfo"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
         android:background="#F08C4B"
+        android:paddingBottom="4dp"
         app:navigationIcon="@drawable/baseline_arrow_back"
         app:navigationIconTint="#000000"
         app:title="Mais Informações"
         app:titleCentered="true"
         app:titleTextColor="#000000" />
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollMaisInfo"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:fillViewport="true"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        android:isScrollContainer="true"
+        android:overScrollMode="never">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingHorizontal="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="48dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
                 android:text="Personalidade"
                 android:textColor="#000000"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="10dp" />
+                android:textStyle="bold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="#FFFFFF"
                 app:cardCornerRadius="12dp"
-                app:strokeColor="#FF9800"
-                app:strokeWidth="1dp"
                 app:cardElevation="0dp"
-                android:layout_marginBottom="16dp">
+                app:strokeColor="#FF9800"
+                app:strokeWidth="1.5dp">
 
                 <com.google.android.material.chip.ChipGroup
                     android:id="@+id/chipGroupPersonalidades"
@@ -62,11 +71,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:text="Escreva a personalidade do seu pet"
                 android:textColor="#000000"
                 android:textSize="15sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
+                android:textStyle="bold" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/ipNovaPersonalidade"
@@ -89,6 +98,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="textCapSentences"
                     android:maxLines="1"
+                    android:imeOptions="actionDone"
                     android:textColor="#000000"
                     android:textColorHint="#AAAAAA" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -97,23 +107,23 @@
                 android:id="@+id/btnAdicionarCaracteristica"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
                 android:text="Adicionar outra característica"
                 android:textAllCaps="false"
-                android:textColor="#000"
-                app:icon="@android:drawable/ic_input_add"
-                app:iconTint="#000"
+                android:textColor="#000000"
                 app:backgroundTint="#DF945D"
                 app:cornerRadius="10dp"
-                android:layout_marginBottom="24dp" />
+                app:icon="@android:drawable/ic_input_add"
+                app:iconTint="#000000" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
                 android:text="Sensibilidades"
                 android:textColor="#000000"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="10dp" />
+                android:textStyle="bold" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/ipSensibilidades"
@@ -135,7 +145,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="top|start"
-                    android:inputType="textMultiLine"
+                    android:inputType="textMultiLine|textCapSentences"
                     android:minLines="3"
                     android:textColor="#000000"
                     android:textColorHint="#AAAAAA" />
@@ -147,11 +157,11 @@
                 android:layout_height="52dp"
                 android:text="Finalizar cadastro"
                 android:textAllCaps="false"
-                android:textColor="#000"
+                android:textColor="#000000"
                 android:textSize="16sp"
                 app:backgroundTint="#DF945D"
                 app:cornerRadius="12dp" />
 
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 </LinearLayout>
