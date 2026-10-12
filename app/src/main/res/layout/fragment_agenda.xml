@@ -21,7 +21,6 @@
             android:paddingTop="8dp"
             android:paddingBottom="4dp">
 
-            <!-- Título: Domingo, 11 de Outubro 2026 -->
             <TextView
                 android:id="@+id/txtMesAno"
                 android:layout_width="match_parent"
@@ -34,7 +33,6 @@
                 android:textStyle="bold"
                 android:text="—" />
 
-            <!-- Chips da semana (visível só quando COLAPSADO) -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerDias"
                 android:layout_width="match_parent"
@@ -43,7 +41,6 @@
                 android:paddingHorizontal="8dp"
                 android:overScrollMode="never" />
 
-            <!-- Calendário mensal (visível só quando EXPANDIDO) -->
             <LinearLayout
                 android:id="@+id/containerCalendarioMes"
                 android:layout_width="match_parent"
@@ -52,7 +49,6 @@
                 android:paddingHorizontal="12dp"
                 android:visibility="gone">
 
-                <!-- Navegação do mês: &lt;  Outubro 2026  &gt; -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -90,7 +86,6 @@
                         app:tint="#DF945D" />
                 </LinearLayout>
 
-                <!-- Cabeçalho Seg Ter ... Dom -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -156,7 +151,7 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:text="Nenhuma tarefa para este dia"
-                android:textColor="#999999"
+                android:textColor="#666666"
                 android:textSize="15sp"
                 android:visibility="gone" />
         </FrameLayout>

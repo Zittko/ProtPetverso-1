@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFF3E0"
+    android:background="#FFE8CE"
     android:paddingHorizontal="24dp"
     android:paddingTop="24dp"
     android:paddingBottom="24dp">
@@ -26,7 +26,7 @@
             android:text="Seja bem-vindo!"
             android:textSize="26sp"
             android:textStyle="bold"
-            android:textColor="#5D4037" />
+            android:textColor="#000000" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -35,7 +35,7 @@
             android:layout_marginBottom="36dp"
             android:text="O que deseja fazer agora?"
             android:textSize="16sp"
-            android:textColor="#8D6E63" />
+            android:textColor="#666666" />
 
         <!-- Cadastrar novo pet -->
         <com.google.android.material.card.MaterialCardView
@@ -78,7 +78,7 @@
                         android:text="Cadastrar novo pet"
                         android:textSize="17sp"
                         android:textStyle="bold"
-                        android:textColor="#3E2723" />
+                        android:textColor="#000000" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -86,7 +86,7 @@
                         android:layout_marginTop="2dp"
                         android:text="(Você será o tutor principal)"
                         android:textSize="13sp"
-                        android:textColor="#888888" />
+                        android:textColor="#666666" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -98,9 +98,9 @@
             android:text="Ou"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="#5D4037" />
+            android:textColor="#000000" />
 
-        <!-- Vincular / suporte -->
+        <!-- Entrar como suporte / vincular -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardVincularPet"
             android:layout_width="match_parent"
@@ -127,7 +127,7 @@
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@android:drawable/ic_menu_share"
+                        android:src="@android:drawable/ic_input_add"
                         app:tint="#FF9800"
                         android:background="@drawable/bg_circulo_laranja"
                         android:padding="10dp"
@@ -146,7 +146,7 @@
                             android:text="Entrar como suporte"
                             android:textSize="17sp"
                             android:textStyle="bold"
-                            android:textColor="#3E2723" />
+                            android:textColor="#000000" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -154,7 +154,7 @@
                             android:layout_marginTop="2dp"
                             android:text="(Insira o código de outro pet)"
                             android:textSize="13sp"
-                            android:textColor="#888888" />
+                            android:textColor="#666666" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -164,7 +164,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
                     app:boxBackgroundMode="outline"
-                    app:boxBackgroundColor="#FFF8F0"
+                    app:boxBackgroundColor="#FFFFFF"
                     app:boxStrokeColor="#FF9800"
                     app:boxStrokeWidth="1.5dp"
                     app:boxCornerRadiusBottomEnd="10dp"
@@ -181,7 +181,7 @@
                         android:hint="Ex: QKZ-2813"
                         android:inputType="textCapCharacters"
                         android:maxLength="16"
-                        android:textColor="@color/black"
+                        android:textColor="#000000"
                         android:textColorHint="#AAAAAA"
                         android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
@@ -194,8 +194,8 @@
                     android:text="Vincular"
                     android:textAllCaps="false"
                     android:textSize="15sp"
-                    android:textColor="@android:color/white"
-                    app:backgroundTint="#FF9800"
+                    android:textColor="#000"
+                    app:backgroundTint="#DF945D"
                     app:cornerRadius="10dp" />
 
             </LinearLayout>
@@ -215,8 +215,8 @@
         android:text="Voltar"
         android:textAllCaps="false"
         android:textSize="16sp"
-        android:textColor="#5D4037"
-        app:backgroundTint="#FFCC80"
+        android:textColor="#000000"
+        app:backgroundTint="#F7D4A0"
         app:cornerRadius="12dp" />
 
 </LinearLayout>

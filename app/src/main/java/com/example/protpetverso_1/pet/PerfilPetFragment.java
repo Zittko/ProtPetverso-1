@@ -33,6 +33,7 @@ import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.UCropHelper;
 import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.data.AppDataCache;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.yalantis.ucrop.UCrop;
@@ -40,18 +41,15 @@ import com.yalantis.ucrop.UCrop;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Perfil do Pet — GET /api/pets/{id}/perfil
+ * PUT /api/pets/{id}/foto
  *
- * Foto:
- * 1) Toque na imagem → galeria
- * 2) uCrop → usuário enquadra (1:1)
- * 3) Resultado aparece na tela (Base64 guardado para futuro PUT de foto)
+ * Fluxo: cache → UI → GET em background → atualiza cache + UI
  */
 public class PerfilPetFragment extends Fragment {
 
@@ -60,7 +58,6 @@ public class PerfilPetFragment extends Fragment {
     private SessionManager sessionManager;
     private long petId = -1;
     private String codigoVinculoAtual = "";
-    /** Foto recém-escolhida (para enviar à API quando houver endpoint). */
     private String fotoBase64Atual;
 
     private ImageView imgFotoPet;
@@ -70,16 +67,12 @@ public class PerfilPetFragment extends Fragment {
     private ImageButton btnEditarTutores;
     private MaterialButton btnCopiarCodigo, btnGerarQrCode;
 
-    // ==================== FOTO: GALERIA → UCROP ====================
-
-    /** 1) Abre a galeria. */
     private final ActivityResultLauncher<String> selecionarFoto =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri == null || getContext() == null) return;
                 iniciarRecorte(uri);
             });
 
-    /** 2) Recebe o resultado do uCrop. */
     private final ActivityResultLauncher<Intent> recortarFoto =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (getContext() == null) return;
@@ -114,7 +107,6 @@ public class PerfilPetFragment extends Fragment {
         ligarComponentes(view);
         configurarBotoes();
 
-        // Toque na foto → galeria → uCrop
         if (imgFotoPet != null) {
             imgFotoPet.setScaleType(ImageView.ScaleType.CENTER_CROP);
             imgFotoPet.setClickable(true);
@@ -132,6 +124,11 @@ public class PerfilPetFragment extends Fragment {
         Log.d(TAG, "petId final: " + petId);
 
         if (petId > 0) {
+            // 1) Cache
+            if (AppDataCache.get().temPerfilPet(petId)) {
+                aplicarJsonNoPerfil(AppDataCache.get().getPerfilPet(petId));
+            }
+            // 2) Rede
             buscarPetNaApi(petId);
         } else {
             Toast.makeText(requireContext(), "Nenhum pet selecionado.", Toast.LENGTH_SHORT).show();
@@ -183,9 +180,8 @@ public class PerfilPetFragment extends Fragment {
         }
     }
 
-    // ==================== UCROP ====================
+    // ==================== UCROP / FOTO ====================
 
-    /** Abre a tela de recorte 1:1. */
     private void iniciarRecorte(Uri origem) {
         Intent intent = UCropHelper.criarIntentRecorte(
                 requireContext(),
@@ -195,8 +191,6 @@ public class PerfilPetFragment extends Fragment {
         recortarFoto.launch(intent);
     }
 
-    /** Lê a foto recortada, mostra na ImageView e guarda Base64. */
-    /** Lê a foto recortada, mostra na ImageView e envia para a API. */
     private void processarFotoRecortada(Uri uri) {
         try {
             InputStream input = requireContext().getContentResolver().openInputStream(uri);
@@ -209,26 +203,17 @@ public class PerfilPetFragment extends Fragment {
             }
 
             fotoBase64Atual = bitmapParaBase64(bitmap);
-
             if (imgFotoPet != null) {
                 imgFotoPet.setImageBitmap(bitmap);
                 imgFotoPet.setScaleType(ImageView.ScaleType.CENTER_CROP);
             }
-
-            // Grava no servidor (PUT /api/pets/{id}/foto)
             enviarFotoParaApi(fotoBase64Atual);
-
         } catch (Exception e) {
             Log.e(TAG, "Erro ao processar foto", e);
             Toast.makeText(requireContext(), "Erro ao processar foto", Toast.LENGTH_SHORT).show();
         }
     }
 
-    /**
-     * PUT /api/pets/{id}/foto
-     * Body: { "fotoBase64": "..." }
-     * Só tutor DONO consegue alterar (API retorna 403 para SUPORTE).
-     */
     private void enviarFotoParaApi(String fotoBase64) {
         if (petId <= 0) {
             Toast.makeText(requireContext(), "Pet inválido.", Toast.LENGTH_SHORT).show();
@@ -253,6 +238,8 @@ public class PerfilPetFragment extends Fragment {
 
             Log.d(TAG, "PUT foto: " + url);
 
+            final String fotoEnviada = fotoBase64;
+
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.PUT,
                     url,
@@ -260,9 +247,25 @@ public class PerfilPetFragment extends Fragment {
                     response -> {
                         Log.d(TAG, "Foto salva na API");
                         Toast.makeText(requireContext(), "Foto salva!", Toast.LENGTH_SHORT).show();
-                        String fotoVolta = response.optString("fotoBase64", "");
-                        if (!fotoVolta.isEmpty() && imgFotoPet != null) {
+
+                        String fotoVolta = response.optString("fotoBase64", fotoEnviada);
+                        fotoBase64Atual = fotoVolta;
+                        if (imgFotoPet != null) {
                             mostrarFotoBase64(fotoVolta, imgFotoPet);
+                        }
+
+                        // Atualiza cache do perfil (mescla foto no JSON em cache)
+                        JSONObject cached = AppDataCache.get().getPerfilPet(petId);
+                        if (cached != null) {
+                            try {
+                                cached.put("fotoBase64", fotoVolta);
+                                cached.put("fotoPetBase64", fotoVolta);
+                                AppDataCache.get().setPerfilPet(petId, cached);
+                            } catch (Exception ignored) {
+                            }
+                        } else {
+                            // Recarrega perfil completo
+                            buscarPetNaApi(petId);
                         }
                     },
                     error -> {
@@ -318,7 +321,6 @@ public class PerfilPetFragment extends Fragment {
 
         String url = ApiConfig.URL_PET_PERFIL + idPet + "/perfil";
         Log.d(TAG, "GET URL: " + url);
-        Log.d(TAG, "PetId: " + idPet);
 
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
@@ -326,75 +328,18 @@ public class PerfilPetFragment extends Fragment {
                 null,
                 response -> {
                     Log.d(TAG, "GET resposta: " + response.toString());
-
-                    String nome = response.optString("nome", "—");
-                    String raca = response.optString("raca", "—");
-                    double peso = response.optDouble("peso", 0);
-                    String racaPeso = raca + "  |  " + peso + " Kg";
-
-                    String especie = response.optString("especie", "—");
-                    if (especie.isEmpty()) especie = "—";
-
-                    String sexo = formatarSexo(response.optString("sexo", "—"));
-                    String porte = formatarPorte(response.optString("porte", "—"));
-
-                    String dataNasc = response.optString("dataDeNascimento", "");
-                    if (dataNasc.isEmpty()) dataNasc = response.optString("dataNascimento", "");
-                    if (dataNasc.isEmpty()) dataNasc = "—";
-                    else dataNasc = formatarDataTela(dataNasc);
-
-                    String sensibilidades = response.optString("perfilDeSensibilidade", "—");
-                    if (sensibilidades.isEmpty()) sensibilidades = "—";
-
-                    String personalidade = "—";
-                    if (response.has("personalidades") && !response.isNull("personalidades")) {
-                        try {
-                            org.json.JSONArray arr = response.getJSONArray("personalidades");
-                            StringBuilder sb = new StringBuilder();
-                            for (int i = 0; i < arr.length(); i++) {
-                                if (i > 0) sb.append(", ");
-                                sb.append(arr.getString(i));
-                            }
-                            if (sb.length() > 0) personalidade = sb.toString();
-                        } catch (Exception e) {
-                            Log.e(TAG, "Erro ao ler personalidades", e);
-                        }
-                    }
-
-                    codigoVinculoAtual = response.optString("codigoVinculo", "");
-                    String codigo = codigoVinculoAtual.isEmpty()
-                            ? "Código do Pet: —"
-                            : "Código do Pet: " + codigoVinculoAtual;
-
-                    // Textos (placeholder de imagem; a foto da API sobrescreve depois)
-                    preencherCampos(nome, racaPeso, especie, sexo, porte, dataNasc,
-                            codigo, personalidade, sensibilidades, R.drawable.thor);
-
-                    String fotoBase64 = response.optString("fotoPetBase64", "");
-                    if (fotoBase64.isEmpty()) {
-                        fotoBase64 = response.optString("fotoBase64", "");
-                    }
-                    if (!fotoBase64.isEmpty() && imgFotoPet != null) {
-                        mostrarFotoBase64(fotoBase64, imgFotoPet);
-                    }
+                    AppDataCache.get().setPerfilPet(idPet, response);
+                    aplicarJsonNoPerfil(response);
                 },
                 error -> {
-                    String msg = "Erro ao carregar pet.";
-                    if (error.networkResponse != null) {
-                        int status = error.networkResponse.statusCode;
-                        msg += " Código: " + status;
-                        try {
-                            String errBody = new String(
-                                    error.networkResponse.data,
-                                    java.nio.charset.StandardCharsets.UTF_8);
-                            Log.e(TAG, "GET erro " + status + ": " + errBody);
-                        } catch (Exception ignored) {
+                    if (!AppDataCache.get().temPerfilPet(idPet)) {
+                        String msg = "Erro ao carregar pet.";
+                        if (error.networkResponse != null) {
+                            msg += " Código: " + error.networkResponse.statusCode;
                         }
-                    } else {
-                        Log.e(TAG, "GET sem resposta do servidor", error);
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+                        carregarDadosLocais();
                     }
-                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
-                    carregarDadosLocais();
                 }
         ) {
             @Override
@@ -409,8 +354,64 @@ public class PerfilPetFragment extends Fragment {
         VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
     }
 
-    /** Decodifica Base64 da API e coloca no ImageView. */
+    /** Preenche a tela a partir do JSON (cache ou API). */
+    private void aplicarJsonNoPerfil(JSONObject response) {
+        if (response == null) return;
+
+        String nome = response.optString("nome", "—");
+        String raca = response.optString("raca", "—");
+        double peso = response.optDouble("peso", 0);
+        String racaPeso = raca + "  |  " + peso + " Kg";
+
+        String especie = response.optString("especie", "—");
+        if (especie.isEmpty()) especie = "—";
+
+        String sexo = formatarSexo(response.optString("sexo", "—"));
+        String porte = formatarPorte(response.optString("porte", "—"));
+
+        String dataNasc = response.optString("dataDeNascimento", "");
+        if (dataNasc.isEmpty()) dataNasc = response.optString("dataNascimento", "");
+        if (dataNasc.isEmpty()) dataNasc = "—";
+        else dataNasc = formatarDataTela(dataNasc);
+
+        String sensibilidades = response.optString("perfilDeSensibilidade", "—");
+        if (sensibilidades.isEmpty()) sensibilidades = "—";
+
+        String personalidade = "—";
+        if (response.has("personalidades") && !response.isNull("personalidades")) {
+            try {
+                org.json.JSONArray arr = response.getJSONArray("personalidades");
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < arr.length(); i++) {
+                    if (i > 0) sb.append(", ");
+                    sb.append(arr.getString(i));
+                }
+                if (sb.length() > 0) personalidade = sb.toString();
+            } catch (Exception e) {
+                Log.e(TAG, "Erro ao ler personalidades", e);
+            }
+        }
+
+        codigoVinculoAtual = response.optString("codigoVinculo", "");
+        String codigo = codigoVinculoAtual.isEmpty()
+                ? "Código do Pet: —"
+                : "Código do Pet: " + codigoVinculoAtual;
+
+        preencherCampos(nome, racaPeso, especie, sexo, porte, dataNasc,
+                codigo, personalidade, sensibilidades, R.drawable.thor);
+
+        String fotoBase64 = response.optString("fotoPetBase64", "");
+        if (fotoBase64.isEmpty()) {
+            fotoBase64 = response.optString("fotoBase64", "");
+        }
+        fotoBase64Atual = fotoBase64;
+        if (!fotoBase64.isEmpty() && imgFotoPet != null) {
+            mostrarFotoBase64(fotoBase64, imgFotoPet);
+        }
+    }
+
     private void mostrarFotoBase64(String base64, ImageView imageView) {
+        if (base64 == null || base64.isEmpty() || imageView == null) return;
         try {
             if (base64.contains(",")) {
                 base64 = base64.substring(base64.indexOf(",") + 1);
@@ -482,7 +483,10 @@ public class PerfilPetFragment extends Fragment {
         if (txtCodigoPet != null) txtCodigoPet.setText(codigo);
         if (txtPersonalidade != null) txtPersonalidade.setText(personalidade);
         if (txtSensibilidades != null) txtSensibilidades.setText(sensibilidades);
-        if (imgFotoPet != null) imgFotoPet.setImageResource(fotoResId);
+        // Só coloca placeholder se ainda não houver bitmap da API/cache
+        if (imgFotoPet != null && (fotoBase64Atual == null || fotoBase64Atual.isEmpty())) {
+            imgFotoPet.setImageResource(fotoResId);
+        }
     }
 
     private void atualizarTituloToolbar(String titulo) {

@@ -40,7 +40,9 @@
             app:itemIconTint="@color/text_orange"
             app:itemTextColor="@color/text_orange"
             app:labelVisibilityMode="labeled"
-            app:menu="@menu/bottom_nav_menu" />
+            app:menu="@menu/bottom_nav_menu"
+            app:itemActiveIndicatorStyle="@style/CustomActiveIndicator" />
+
 
     </RelativeLayout>
 

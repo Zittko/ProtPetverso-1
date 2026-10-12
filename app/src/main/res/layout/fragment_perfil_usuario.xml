@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF3E0"
+    android:background="#FFE8CE"
     android:fillViewport="true">
 
     <LinearLayout
@@ -22,29 +22,33 @@
             android:layout_height="120dp"
             android:padding="2dp"
             android:scaleType="centerCrop"
+            android:contentDescription="Foto de perfil"
             app:shapeAppearanceOverlay="@style/CircleImageView"
             app:strokeColor="#FF9800"
             app:strokeWidth="2dp" />
 
-        <!-- Username -->
+        <!-- Username / apelido -->
         <TextView
             android:id="@+id/txtUsername"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="36dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="28dp"
             android:text=""
             android:textSize="19sp"
             android:textStyle="bold"
-            android:textColor="#5D4037" />
+            android:textColor="#000000" />
 
         <!-- Card de informações -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             app:cardCornerRadius="18dp"
-            app:cardElevation="5dp"
-            app:cardBackgroundColor="#FFFFFF">
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:strokeColor="#FF9800"
+            app:strokeWidth="1.5dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -52,11 +56,11 @@
                 android:orientation="vertical"
                 android:padding="22dp">
 
-                <!-- Título do card + botão editar -->
+                <!-- Título + editar -->
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="22dp">
+                    android:layout_marginBottom="20dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -75,7 +79,7 @@
                         android:layout_centerVertical="true"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:src="@android:drawable/ic_menu_edit"
-                        app:tint="#E67E22"
+                        app:tint="#DF945D"
                         android:contentDescription="Editar informações" />
                 </RelativeLayout>
 
@@ -93,13 +97,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:layout_marginBottom="20dp"
+                    android:layout_marginBottom="18dp"
                     android:text=""
                     android:textSize="14sp"
-                    android:textColor="#000000"
-                     />
-
-                <!-- Data de Nascimento -->
+                    android:textColor="#000000" />
 
                 <!-- E-mail -->
                 <TextView
@@ -115,7 +116,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:layout_marginBottom="20dp"
+                    android:layout_marginBottom="18dp"
                     android:text=""
                     android:textSize="14sp"
                     android:textColor="#000000" />
@@ -139,7 +140,7 @@
                     android:textColor="#000000" />
 
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 </ScrollView>

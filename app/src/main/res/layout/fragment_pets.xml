@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFF3E0"
+    android:background="#FFE8CE"
     android:padding="16dp">
 
     <TextView
@@ -14,11 +14,12 @@
         android:text="Pets"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="#5D4037" />
+        android:textColor="#000000" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerPets"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false" />
+        android:clipToPadding="false"
+        android:overScrollMode="never" />
 </LinearLayout>

@@ -7,27 +7,28 @@
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="20dp"
     app:cardElevation="0dp"
+    app:cardBackgroundColor="#FFFFFF"
     app:strokeWidth="0dp">
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- Foto de fundo -->
+        <!-- Foto: centerCrop + clip nos cantos do card -->
         <ImageView
             android:id="@+id/imgPetLista"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/thor"
+            android:adjustViewBounds="false"
             android:contentDescription="Foto do pet" />
 
-        <!-- Gradiente leve embaixo para legibilidade do texto -->
+        <!-- Sombra inferior para legibilidade do nome -->
         <View
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_gravity="bottom"
-            android:background="#66000000" />
+            android:background="@drawable/bg_gradiente_pet_lista" />
 
         <!-- Nome — inferior esquerdo -->
         <TextView
@@ -35,7 +36,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|start"
-            android:layout_margin="14dp"
+            android:layout_marginStart="14dp"
+            android:layout_marginBottom="14dp"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -47,7 +49,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
-            android:layout_margin="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginBottom="16dp"
             android:textColor="@android:color/white"
             android:textSize="13sp"
             android:text="Tutor principal" />

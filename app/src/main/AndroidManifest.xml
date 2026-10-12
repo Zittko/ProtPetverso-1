@@ -16,9 +16,62 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ProtPetverso1">
+
+        <!-- ===== LAUNCHER ===== -->
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ===== ACCOUNT ===== -->
+        <activity
+            android:name=".account.LoginActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".account.SignUpActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".account.RecuperarSenhaActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".user.CriarUsuarioActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- ===== MENU PRINCIPAL ===== -->
+        <activity
+            android:name=".MenuActivity"
+            android:exported="false" />
+
+        <!-- ===== PET ===== -->
+        <activity
+            android:name=".pet.EscolhaPetActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".pet.PetSignUpActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".pet.MaisInfoPetActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- ===== AGENDA ===== -->
+        <activity
+            android:name=".schedule.CriarTarefaActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- ===== UCROP (recorte de foto) ===== -->
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:exported="false"
@@ -29,56 +82,11 @@
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.PetVerso.UCrop" />
-        <activity
-            android:name=".account.SignUpActivity"
-            android:exported="false"
-            android:theme="@style/Theme.ProtPetverso1"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".MenuActivity"
-            android:exported="false" />
-        <activity
-            android:name=".account.LoginActivity"
-            android:exported="false"
-            android:theme="@style/Theme.ProtPetverso1"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".schedule.CriarTarefaActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".SplashActivity"
-            android:exported="true"
-            android:noHistory="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <!-- ===== LEGADO (não usada no fluxo) ===== -->
         <activity
             android:name=".MainActivity"
-            android:exported="true" />
-        <activity
-            android:name=".pet.PetSignUpActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".pet.EscolhaPetActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".user.CriarUsuarioActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".account.RecuperarSenhaActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".CriarTarefaActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-    </application>
+            android:exported="false" />
 
+    </application>
 </manifest>

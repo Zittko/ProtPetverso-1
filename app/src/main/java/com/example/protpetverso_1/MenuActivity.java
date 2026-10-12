@@ -2,7 +2,6 @@ package com.example.protpetverso_1;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -15,6 +14,8 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
 import com.example.protpetverso_1.account.LoginActivity;
+import com.example.protpetverso_1.data.AppDataCache;
+import com.example.protpetverso_1.data.DataPreloader;
 import com.example.protpetverso_1.pet.EscolhaPetActivity;
 import com.example.protpetverso_1.pet.PerfilPetFragment;
 import com.example.protpetverso_1.pet.PetsFragment;
@@ -29,6 +30,9 @@ import com.google.android.material.navigation.NavigationView;
 /**
  * Tela principal após o login.
  * Toolbar + Drawer + BottomNavigation + troca de Fragments.
+ *
+ * Ao abrir: DataPreloader.preloadTudo() enche o AppDataCache
+ * (usuário, meusPets, perfil do pet selecionado, tarefas).
  */
 public class MenuActivity extends AppCompatActivity {
 
@@ -61,6 +65,7 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
+        // Drawer + ícone hambúrguer
         if (drawerLayout != null && toolbar != null) {
             ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                     this, drawerLayout, toolbar,
@@ -78,13 +83,12 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
-        // Itens do menu lateral
+        // Menu lateral
         if (navigationView != null) {
             navigationView.setNavigationItemSelectedListener(item -> {
                 int id = item.getItemId();
                 String t = item.getTitle() != null ? item.getTitle().toString().trim() : "";
 
-                // Preferência: ID do item (mais estável que o texto)
                 if (id == R.id.drawerPerfilUsuario
                         || t.equalsIgnoreCase("Perfil do Usuário")) {
                     abrirFragment(new PerfilUsuarioFragment(), "Perfil do Usuário");
@@ -114,6 +118,7 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
+        // Fragment inicial
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
@@ -124,6 +129,7 @@ public class MenuActivity extends AppCompatActivity {
             }
         }
 
+        // Bottom navigation
         if (bottomNav != null) {
             bottomNav.setOnItemSelectedListener(item -> {
                 Fragment selectedFragment = null;
@@ -157,11 +163,19 @@ public class MenuActivity extends AppCompatActivity {
                 return false;
             });
         }
+
+        // ===== Pré-carrega API no cache (usuário, pets, perfil pet, tarefas) =====
+        DataPreloader.preloadTudo(this);
     }
 
     private void abrirPerfilPetSelecionado() {
         SessionManager sm = new SessionManager(this);
         long petId = sm.obterPetId();
+
+        // Garante perfil/tarefas desse pet no cache
+        if (petId > 0) {
+            DataPreloader.preloadPetSelecionado(this, petId);
+        }
 
         PerfilPetFragment fragment = new PerfilPetFragment();
         Bundle args = new Bundle();
@@ -171,7 +185,9 @@ public class MenuActivity extends AppCompatActivity {
         abrirFragment(fragment, "Perfil do Pet");
     }
 
+    /** Limpa cache + sessão e volta ao login. */
     private void fazerLogout() {
+        AppDataCache.get().limparTudo();
         SessionManager sm = new SessionManager(this);
         sm.limparSessao();
 

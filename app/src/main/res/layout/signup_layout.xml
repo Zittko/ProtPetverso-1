@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/signupScroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ffe8ce"
+    android:background="#FFE8CE"
     android:fillViewport="true"
+    android:fitsSystemWindows="true"
     tools:context=".account.SignUpActivity">
 
     <LinearLayout
@@ -15,60 +17,62 @@
         android:orientation="vertical"
         android:paddingHorizontal="24dp"
         android:paddingTop="24dp"
-        android:paddingBottom="32dp">
+        android:paddingBottom="40dp">
 
         <ImageButton
             android:id="@+id/btnVoltar"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginBottom="12dp"
-            android:background="#ffe8ce"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:scaleType="fitXY"
             android:src="@drawable/baseline_arrow_back"
-            app:tint="@color/primary_orange" />
+            app:tint="#DF945D" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
             android:text="Crie sua nova conta PetVerso!"
-            android:textColor="#F5A623"
-            android:textSize="28sp"
+            android:textColor="#000000"
+            android:textSize="26sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
+            android:layout_marginTop="4dp"
             android:text="Lembre-se de preencher todos os campos antes de continuar!"
-            android:textColor="@color/error"
+            android:textColor="#F44336"
             android:textSize="12sp"
             android:textStyle="bold" />
 
+        <!-- Nome -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="6dp"
             android:text="Nome"
-            android:textColor="@color/text_orange"
-            android:textSize="14sp" />
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/ipEdtNome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
-            app:boxBackgroundColor="#fffbf6"
+            android:layout_marginBottom="16dp"
+            app:boxBackgroundMode="outline"
+            app:boxBackgroundColor="#FFFFFF"
+            app:boxStrokeColor="#FF9800"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
-            app:boxStrokeColor="#a5713f"
-            app:boxStrokeErrorColor="#fd6f28"
             app:endIconMode="clear_text"
-            app:endIconTint="@color/primary_orange"
-            app:errorIconTint="@color/error"
-            app:errorTextColor="@color/error"
+            app:endIconTint="#DF945D"
             app:hintEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -78,39 +82,39 @@
                 android:gravity="center_vertical"
                 android:hint="Digite seu nome"
                 android:inputType="textPersonName"
-                android:maxLength="16"
+                android:maxLength="50"
                 android:paddingHorizontal="14dp"
-                android:paddingVertical="0dp"
-                android:textColor="@color/black"
+                android:textColor="#000000"
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- E-mail -->
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="6dp"
             android:text="E-mail"
-            android:textColor="@color/text_orange"
-            android:textSize="15sp" />
-
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/ipEdtCriarEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
-            app:boxBackgroundColor="@color/white"
+            android:layout_marginBottom="16dp"
+            app:boxBackgroundMode="outline"
+            app:boxBackgroundColor="#FFFFFF"
+            app:boxStrokeColor="#FF9800"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
-            app:boxStrokeColor="#a5713f"
-            app:boxStrokeErrorColor="#fd6f28"
             app:endIconMode="clear_text"
-            app:endIconTint="@color/primary_orange"
-            app:errorIconTint="@color/error"
-            app:errorTextColor="@color/error"
+            app:endIconTint="#DF945D"
             app:hintEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -122,35 +126,37 @@
                 android:inputType="textEmailAddress"
                 android:maxLength="50"
                 android:paddingHorizontal="14dp"
-                android:paddingVertical="0dp"
-                android:textColor="@color/black"
+                android:textColor="#000000"
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
-        </com.google.android.material.textfield.TextInputLayout><TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="Telefone"
-            android:textColor="@color/text_orange"
-            android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Telefone -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:text="Telefone"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/ipEdtTelefone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
-            app:boxBackgroundColor="@color/white"
+            android:layout_marginBottom="16dp"
+            app:boxBackgroundMode="outline"
+            app:boxBackgroundColor="#FFFFFF"
+            app:boxStrokeColor="#FF9800"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
-            app:boxStrokeColor="#a5713f"
-            app:boxStrokeErrorColor="#fd6f28"
             app:endIconMode="clear_text"
-            app:endIconTint="@color/primary_orange"
-            app:errorIconTint="@color/error"
-            app:errorTextColor="@color/error"
+            app:endIconTint="#DF945D"
             app:hintEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -159,40 +165,40 @@
                 android:layout_height="50dp"
                 android:gravity="center_vertical"
                 android:hint="Exemplo: (11) 98743-2817"
-                android:inputType="text"
-                android:maxLength="50"
+                android:inputType="phone"
+                android:maxLength="20"
                 android:paddingHorizontal="14dp"
-                android:paddingVertical="0dp"
-                android:textColor="@color/black"
+                android:textColor="#000000"
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Senha -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="6dp"
             android:text="Senha"
-            android:textColor="@color/black"
-            android:textColorHint="#AAAAAA"
-            android:textSize="14sp" />
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/ipEdtCriarSenha"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
-            app:boxBackgroundColor="@color/white"
+            android:layout_marginBottom="16dp"
+            app:boxBackgroundMode="outline"
+            app:boxBackgroundColor="#FFFFFF"
+            app:boxStrokeColor="#FF9800"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
-            app:boxStrokeColor="#a5713f"
-            app:boxStrokeErrorColor="#fd6f28"
             app:endIconMode="password_toggle"
-            app:endIconTint="@color/primary_orange"
-            app:errorIconTint="@color/error"
-            app:errorTextColor="@color/error"
+            app:endIconTint="#DF945D"
             app:hintEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -202,38 +208,39 @@
                 android:gravity="center_vertical"
                 android:hint="Insira uma senha"
                 android:inputType="textPassword"
-                android:maxLength="16"
+                android:maxLength="32"
                 android:paddingHorizontal="14dp"
-                android:paddingVertical="0dp"
-                android:textColor="@color/black"
+                android:textColor="#000000"
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Confirmar senha -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="6dp"
             android:text="Confirmar senha"
-            android:textColor="@color/text_orange"
-            android:textSize="14sp" />
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/ipEdtSenha"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
-            app:boxBackgroundColor="@color/white"
+            android:layout_marginBottom="12dp"
+            app:boxBackgroundMode="outline"
+            app:boxBackgroundColor="#FFFFFF"
+            app:boxStrokeColor="#FF9800"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
-            app:boxStrokeColor="#a5713f"
-            app:boxStrokeErrorColor="#fd6f28"
             app:endIconMode="password_toggle"
-            app:endIconTint="@color/primary_orange"
-            app:errorIconTint="@color/error"
-            app:errorTextColor="@color/error"
+            app:endIconTint="#DF945D"
             app:hintEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -243,10 +250,9 @@
                 android:gravity="center_vertical"
                 android:hint="Confirme sua senha"
                 android:inputType="textPassword"
-                android:maxLength="16"
+                android:maxLength="32"
                 android:paddingHorizontal="14dp"
-                android:paddingVertical="0dp"
-                android:textColor="@color/black"
+                android:textColor="#000000"
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -259,8 +265,7 @@
             android:text="Termos de uso do aplicativo.\ntermos de consentimento."
             android:textColor="#555555"
             android:textSize="13sp"
-
-            app:buttonTint="#F5A623" />
+            app:buttonTint="#DF945D" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/cbPrivacidade"
@@ -270,18 +275,18 @@
             android:text="Políticas de Privacidade.\ntermos de consentimento."
             android:textColor="#555555"
             android:textSize="13sp"
-            app:buttonTint="@color/primary_orange" />
+            app:buttonTint="#DF945D" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCadastrar"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:backgroundTint="@color/primary_orange"
             android:text="Cadastrar"
             android:textAllCaps="false"
-            android:textColor="@android:color/white"
+            android:textColor="#FFFFFF"
             android:textSize="16sp"
-            app:cornerRadius="8dp"/>
+            app:backgroundTint="#DF945D"
+            app:cornerRadius="8dp" />
 
     </LinearLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

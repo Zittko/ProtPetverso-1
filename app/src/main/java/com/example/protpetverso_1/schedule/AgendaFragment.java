@@ -24,6 +24,7 @@ import com.example.protpetverso_1.ApiConfig;
 import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.data.AppDataCache;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.time.LocalDate;
@@ -34,6 +35,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Agenda do pet selecionado.
+ * Cache (AppDataCache) → lista na hora → GET /pets/{id}/tarefas em background.
+ */
 public class AgendaFragment extends Fragment {
 
     private static final String TAG = "AGENDA";
@@ -60,7 +65,8 @@ public class AgendaFragment extends Fragment {
     private SessionManager sessionManager;
     private long petId = -1;
 
-    public AgendaFragment() {}
+    public AgendaFragment() {
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -100,21 +106,22 @@ public class AgendaFragment extends Fragment {
 
         configurarCalendario();
 
-        btnNovaTarefa.setOnClickListener(v -> {
-            if (petId <= 0) {
-                Toast.makeText(requireContext(), "Selecione um pet antes.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Intent i = new Intent(requireContext(), CriarTarefaActivity.class);
-            i.putExtra("PET_ID", petId);
-            i.putExtra("DATA_PADRAO", diaSelecionado.toString());
-            startActivity(i);
-        });
+        if (btnNovaTarefa != null) {
+            btnNovaTarefa.setOnClickListener(v -> {
+                if (petId <= 0) {
+                    Toast.makeText(requireContext(), "Selecione um pet antes.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Intent i = new Intent(requireContext(), CriarTarefaActivity.class);
+                i.putExtra("PET_ID", petId);
+                i.putExtra("DATA_PADRAO", diaSelecionado.toString());
+                startActivity(i);
+            });
+        }
 
         if (btnExpandirCalendario != null) {
             btnExpandirCalendario.setOnClickListener(v -> alternarCalendario());
         }
-
         if (btnMesAnterior != null) {
             btnMesAnterior.setOnClickListener(v -> mudarMes(-1));
         }
@@ -132,6 +139,9 @@ public class AgendaFragment extends Fragment {
         atualizarIconeSeta();
         atualizarTextoMesAno();
         atualizarBotoesMes();
+
+        // Cache + API
+        aplicarCacheTarefas();
         carregarTarefasDoPet();
     }
 
@@ -139,17 +149,35 @@ public class AgendaFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (sessionManager != null) {
-            petId = sessionManager.obterPetId();
+            long novoId = sessionManager.obterPetId();
+            if (novoId != petId) {
+                petId = novoId;
+                aplicarCacheTarefas();
+            }
             carregarTarefasDoPet();
         }
     }
 
+    /** Preenche a lista a partir do AppDataCache (se existir). */
+    private void aplicarCacheTarefas() {
+        petId = sessionManager.obterPetId();
+        if (petId > 0 && AppDataCache.get().temTarefas(petId)) {
+            todasTarefasDoPet.clear();
+            todasTarefasDoPet.addAll(AppDataCache.get().getTarefas(petId));
+            filtrarTarefasPorDia();
+        }
+    }
+
+    // ==================== CALENDÁRIO ====================
+
     private void configurarCalendario() {
         montarSemanaDoDia(diaSelecionado);
-        recyclerDias.setLayoutManager(
-                new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        diaAdapter = new DiaAdapter(requireContext(), listaDias, diaSelecionado, this::onDiaEscolhido);
-        recyclerDias.setAdapter(diaAdapter);
+        if (recyclerDias != null) {
+            recyclerDias.setLayoutManager(
+                    new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+            diaAdapter = new DiaAdapter(requireContext(), listaDias, diaSelecionado, this::onDiaEscolhido);
+            recyclerDias.setAdapter(diaAdapter);
+        }
 
         if (recyclerMes != null) {
             recyclerMes.setLayoutManager(new GridLayoutManager(requireContext(), 7));
@@ -160,7 +188,6 @@ public class AgendaFragment extends Fragment {
     }
 
     private void onDiaEscolhido(LocalDate data) {
-        // Bloqueia datas passadas
         if (data.isBefore(LocalDate.now())) {
             Toast.makeText(requireContext(), "Não é possível selecionar datas passadas.", Toast.LENGTH_SHORT).show();
             return;
@@ -189,7 +216,6 @@ public class AgendaFragment extends Fragment {
         }
     }
 
-    /** Expandido: esconde chips, mostra grade. Colapsado: o contrário. */
     private void alternarCalendario() {
         calendarioExpandido = !calendarioExpandido;
 
@@ -206,7 +232,6 @@ public class AgendaFragment extends Fragment {
             atualizarNomeMesExpandido();
             atualizarBotoesMes();
         }
-
         atualizarIconeSeta();
     }
 
@@ -214,7 +239,6 @@ public class AgendaFragment extends Fragment {
         LocalDate candidato = mesExibido.plusMonths(delta).withDayOfMonth(1);
         LocalDate inicioMesAtual = LocalDate.now().withDayOfMonth(1);
 
-        // Não permite mês totalmente no passado
         if (candidato.isBefore(inicioMesAtual)) {
             Toast.makeText(requireContext(), "Não há datas disponíveis neste mês.", Toast.LENGTH_SHORT).show();
             return;
@@ -231,7 +255,6 @@ public class AgendaFragment extends Fragment {
     private void atualizarBotoesMes() {
         if (btnMesAnterior == null) return;
         LocalDate inicioMesAtual = LocalDate.now().withDayOfMonth(1);
-        // Desabilita "anterior" se já estiver no mês atual
         boolean podeVoltar = mesExibido.isAfter(inicioMesAtual);
         btnMesAnterior.setEnabled(podeVoltar);
         btnMesAnterior.setAlpha(podeVoltar ? 1f : 0.3f);
@@ -265,10 +288,14 @@ public class AgendaFragment extends Fragment {
         return s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
+    // ==================== TAREFAS (API + CACHE) ====================
+
     private void carregarTarefasDoPet() {
         petId = sessionManager.obterPetId();
         if (petId <= 0) {
-            if (txtTituloLista != null) txtTituloLista.setText("Nenhum pet selecionado");
+            if (txtTituloLista != null) {
+                txtTituloLista.setText("Nenhum pet selecionado");
+            }
             todasTarefasDoPet.clear();
             filtrarTarefasPorDia();
             return;
@@ -284,7 +311,9 @@ public class AgendaFragment extends Fragment {
         Log.d(TAG, "GET " + url);
 
         JsonArrayRequest request = new JsonArrayRequest(
-                Request.Method.GET, url, null,
+                Request.Method.GET,
+                url,
+                null,
                 response -> {
                     todasTarefasDoPet.clear();
                     for (int i = 0; i < response.length(); i++) {
@@ -294,16 +323,21 @@ public class AgendaFragment extends Fragment {
                             Log.e(TAG, "item " + i, e);
                         }
                     }
+                    // Grava no cache global
+                    AppDataCache.get().setTarefas(petId, todasTarefasDoPet);
                     filtrarTarefasPorDia();
                 },
                 error -> {
-                    String msg = "Erro ao carregar tarefas";
-                    if (error.networkResponse != null) {
-                        msg += " (" + error.networkResponse.statusCode + ")";
+                    // Se já mostrou cache, não precisa toast
+                    if (!AppDataCache.get().temTarefas(petId)) {
+                        String msg = "Erro ao carregar tarefas";
+                        if (error.networkResponse != null) {
+                            msg += " (" + error.networkResponse.statusCode + ")";
+                        }
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+                        todasTarefasDoPet.clear();
+                        filtrarTarefasPorDia();
                     }
-                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
-                    todasTarefasDoPet.clear();
-                    filtrarTarefasPorDia();
                 }
         ) {
             @Override
@@ -313,17 +347,22 @@ public class AgendaFragment extends Fragment {
                 return h;
             }
         };
+
         VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
     }
 
     private void filtrarTarefasPorDia() {
         listaTarefasExibidas.clear();
+
         if (petId <= 0) {
-            if (txtTituloLista != null) txtTituloLista.setText("Nenhum pet selecionado");
+            if (txtTituloLista != null) {
+                txtTituloLista.setText("Nenhum pet selecionado");
+            }
             tarefaAdapter.setItens(listaTarefasExibidas);
             atualizarVisibilidadeLista();
             return;
         }
+
         if (diaSelecionado != null) {
             for (Tarefa t : todasTarefasDoPet) {
                 if (t.getData() != null && t.getData().equals(diaSelecionado)) {
@@ -331,7 +370,11 @@ public class AgendaFragment extends Fragment {
                 }
             }
         }
-        if (txtTituloLista != null) txtTituloLista.setText("Tarefas do Dia");
+
+        if (txtTituloLista != null) {
+            txtTituloLista.setText("Tarefas do Dia");
+        }
+
         tarefaAdapter.setItens(listaTarefasExibidas);
         atualizarVisibilidadeLista();
     }

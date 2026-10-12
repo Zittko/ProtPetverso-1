@@ -20,6 +20,8 @@ import com.example.protpetverso_1.ApiConfig;
 import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.data.AppDataCache;
+import com.example.protpetverso_1.data.DataPreloader;
 
 import org.json.JSONObject;
 
@@ -29,8 +31,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Aba Pets — lista GET /api/pets/meusPets + card Adicionar.
- * Clique no pet → seleciona e abre PerfilPetFragment.
+ * Aba Pets — lista meusPets + card Adicionar.
+ * Cache (AppDataCache) → UI na hora → GET em background.
  */
 public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
 
@@ -53,25 +55,36 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
         sessionManager = new SessionManager(requireContext());
 
         RecyclerView recycler = view.findViewById(R.id.recyclerPets);
+        // Ajuste o id se no seu XML for outro (ex.: recyclerViewPets)
+        if (recycler == null) {
+            Log.e(TAG, "RecyclerView não encontrado no layout");
+            return;
+        }
+
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new PetListaAdapter(this);
         recycler.setAdapter(adapter);
 
+        // 1) Cache na hora (vindo do DataPreloader na MenuActivity)
+        if (AppDataCache.get().temMeusPets()) {
+            adapter.setItens(AppDataCache.get().getMeusPets());
+        }
+
+        // 2) Atualiza da API e grava no cache
         carregarMeusPets();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (sessionManager != null) {
-            carregarMeusPets();
+        // Ao voltar (ex.: após cadastrar pet), mostra o que já tem e refresca
+        if (AppDataCache.get().temMeusPets() && adapter != null) {
+            adapter.setItens(AppDataCache.get().getMeusPets());
         }
+        carregarMeusPets();
     }
 
-    /**
-     * GET /api/pets/meusPets
-     * JSON: idPet, nome, papel, fotoPetBase64
-     */
+    /** GET /api/pets/meusPets → AppDataCache + adapter */
     private void carregarMeusPets() {
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
@@ -84,43 +97,36 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
                 ApiConfig.URL_MEUS_PETS,
                 null,
                 response -> {
-                    Log.d(TAG, "meusPets qtd=" + response.length());
                     List<PetResumo> lista = new ArrayList<>();
-
                     for (int i = 0; i < response.length(); i++) {
                         try {
                             JSONObject o = response.getJSONObject(i);
-
-                            long id = o.optLong("idPet", -1);
-                            if (id <= 0) {
-                                id = o.optLong("id", -1);
-                            }
-
+                            long id = o.optLong("idPet", o.optLong("id", -1));
                             String nome = o.optString("nome", "Pet");
                             String papel = o.optString("papel", "");
-
                             String foto = o.optString("fotoPetBase64", "");
                             if (foto.isEmpty()) {
                                 foto = o.optString("fotoBase64", "");
                             }
-
                             if (id > 0) {
                                 lista.add(new PetResumo(id, nome, papel, foto));
                             }
                         } catch (Exception e) {
-                            Log.e(TAG, "Erro item " + i, e);
+                            Log.e(TAG, "item", e);
                         }
                     }
 
-                    adapter.setItens(lista);
+                    AppDataCache.get().setMeusPets(lista);
+
+                    if (isAdded() && adapter != null) {
+                        adapter.setItens(lista);
+                    }
                 },
                 error -> {
-                    String msg = "Erro ao carregar pets.";
-                    if (error.networkResponse != null) {
-                        msg += " (" + error.networkResponse.statusCode + ")";
-                        Log.e(TAG, "Erro GET meusPets: " + error.networkResponse.statusCode);
+                    // Só avisa se não houver nada em cache
+                    if (!AppDataCache.get().temMeusPets() && isAdded()) {
+                        Toast.makeText(requireContext(), "Erro ao carregar pets.", Toast.LENGTH_SHORT).show();
                     }
-                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
                 }
         ) {
             @Override
@@ -134,7 +140,6 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
         VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
     }
 
-    /** Seleciona o pet e abre o perfil com o id correto. */
     @Override
     public void onPetClick(PetResumo pet) {
         if (pet == null || pet.getIdPet() <= 0) {
@@ -142,11 +147,11 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
             return;
         }
 
-        sessionManager.salvarPet(
-                pet.getIdPet(),
-                pet.getNome(),
-                "", "", "", "", "", ""
-        );
+        // Define pet selecionado na sessão
+        sessionManager.salvarPet(pet.getIdPet(), pet.getNome(), "", "", "", "", "", "");
+
+        // Pré-carrega perfil + tarefas desse pet no cache
+        DataPreloader.preloadPetSelecionado(requireContext(), pet.getIdPet());
 
         PerfilPetFragment fragment = new PerfilPetFragment();
         Bundle args = new Bundle();
@@ -160,7 +165,6 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
                 .commit();
     }
 
-    /** Cadastrar novo ou vincular por código. */
     @Override
     public void onAdicionarClick() {
         startActivity(new Intent(requireContext(), EscolhaPetActivity.class));

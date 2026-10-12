@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFF3E0"
+    android:background="#FFE8CE"
     android:paddingHorizontal="24dp"
     android:paddingTop="40dp"
     android:paddingBottom="24dp">
@@ -16,9 +16,8 @@
         android:text="Recuperar Senha"
         android:textSize="26sp"
         android:textStyle="bold"
-        android:textColor="#3E2723" />
+        android:textColor="#000000" />
 
-    <!-- Espaçador -->
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -30,7 +29,7 @@
         android:layout_height="wrap_content"
         app:cardCornerRadius="16dp"
         app:cardElevation="0dp"
-        app:cardBackgroundColor="#FFE0B2"
+        app:cardBackgroundColor="#F7D4A0"
         app:strokeWidth="0dp">
 
         <LinearLayout
@@ -39,16 +38,14 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Label Email -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:text="Email"
                 android:textSize="14sp"
-                android:textColor="#5D4037" />
+                android:textColor="#000000" />
 
-            <!-- Campo de e-mail -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/ipEmailRecuperar"
                 android:layout_width="match_parent"
@@ -72,12 +69,11 @@
                     android:hint="Digite o e-mail cadastrado"
                     android:inputType="textEmailAddress"
                     android:paddingHorizontal="14dp"
-                    android:textColor="@color/black"
+                    android:textColor="#000000"
                     android:textColorHint="#AAAAAA"
                     android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Botão Recuperar Senha -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRecuperarSenha"
                 android:layout_width="match_parent"
@@ -85,14 +81,13 @@
                 android:text="Recuperar Senha"
                 android:textAllCaps="false"
                 android:textSize="15sp"
-                android:textColor="@android:color/white"
-                app:backgroundTint="#E67E22"
+                android:textColor="#000"
+                app:backgroundTint="#DF945D"
                 app:cornerRadius="10dp" />
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Link "Tentar de outra forma" -->
     <TextView
         android:id="@+id/txtTentarOutraForma"
         android:layout_width="wrap_content"
@@ -101,16 +96,14 @@
         android:layout_marginTop="12dp"
         android:text="Tentar de outra forma"
         android:textSize="14sp"
-        android:textColor="#E67E22"
+        android:textColor="#DF945D"
         android:textStyle="bold" />
 
-    <!-- Espaçador -->
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1.5" />
 
-    <!-- Botão Voltar -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnVoltar"
         android:layout_width="match_parent"
@@ -118,8 +111,8 @@
         android:text="Voltar"
         android:textAllCaps="false"
         android:textSize="16sp"
-        android:textColor="#5D4037"
-        app:backgroundTint="#FFCC80"
+        android:textColor="#000000"
+        app:backgroundTint="#F7D4A0"
         app:cornerRadius="12dp" />
 
 </LinearLayout>

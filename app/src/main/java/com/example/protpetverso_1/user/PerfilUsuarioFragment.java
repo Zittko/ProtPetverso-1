@@ -28,13 +28,13 @@ import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.UCropHelper;
 import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.data.AppDataCache;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.yalantis.ucrop.UCrop;
 
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +44,7 @@ import java.util.Map;
  * GET  /api/usuarios/perfil
  * PUT  /api/usuarios/atualizarPerfil  (apelido + fotoBase64)
  *
- * Foto: galeria → recorte (uCrop 1:1) → Base64 → API
+ * Fluxo de dados: cache (AppDataCache) → UI → GET em background → atualiza cache + UI
  */
 public class PerfilUsuarioFragment extends Fragment {
 
@@ -60,15 +60,13 @@ public class PerfilUsuarioFragment extends Fragment {
     private String fotoBase64Atual;
     private String apelidoAtual = "";
 
-    /** 1) Escolhe a foto na galeria */
     private final ActivityResultLauncher<String> selecionarFoto =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri == null || getContext() == null) return;
                 iniciarRecorte(uri);
             });
 
-    /** 2) Volta do uCrop com a foto já enquadrada */
-    private final ActivityResultLauncher<android.content.Intent> recortarFoto =
+    private final ActivityResultLauncher<Intent> recortarFoto =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     Uri resultUri = UCrop.getOutput(result.getData());
@@ -97,33 +95,24 @@ public class PerfilUsuarioFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         sessionManager = new SessionManager(requireContext());
-
-        if (getActivity() != null) {
-            MaterialToolbar toolbar = getActivity().findViewById(R.id.toolbarMenu);
-            if (toolbar != null) {
-                toolbar.setTitle("Perfil do Usuário");
-            }
-        }
+        atualizarTituloToolbar("Perfil do Usuário");
 
         ligarComponentes(view);
         configurarBotaoEditar();
 
-        // Um toque na foto → galeria → recorte
-        imgFotoPerfil.setOnClickListener(v -> selecionarFoto.launch("image/*"));
-        imgFotoPerfil.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        if (imgFotoPerfil != null) {
+            imgFotoPerfil.setOnClickListener(v -> selecionarFoto.launch("image/*"));
+            imgFotoPerfil.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        }
 
-        buscarUsuarioNaApi();
+        // 1) Cache na hora  2) GET em background
+        carregarDados();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (getActivity() != null) {
-            MaterialToolbar toolbar = getActivity().findViewById(R.id.toolbarMenu);
-            if (toolbar != null) {
-                toolbar.setTitle("Tela Inicial");
-            }
-        }
+        atualizarTituloToolbar("Tela Inicial");
     }
 
     private void ligarComponentes(View view) {
@@ -136,27 +125,50 @@ public class PerfilUsuarioFragment extends Fragment {
     }
 
     private void configurarBotaoEditar() {
-        btnEditarPerfil.setOnClickListener(v ->
-                Toast.makeText(requireContext(),
-                        "Função de editar perfil em desenvolvimento",
-                        Toast.LENGTH_SHORT).show()
-        );
+        if (btnEditarPerfil != null) {
+            btnEditarPerfil.setOnClickListener(v ->
+                    Toast.makeText(requireContext(),
+                            "Função de editar perfil em desenvolvimento",
+                            Toast.LENGTH_SHORT).show());
+        }
     }
 
     /**
-     * Abre o uCrop em formato quadrado (ideal para foto circular).
-     * O usuário move/aplica zoom no enquadramento.
+     * Mostra o que já está no AppDataCache e depois atualiza pela API.
      */
+    private void carregarDados() {
+        AppDataCache cache = AppDataCache.get();
+
+        if (cache.temUsuario()) {
+            String apelido = cache.getUsuarioApelido();
+            apelidoAtual = apelido;
+            fotoBase64Atual = cache.getUsuarioFotoBase64();
+
+            preencherCampos(
+                    apelido.isEmpty() ? "usuário" : apelido,
+                    cache.getUsuarioNome(),
+                    cache.getUsuarioEmail(),
+                    cache.getUsuarioTelefone().isEmpty() ? "—" : cache.getUsuarioTelefone()
+            );
+            if (fotoBase64Atual != null && !fotoBase64Atual.isEmpty()) {
+                mostrarFotoBase64(fotoBase64Atual, imgFotoPerfil);
+            }
+        } else {
+            preencherComSessaoLocal();
+        }
+
+        buscarUsuarioNaApi();
+    }
+
     private void iniciarRecorte(Uri origem) {
         Intent intent = UCropHelper.criarIntentRecorte(
-                requireContext(),           // ou requireContext() no Fragment
+                requireContext(),
                 origem,
-                "Ajustar foto"  // ou "Ajustar foto"
+                "Ajustar foto"
         );
         recortarFoto.launch(intent);
     }
 
-    /** Lê a foto recortada, mostra na tela e envia para a API. */
     private void processarFotoRecortada(Uri uri) {
         try {
             InputStream input = requireContext().getContentResolver().openInputStream(uri);
@@ -169,8 +181,10 @@ public class PerfilUsuarioFragment extends Fragment {
             }
 
             fotoBase64Atual = bitmapParaBase64(bitmap);
-            imgFotoPerfil.setImageBitmap(bitmap);
-            imgFotoPerfil.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            if (imgFotoPerfil != null) {
+                imgFotoPerfil.setImageBitmap(bitmap);
+                imgFotoPerfil.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            }
             enviarFotoUsuario();
         } catch (Exception e) {
             e.printStackTrace();
@@ -193,6 +207,9 @@ public class PerfilUsuarioFragment extends Fragment {
                 ApiConfig.URL_USUARIO_PERFIL,
                 null,
                 response -> {
+                    // Atualiza cache global
+                    AppDataCache.get().setUsuarioPerfil(response);
+
                     String nome = response.optString("nome", "");
                     String apelido = response.optString("apelido", "");
                     String email = response.optString("email", "");
@@ -214,12 +231,15 @@ public class PerfilUsuarioFragment extends Fragment {
                     mostrarFotoBase64(fotoBase64, imgFotoPerfil);
                 },
                 error -> {
-                    String msg = "Erro ao carregar perfil.";
-                    if (error.networkResponse != null) {
-                        msg += " Código: " + error.networkResponse.statusCode;
+                    // Se já tem cache, não assusta o usuário
+                    if (!AppDataCache.get().temUsuario()) {
+                        String msg = "Erro ao carregar perfil.";
+                        if (error.networkResponse != null) {
+                            msg += " Código: " + error.networkResponse.statusCode;
+                        }
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+                        preencherComSessaoLocal();
                     }
-                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
-                    preencherComSessaoLocal();
                 }
         ) {
             @Override
@@ -254,8 +274,14 @@ public class PerfilUsuarioFragment extends Fragment {
                     Request.Method.PUT,
                     ApiConfig.URL_ATUALIZAR_PERFIL,
                     body,
-                    response -> Toast.makeText(requireContext(),
-                            "Foto atualizada!", Toast.LENGTH_SHORT).show(),
+                    response -> {
+                        Toast.makeText(requireContext(), "Foto atualizada!", Toast.LENGTH_SHORT).show();
+                        // Mantém cache coerente
+                        AppDataCache.get().setUsuarioPerfil(response);
+                        String foto = response.optString("fotoBase64", fotoBase64Atual);
+                        fotoBase64Atual = foto;
+                        mostrarFotoBase64(foto, imgFotoPerfil);
+                    },
                     error -> {
                         String msg = "Erro ao enviar foto.";
                         if (error.networkResponse != null) {
@@ -291,9 +317,9 @@ public class PerfilUsuarioFragment extends Fragment {
     }
 
     private void preencherCampos(String username, String nome, String email, String telefone) {
-        txtUsername.setText(username);
-        txtNome.setText(nome);
-        txtEmail.setText(email);
+        if (txtUsername != null) txtUsername.setText(username);
+        if (txtNome != null) txtNome.setText(nome);
+        if (txtEmail != null) txtEmail.setText(email);
         if (txtTelefone != null) txtTelefone.setText(telefone);
     }
 
@@ -321,6 +347,13 @@ public class PerfilUsuarioFragment extends Fragment {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void atualizarTituloToolbar(String titulo) {
+        if (getActivity() != null) {
+            MaterialToolbar toolbar = getActivity().findViewById(R.id.toolbarMenu);
+            if (toolbar != null) toolbar.setTitle(titulo);
         }
     }
 }

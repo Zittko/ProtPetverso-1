@@ -4,24 +4,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#ffe8ce">
+    android:background="#FFE8CE">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbarMaisInfo"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#f08c4b"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#F08C4B"
         app:navigationIcon="@drawable/baseline_arrow_back"
-        app:navigationIconTint="@color/text_orange"
+        app:navigationIconTint="#000000"
         app:title="Mais Informações"
-        app:titleTextColor="@color/text_orange"
-        app:titleCentered="true" />
+        app:titleCentered="true"
+        app:titleTextColor="#000000" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:clipToPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -29,21 +30,19 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- PERSONALIDADE -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Personalidade"
-                android:textColor="#5f2e16"
-                android:textSize="20sp"
+                android:textColor="#000000"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginBottom="10dp" />
 
-            <!-- Chips pré-definidos + escolhidos -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@android:color/white"
+                app:cardBackgroundColor="#FFFFFF"
                 app:cardCornerRadius="12dp"
                 app:strokeColor="#FF9800"
                 app:strokeWidth="1dp"
@@ -55,7 +54,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="12dp"
-                    app:chipSpacing="8dp"
+                    app:chipSpacingHorizontal="8dp"
+                    app:chipSpacingVertical="8dp"
                     app:singleSelection="false" />
             </com.google.android.material.card.MaterialCardView>
 
@@ -63,27 +63,34 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Escreva a personalidade do seu pet"
-                android:textColor="#5f2e16"
-                android:textSize="16sp"
+                android:textColor="#000000"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Um único campo digitável -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/ipNovaPersonalidade"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Ex: Brincalhão"
+                android:layout_marginBottom="8dp"
+                android:hint="Característica"
                 app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="#FFFFFF"
                 app:boxStrokeColor="#FF9800"
-                android:layout_marginBottom="8dp">
+                app:boxStrokeWidth="1.5dp"
+                app:boxCornerRadiusTopStart="10dp"
+                app:boxCornerRadiusTopEnd="10dp"
+                app:boxCornerRadiusBottomStart="10dp"
+                app:boxCornerRadiusBottomEnd="10dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edtNovaPersonalidade"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textCapSentences"
-                    android:maxLines="1" />
+                    android:maxLines="1"
+                    android:textColor="#000000"
+                    android:textColorHint="#AAAAAA" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -92,36 +99,46 @@
                 android:layout_height="wrap_content"
                 android:text="Adicionar outra característica"
                 android:textAllCaps="false"
+                android:textColor="#000"
                 app:icon="@android:drawable/ic_input_add"
-                app:backgroundTint="#f08c4b"
+                app:iconTint="#000"
+                app:backgroundTint="#DF945D"
+                app:cornerRadius="10dp"
                 android:layout_marginBottom="24dp" />
 
-            <!-- SENSIBILIDADES -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Sensibilidades"
-                android:textColor="#5f2e16"
-                android:textSize="20sp"
+                android:textColor="#000000"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginBottom="10dp" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/ipSensibilidades"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="28dp"
                 android:hint="Ex: Fica agitado com barulhos altos"
                 app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="#FFFFFF"
                 app:boxStrokeColor="#FF9800"
-                android:layout_marginBottom="24dp">
+                app:boxStrokeWidth="1.5dp"
+                app:boxCornerRadiusTopStart="10dp"
+                app:boxCornerRadiusTopEnd="10dp"
+                app:boxCornerRadiusBottomStart="10dp"
+                app:boxCornerRadiusBottomEnd="10dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edtSensibilidades"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="top|start"
                     android:inputType="textMultiLine"
                     android:minLines="3"
-                    android:gravity="top" />
+                    android:textColor="#000000"
+                    android:textColorHint="#AAAAAA" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -130,9 +147,10 @@
                 android:layout_height="52dp"
                 android:text="Finalizar cadastro"
                 android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                app:backgroundTint="#f08c4b"
-                app:cornerRadius="8dp" />
+                android:textColor="#000"
+                android:textSize="16sp"
+                app:backgroundTint="#DF945D"
+                app:cornerRadius="12dp" />
 
         </LinearLayout>
     </ScrollView>

@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="10dp"
     app:cardCornerRadius="12dp"
-    app:strokeWidth="1dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:strokeWidth="1.5dp"
     app:strokeColor="#FF9800">
 
     <LinearLayout
@@ -20,6 +23,7 @@
             android:layout_height="wrap_content"
             android:textStyle="bold"
             android:textSize="16sp"
+            android:textColor="#000000"
             android:text="Pet" />
 
         <TextView
@@ -27,6 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:textColor="#000000"
             android:text="Solicitante" />
 
         <TextView
@@ -35,6 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:textSize="12sp"
+            android:textColor="#666666"
             android:text="Data" />
 
         <LinearLayout
@@ -51,7 +57,9 @@
                 android:layout_marginEnd="6dp"
                 android:text="Recusar"
                 android:textAllCaps="false"
-                app:backgroundTint="#9E9E9E" />
+                android:textColor="#000000"
+                app:backgroundTint="#F7D4A0"
+                app:cornerRadius="10dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAceitar"
@@ -61,7 +69,9 @@
                 android:layout_marginStart="6dp"
                 android:text="Aceitar"
                 android:textAllCaps="false"
-                app:backgroundTint="#f08c4b" />
+                android:textColor="#FFFFFF"
+                app:backgroundTint="#DF945D"
+                app:cornerRadius="10dp" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
