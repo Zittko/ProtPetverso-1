@@ -152,7 +152,7 @@ public class LoginActivity extends AppCompatActivity {
             edtUser.setText("");
             edtSenha.setText("");
             // Limpa os campos antes de ir para o cadastro
-            startActivity(new Intent(getApplicationContext(), SignUpActivity.class));
+            startActivity(new Intent(LoginActivity.this, com.example.protpetverso_1.account.SignUpActivity.class));
             // Conectado com: SignUpActivity
         });
 

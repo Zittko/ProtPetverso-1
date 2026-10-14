@@ -338,8 +338,8 @@ public class PerfilPetFragment extends Fragment {
                     String sexo = formatarSexo(response.optString("sexo", "—"));
                     String porte = formatarPorte(response.optString("porte", "—"));
 
-                    String dataNasc = response.optString("dataDeNascimento", "");
-                    if (dataNasc.isEmpty()) dataNasc = response.optString("dataNascimento", "");
+                    String dataNasc = response.optString("idade", "");
+                    if (dataNasc.isEmpty()) dataNasc = response.optString("idade", "");
                     if (dataNasc.isEmpty()) dataNasc = "—";
                     else dataNasc = formatarDataTela(dataNasc);
 
