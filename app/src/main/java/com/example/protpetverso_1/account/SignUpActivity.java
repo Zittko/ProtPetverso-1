@@ -7,7 +7,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ScrollView;
+import androidx.core.widget.NestedScrollView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -44,7 +44,7 @@ public class SignUpActivity extends AppCompatActivity {
     TextInputEditText edtNome, edtCriarEmail, edtTelefone, edtCriarSenha, edtSenha;
     TextInputLayout ipEdtNome, ipEdtCriarEmail, ipEdtTelefone, ipEdtCriarSenha, ipEdtSenha;
 
-    ScrollView signupScroll;
+    private NestedScrollView signupScroll;
     ImageButton btnVoltar;
     Button btnCadastrar;
 
