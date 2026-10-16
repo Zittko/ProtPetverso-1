@@ -1,10 +1,9 @@
 package com.example.protpetverso_1.schedule;
 
-import android.content.Context;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -13,81 +12,150 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.protpetverso_1.R;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.TextStyle;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-public class DiaAdapter extends RecyclerView.Adapter<DiaAdapter.DiaViewHolder> {
+public class DiaAdapter extends RecyclerView.Adapter<DiaAdapter.VH> {
 
-    public interface OnDayClickListener {
-        void onDayClick(LocalDate data);
+    public interface OnDiaClickListener {
+        void onDiaClick(LocalDate data);
     }
 
-    private List<LocalDate> listaDias;
-    private LocalDate diaSelecionado;
-    private final OnDayClickListener listener;
-    private final Context context;
+    private final List<LocalDate> dias = new ArrayList<>();
+    private LocalDate selecionado = LocalDate.now();
+    private OnDiaClickListener listener;
+    private boolean modoGrade = false;
+    private YearMonth mesReferencia = YearMonth.now();
+    /** Largura de cada chip na semana (para caberem 5 na tela). */
+    private int larguraSemanaPx = 0;
 
-    public DiaAdapter(Context context, List<LocalDate> listaDias,
-                      LocalDate diaSelecionado, OnDayClickListener listener) {
-        this.context = context;
-        this.listaDias = listaDias;
-        this.diaSelecionado = diaSelecionado;
+    public void setOnDiaClickListener(OnDiaClickListener listener) {
         this.listener = listener;
     }
 
-    public void setListaDias(List<LocalDate> novaLista) {
-        this.listaDias = novaLista;
+    public void setModoGrade(boolean grade) {
+        this.modoGrade = grade;
         notifyDataSetChanged();
     }
 
-    public void setDiaSelecionado(LocalDate novaData) {
-        this.diaSelecionado = novaData;
+    public void setMesReferencia(YearMonth mes) {
+        this.mesReferencia = mes != null ? mes : YearMonth.now();
         notifyDataSetChanged();
+    }
+
+    public void setLarguraItemSemana(int px) {
+        this.larguraSemanaPx = px;
+        notifyDataSetChanged();
+    }
+
+    public void setDias(List<LocalDate> lista) {
+        dias.clear();
+        if (lista != null) dias.addAll(lista);
+        notifyDataSetChanged();
+    }
+
+    public void setDiaSelecionado(LocalDate data) {
+        this.selecionado = data;
+        notifyDataSetChanged();
+    }
+
+    public LocalDate getDiaSelecionado() {
+        return selecionado;
     }
 
     @NonNull
     @Override
-    public DiaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
+    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_data_agenda, parent, false);
-        return new DiaViewHolder(view);
+        return new VH(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull DiaViewHolder holder, int position) {
-        LocalDate data = listaDias.get(position);
-        String[] nomes = {"Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"};
-        int index = data.getDayOfWeek().getValue() - 1; // 1=Seg ... 7=Dom
-        holder.txtNomeDia.setText(nomes[index]);
-        holder.txtNumeroDia.setText(String.valueOf(data.getDayOfMonth()));
+    public void onBindViewHolder(@NonNull VH h, int position) {
+        LocalDate d = dias.get(position);
+        Locale pt = new Locale("pt", "BR");
 
-        boolean sel = data.equals(diaSelecionado);
-        if (sel) {
-            holder.itemView.setBackgroundResource(R.drawable.bg_dia_selecionado);
-            holder.txtNomeDia.setTextColor(Color.WHITE);
-            holder.txtNumeroDia.setTextColor(Color.WHITE);
-        } else {
-            holder.itemView.setBackgroundResource(R.drawable.bg_dia_normal);
-            holder.txtNomeDia.setTextColor(Color.parseColor("#5D4037"));
-            holder.txtNumeroDia.setTextColor(Color.parseColor("#5D4037"));
+        String nome = d.getDayOfWeek().getDisplayName(TextStyle.SHORT, pt).toUpperCase(pt);
+        if (nome.endsWith(".")) {
+            nome = nome.substring(0, nome.length() - 1);
         }
 
-        holder.itemView.setOnClickListener(v -> {
-            if (listener != null) listener.onDayClick(data);
+        h.txtNome.setText(nome);
+        h.txtNumero.setText(String.valueOf(d.getDayOfMonth()));
+
+        boolean sel = selecionado != null && selecionado.equals(d);
+        h.container.setBackgroundResource(
+                sel ? R.drawable.bg_dia_selecionado : R.drawable.bg_dia_normal);
+
+        boolean outroMes = modoGrade
+                && mesReferencia != null
+                && !YearMonth.from(d).equals(mesReferencia);
+
+        float alpha = 1f;
+        if (outroMes) {
+            alpha = sel ? 0.75f : 0.35f;
+        }
+        h.itemView.setAlpha(alpha);
+
+        float density = h.itemView.getResources().getDisplayMetrics().density;
+        ViewGroup.MarginLayoutParams lp =
+                (ViewGroup.MarginLayoutParams) h.itemView.getLayoutParams();
+
+        if (lp != null) {
+            if (modoGrade) {
+                int m = (int) (3 * density);
+                lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                lp.setMargins(m, m, m, m);
+                h.itemView.setLayoutParams(lp);
+
+                h.itemView.post(() -> {
+                    int w = h.itemView.getWidth();
+                    if (w > 0) {
+                        ViewGroup.LayoutParams p = h.itemView.getLayoutParams();
+                        if (p.height != w) {
+                            p.height = w;
+                            h.itemView.setLayoutParams(p);
+                        }
+                    }
+                });
+            } else {
+                int m = (int) (3 * density);
+                int size = larguraSemanaPx > 0
+                        ? larguraSemanaPx
+                        : (int) (56 * density);
+                lp.width = size;
+                lp.height = size;
+                lp.setMargins(m, 0, m, 0);
+                h.itemView.setLayoutParams(lp);
+            }
+        }
+
+        h.itemView.setOnClickListener(v -> {
+            selecionado = d;
+            notifyDataSetChanged();
+            if (listener != null) listener.onDiaClick(d);
         });
     }
 
     @Override
     public int getItemCount() {
-        return listaDias != null ? listaDias.size() : 0;
+        return dias.size();
     }
 
-    static class DiaViewHolder extends RecyclerView.ViewHolder {
-        TextView txtNomeDia, txtNumeroDia;
+    static class VH extends RecyclerView.ViewHolder {
+        LinearLayout container;
+        TextView txtNome, txtNumero;
 
-        DiaViewHolder(@NonNull View itemView) {
-            super(itemView);
-            txtNomeDia = itemView.findViewById(R.id.txtNomeDia);
-            txtNumeroDia = itemView.findViewById(R.id.txtNumeroDia);
+        VH(@NonNull View v) {
+            super(v);
+            container = v.findViewById(R.id.containerDia);
+            txtNome = v.findViewById(R.id.txtNomeDia);
+            txtNumero = v.findViewById(R.id.txtNumeroDia);
         }
     }
 }

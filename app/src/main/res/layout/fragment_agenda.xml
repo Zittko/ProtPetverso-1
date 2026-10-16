@@ -2,173 +2,155 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFE8CE"
-    tools:context=".schedule.AgendaFragment">
+    android:background="#FFE8CE">
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingBottom="96dp">
 
-        <!-- ===== ÁREA DO CALENDÁRIO ===== -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingTop="8dp"
-            android:paddingBottom="4dp">
+            android:padding="12dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardCalendario"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#000000"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:id="@+id/conteudoCalendario"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="4dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+
+                    <!-- Título + setas mês + expandir -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="4dp">
+
+                        <ImageView
+                            android:id="@+id/btnMesAnterior"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:contentDescription="Mês anterior"
+                            android:padding="6dp"
+                            android:src="@drawable/ic_arrow_left"
+                            app:tint="#000000" />
+
+                        <TextView
+                            android:id="@+id/txtMesAno"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:paddingHorizontal="4dp"
+                            android:text="—"
+                            android:textColor="#000000"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/btnMesProximo"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:contentDescription="Próximo mês"
+                            android:padding="6dp"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="#000000" />
+
+                    </LinearLayout>
+
+                    <!-- Semana: 7 dias na lista, ~5 visíveis -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerDias"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:nestedScrollingEnabled="true"
+                        android:overScrollMode="never"
+                        android:paddingHorizontal="0dp" />
+
+                    <!-- Mês expandido -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerMes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:clipToPadding="false"
+                        android:nestedScrollingEnabled="false"
+                        android:overScrollMode="never"
+                        android:paddingHorizontal="4dp"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:layout_gravity="center"
+                        android:id="@+id/btnExpandirCalendario"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:contentDescription="Expandir calendário"
+                        android:padding="6dp"
+                        android:src="@drawable/ic_arrow_drop_down"
+                        app:tint="#000000" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
-                android:id="@+id/txtMesAno"
+                android:id="@+id/txtTituloLista"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:paddingHorizontal="12dp"
-                android:paddingBottom="6dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="Tarefas do Dia"
                 android:textColor="#000000"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:text="—" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerDias"
-                android:layout_width="match_parent"
-                android:layout_height="72dp"
-                android:clipToPadding="false"
-                android:paddingHorizontal="8dp"
-                android:overScrollMode="never" />
-
-            <LinearLayout
-                android:id="@+id/containerCalendarioMes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingHorizontal="12dp"
-                android:visibility="gone">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingVertical="4dp">
-
-                    <ImageButton
-                        android:id="@+id/btnMesAnterior"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="Mês anterior"
-                        android:src="@android:drawable/ic_media_previous"
-                        app:tint="#DF945D" />
-
-                    <TextView
-                        android:id="@+id/txtNomeMesExpandido"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:textColor="#000000"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:text="Outubro 2026" />
-
-                    <ImageButton
-                        android:id="@+id/btnMesProximo"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="Próximo mês"
-                        android:src="@android:drawable/ic_media_next"
-                        app:tint="#DF945D" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingVertical="4dp">
-
-                    <TextView style="@style/DiaSemanaHeader" android:text="Seg" />
-                    <TextView style="@style/DiaSemanaHeader" android:text="Ter" />
-                    <TextView style="@style/DiaSemanaHeader" android:text="Qua" />
-                    <TextView style="@style/DiaSemanaHeader" android:text="Qui" />
-                    <TextView style="@style/DiaSemanaHeader" android:text="Sex" />
-                    <TextView style="@style/DiaSemanaHeader" android:text="Sáb" />
-                    <TextView style="@style/DiaSemanaHeader" android:text="Dom" />
-                </LinearLayout>
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerMes"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false"
-                    android:overScrollMode="never" />
-            </LinearLayout>
-
-            <ImageView
-                android:id="@+id/btnExpandirCalendario"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_horizontal"
-                android:contentDescription="Expandir calendário"
-                android:padding="8dp"
-                android:src="@android:drawable/arrow_down_float"
-                app:tint="#DF945D" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/txtTituloLista"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="8dp"
-            android:text="Tarefas do Dia"
-            android:textColor="#000000"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerTarefas"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingHorizontal="12dp"
-                android:paddingBottom="100dp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txtSemTarefas"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="Nenhuma tarefa para este dia"
-                android:textColor="#666666"
-                android:textSize="15sp"
+                android:padding="24dp"
+                android:text="Nenhuma tarefa neste dia."
+                android:textColor="#8D6E63"
                 android:visibility="gone" />
-        </FrameLayout>
-    </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerTarefas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:nestedScrollingEnabled="false" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnNovaTarefa"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="90dp"
+        android:layout_margin="20dp"
         android:contentDescription="Nova tarefa"
-        android:src="@android:drawable/ic_input_add"
         app:backgroundTint="#DF945D"
-        app:elevation="6dp"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
-        app:tint="@android:color/white" />
-
+        app:srcCompat="@drawable/baseline_add"
+        app:tint="#FFFFFF" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

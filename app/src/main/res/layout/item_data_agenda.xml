@@ -1,32 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="64dp"
-    android:orientation="vertical"
-    android:layout_marginHorizontal="4dp"
+    android:id="@+id/containerDia"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_gravity="center"
-    android:padding="6dp"
-    android:background="@drawable/bg_dia_normal">
+    android:background="@drawable/bg_dia_normal"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingHorizontal="2dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
 
     <TextView
         android:id="@+id/txtNomeDia"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Seg"
-        android:textSize="11sp"
-        android:layout_gravity="center"
-        android:textStyle="bold"
-        android:background="@android:color/transparent"/>
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:text="SEG"
+        android:textColor="#000000"
+        android:textSize="10sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/txtNumeroDia"
-        android:layout_marginTop="2dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="7"
-        android:layout_gravity="center"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:background="@android:color/transparent"/>
-
+        android:layout_marginTop="2dp"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:text="12"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        android:textStyle="bold" />
 </LinearLayout>

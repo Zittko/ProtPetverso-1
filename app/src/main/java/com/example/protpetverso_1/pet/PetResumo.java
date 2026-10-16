@@ -2,14 +2,14 @@ package com.example.protpetverso_1.pet;
 
 /**
  * GET /api/pets/meusPets
- * PetResumoDTO: idPet, nome, papel, fotoPetBase64
+ * Campos: idPet/id, nome, papel, fotoPetBase64
  */
 public class PetResumo {
 
-    public long idPet;
-    public String nome;
-    public String papel; // DONO | SUPORTE
-    public String fotoPetBase64;
+    private final long idPet;
+    private final String nome;
+    private final String papel;
+    private final String fotoPetBase64;
 
     public PetResumo(long idPet, String nome, String papel, String fotoPetBase64) {
         this.idPet = idPet;

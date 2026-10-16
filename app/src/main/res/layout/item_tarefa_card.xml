@@ -2,76 +2,96 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/ModeloCardtarefa"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="4dp"
-    android:layout_marginVertical="6dp"
-    app:cardCornerRadius="14dp"
-    app:cardElevation="0dp"
+    android:layout_marginBottom="10dp"
     app:cardBackgroundColor="#FFFFFF"
-    app:strokeWidth="1.5dp"
-    app:strokeColor="#FF9800">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeColor="#FF9800"
+    app:strokeWidth="1.5dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="12dp">
 
-        <ImageView
-            android:id="@+id/imgStatus"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_gravity="top"
-            android:layout_marginTop="2dp"
-            android:src="@android:drawable/checkbox_off_background"
-            android:contentDescription="Status da tarefa"
-            app:tint="#DF945D" />
+        <FrameLayout
+            android:id="@+id/btnStatus"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginEnd="12dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <View
+                android:id="@+id/viewStatusBg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_status_pendente" />
+
+            <ImageView
+                android:id="@+id/imgStatusCheck"
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:layout_gravity="center"
+                android:contentDescription="Concluída"
+                android:src="@drawable/ic_check_branco"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="8dp">
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/titleTarefa"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:textColor="#000000"
+                android:ellipsize="end"
                 android:maxLines="2"
-                android:ellipsize="end" />
+                android:textColor="#000000"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/descTarefa"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textSize="13sp"
-                android:textColor="#666666"
-                android:maxLines="4"
-                android:ellipsize="end" />
+                android:ellipsize="end"
+                android:maxLines="3"
+                android:textColor="#555555"
+                android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/txtRodape"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
+                android:lineSpacingExtra="2dp"
+                android:textColor="#666666"
                 android:textSize="12sp"
-                android:textColor="#666666" />
+                android:visibility="gone" />
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/imgTarefa"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:layout_gravity="center_vertical"
-            android:scaleType="centerCrop"
-            android:contentDescription="Ícone da tarefa" />
+        <FrameLayout
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_icon_tarefa"
+            android:padding="6dp">
+
+            <ImageView
+                android:id="@+id/imgTarefa"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Tipo da tarefa"
+                android:scaleType="centerInside" />
+        </FrameLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

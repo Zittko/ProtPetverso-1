@@ -22,7 +22,6 @@ import org.json.JSONObject;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -31,7 +30,9 @@ import java.util.Map;
  * Cria tarefa na API:
  * POST /api/pets/{id}/tarefas
  * Body: { titulo, descricao, dataTarefa, hora }
- * Apenas tutor DONO consegue criar (regra da API).
+ *
+ * Não permite data passada (DatePicker com minDate + validação no salvar).
+ * Intent extras: PET_ID, DATA ou DATA_PADRAO (yyyy-MM-dd).
  */
 public class CriarTarefaActivity extends AppCompatActivity {
 
@@ -52,12 +53,21 @@ public class CriarTarefaActivity extends AppCompatActivity {
         sessionManager = new SessionManager(this);
         petId = getIntent().getLongExtra("PET_ID", sessionManager.obterPetId());
 
-        String dataPadrao = getIntent().getStringExtra("DATA_PADRAO");
+        // Aceita DATA (Agenda) ou DATA_PADRAO (legado)
+        String dataPadrao = getIntent().getStringExtra("DATA");
+        if (dataPadrao == null || dataPadrao.isEmpty()) {
+            dataPadrao = getIntent().getStringExtra("DATA_PADRAO");
+        }
         if (dataPadrao != null && !dataPadrao.isEmpty()) {
             try {
                 dataSelecionada = LocalDate.parse(dataPadrao);
             } catch (Exception ignored) {
             }
+        }
+
+        // Se veio data passada do calendário, força hoje (criação não permite passado)
+        if (dataSelecionada.isBefore(LocalDate.now())) {
+            dataSelecionada = LocalDate.now();
         }
 
         MaterialToolbar toolbar = findViewById(R.id.toolbarCriarTarefa);
@@ -74,13 +84,24 @@ public class CriarTarefaActivity extends AppCompatActivity {
         atualizarTextoData();
         atualizarTextoHora();
 
-        edtData.setOnClickListener(v -> abrirDatePicker());
-        edtHora.setOnClickListener(v -> abrirTimePicker());
+        if (edtData != null) {
+            edtData.setFocusable(false);
+            edtData.setClickable(true);
+            edtData.setOnClickListener(v -> abrirDatePicker());
+        }
+        if (edtHora != null) {
+            edtHora.setFocusable(false);
+            edtHora.setClickable(true);
+            edtHora.setOnClickListener(v -> abrirTimePicker());
+        }
 
-        btnConfirmar.setOnClickListener(v -> salvarTarefa());
+        if (btnConfirmar != null) {
+            btnConfirmar.setOnClickListener(v -> salvarTarefa());
+        }
     }
 
     private void atualizarTextoData() {
+        if (edtData == null) return;
         edtData.setText(String.format(Locale.getDefault(), "%02d/%02d/%04d",
                 dataSelecionada.getDayOfMonth(),
                 dataSelecionada.getMonthValue(),
@@ -88,33 +109,53 @@ public class CriarTarefaActivity extends AppCompatActivity {
     }
 
     private void atualizarTextoHora() {
+        if (edtHora == null) return;
         edtHora.setText(String.format(Locale.getDefault(), "%02d:%02d",
                 horaSelecionada.getHour(), horaSelecionada.getMinute()));
     }
 
     private void abrirDatePicker() {
-        Calendar c = Calendar.getInstance();
-        c.set(dataSelecionada.getYear(), dataSelecionada.getMonthValue() - 1, dataSelecionada.getDayOfMonth());
-        DatePickerDialog dialog = new DatePickerDialog(this, (view, y, m, d) -> {
-            dataSelecionada = LocalDate.of(y, m + 1, d);
-            atualizarTextoData();
-        }, dataSelecionada.getYear(), dataSelecionada.getMonthValue() - 1, dataSelecionada.getDayOfMonth());
+        DatePickerDialog dialog = new DatePickerDialog(
+                this,
+                (view, y, m, d) -> {
+                    LocalDate escolhida = LocalDate.of(y, m + 1, d);
+                    if (escolhida.isBefore(LocalDate.now())) {
+                        Toast.makeText(this,
+                                "Não é possível criar tarefa em data passada.",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    dataSelecionada = escolhida;
+                    atualizarTextoData();
+                },
+                dataSelecionada.getYear(),
+                dataSelecionada.getMonthValue() - 1,
+                dataSelecionada.getDayOfMonth()
+        );
 
-        // Mínimo = hoje
+        // Impede dias anteriores no seletor
         dialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
         dialog.show();
     }
 
     private void abrirTimePicker() {
-        new TimePickerDialog(this, (view, hourOfDay, minute) -> {
-            horaSelecionada = LocalTime.of(hourOfDay, minute);
-            atualizarTextoHora();
-        }, horaSelecionada.getHour(), horaSelecionada.getMinute(), true).show();
+        new TimePickerDialog(
+                this,
+                (view, hourOfDay, minute) -> {
+                    horaSelecionada = LocalTime.of(hourOfDay, minute);
+                    atualizarTextoHora();
+                },
+                horaSelecionada.getHour(),
+                horaSelecionada.getMinute(),
+                true
+        ).show();
     }
 
     private void salvarTarefa() {
-        String titulo = edtTitulo.getText() != null ? edtTitulo.getText().toString().trim() : "";
-        String desc = edtDesc.getText() != null ? edtDesc.getText().toString().trim() : "";
+        String titulo = edtTitulo != null && edtTitulo.getText() != null
+                ? edtTitulo.getText().toString().trim() : "";
+        String desc = edtDesc != null && edtDesc.getText() != null
+                ? edtDesc.getText().toString().trim() : "";
 
         if (titulo.isEmpty()) {
             Toast.makeText(this, "Informe o título", Toast.LENGTH_SHORT).show();
@@ -125,13 +166,21 @@ public class CriarTarefaActivity extends AppCompatActivity {
             return;
         }
 
+        // Validação final: não cria em data passada
+        if (dataSelecionada.isBefore(LocalDate.now())) {
+            Toast.makeText(this, "Não é possível criar tarefa em data passada.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
             Toast.makeText(this, "Sessão expirada", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        btnConfirmar.setEnabled(false);
+        if (btnConfirmar != null) {
+            btnConfirmar.setEnabled(false);
+        }
 
         try {
             JSONObject body = new JSONObject();
@@ -150,19 +199,22 @@ public class CriarTarefaActivity extends AppCompatActivity {
                     body,
                     response -> {
                         Toast.makeText(this, "Tarefa criada!", Toast.LENGTH_SHORT).show();
-                        finish(); // AgendaFragment recarrega no onResume
+                        setResult(RESULT_OK);
+                        finish(); // Agenda recarrega no onResume
                     },
                     error -> {
-                        btnConfirmar.setEnabled(true);
+                        if (btnConfirmar != null) btnConfirmar.setEnabled(true);
                         String msg = "Erro ao criar tarefa.";
                         if (error.networkResponse != null) {
                             int s = error.networkResponse.statusCode;
-                            msg += " (" + s + ")";
                             if (s == 403) {
                                 msg = "Apenas o tutor principal pode criar tarefas.";
+                            } else {
+                                msg += " (" + s + ")";
                             }
                             try {
-                                String err = new String(error.networkResponse.data,
+                                String err = new String(
+                                        error.networkResponse.data,
                                         java.nio.charset.StandardCharsets.UTF_8);
                                 Log.e(TAG, err);
                             } catch (Exception ignored) {
@@ -182,8 +234,8 @@ public class CriarTarefaActivity extends AppCompatActivity {
 
             VolleySingleton.getInstance(this).addToRequestQueue(request);
         } catch (Exception e) {
-            btnConfirmar.setEnabled(true);
-            e.printStackTrace();
+            if (btnConfirmar != null) btnConfirmar.setEnabled(true);
+            Log.e(TAG, "montar body", e);
             Toast.makeText(this, "Erro ao montar dados", Toast.LENGTH_SHORT).show();
         }
     }

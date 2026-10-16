@@ -17,11 +17,6 @@ import com.example.protpetverso_1.R;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Adapter da lista de pets (aba Pets).
- * - Itens de pet (foto + nome + papel)
- * - Último item: card "Adicionar pet"
- */
 public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final int TIPO_PET = 0;
@@ -39,7 +34,6 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.listener = listener;
     }
 
-    /** Atualiza a lista e redesenha a RecyclerView. */
     public void setItens(List<PetResumo> pets) {
         lista.clear();
         if (pets != null) lista.addAll(pets);
@@ -48,13 +42,12 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public int getItemViewType(int position) {
-        // Última posição = card "Adicionar pet"
         return position < lista.size() ? TIPO_PET : TIPO_ADD;
     }
 
     @Override
     public int getItemCount() {
-        return lista.size() + 1; // +1 do card Adicionar
+        return lista.size() + 1;
     }
 
     @NonNull
@@ -69,33 +62,31 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        // Card "Adicionar pet"
-        if (holder instanceof AddVH) {
+        if (getItemViewType(position) == TIPO_ADD) {
             holder.itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onAdicionarClick();
             });
             return;
         }
 
-        // Card de pet
         PetResumo pet = lista.get(position);
         PetVH h = (PetVH) holder;
 
-        h.txtNome.setText(pet.getNome());
-        h.txtPapel.setText(pet.getPapelLabel());
+        if (h.txtNome != null) h.txtNome.setText(pet.getNome());
+        if (h.txtPapel != null) h.txtPapel.setText(pet.getPapelLabel());
 
-        // Enquadramento da foto (centerCrop)
-        h.imgFoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
-
-        if (pet.hasFoto()) {
-            Bitmap bmp = decodificarBase64(pet.getFotoPetBase64());
-            if (bmp != null) {
-                h.imgFoto.setImageBitmap(bmp);
+        if (h.imgFoto != null) {
+            h.imgFoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            if (pet.hasFoto()) {
+                Bitmap bmp = decodificarBase64(pet.getFotoPetBase64());
+                if (bmp != null) {
+                    h.imgFoto.setImageBitmap(bmp);
+                } else {
+                    h.imgFoto.setImageResource(R.drawable.ic_tarefa_default);
+                }
             } else {
-                h.imgFoto.setImageResource(R.drawable.thor); // fallback
+                h.imgFoto.setImageResource(R.drawable.ic_tarefa_default);
             }
-        } else {
-            h.imgFoto.setImageResource(R.drawable.thor);
         }
 
         h.itemView.setOnClickListener(v -> {
@@ -103,10 +94,6 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         });
     }
 
-    /**
-     * Converte Base64 em Bitmap.
-     * Remove o prefixo "data:image/...;base64," se existir.
-     */
     private Bitmap decodificarBase64(String base64) {
         try {
             if (base64 == null || base64.isEmpty()) return null;
@@ -120,7 +107,6 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    /** ViewHolder do card de pet */
     static class PetVH extends RecyclerView.ViewHolder {
         ImageView imgFoto;
         TextView txtNome, txtPapel;
@@ -133,7 +119,6 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    /** ViewHolder do card "Adicionar pet" */
     static class AddVH extends RecyclerView.ViewHolder {
         AddVH(@NonNull View v) {
             super(v);

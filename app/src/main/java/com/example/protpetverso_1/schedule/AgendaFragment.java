@@ -1,12 +1,13 @@
 package com.example.protpetverso_1.schedule;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,14 +21,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.protpetverso_1.ApiConfig;
 import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
 import com.example.protpetverso_1.data.AppDataCache;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,37 +40,32 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Agenda do pet selecionado.
- * Cache (AppDataCache) → lista na hora → GET /pets/{id}/tarefas em background.
- */
 public class AgendaFragment extends Fragment {
 
     private static final String TAG = "AGENDA";
-
-    private RecyclerView recyclerDias, recyclerTarefas, recyclerMes;
-    private TextView txtTituloLista, txtSemTarefas, txtMesAno, txtNomeMesExpandido;
-    private View containerCalendarioMes;
-    private ImageView btnExpandirCalendario;
-    private ImageButton btnMesAnterior, btnMesProximo;
-    private FloatingActionButton btnNovaTarefa;
-
-    private DiaAdapter diaAdapter;
-    private MesAdapter mesAdapter;
-    private TarefaAdapter tarefaAdapter;
-
-    private final List<LocalDate> listaDias = new ArrayList<>();
-    private final List<Tarefa> listaTarefasExibidas = new ArrayList<>();
-    private final List<Tarefa> todasTarefasDoPet = new ArrayList<>();
-
-    private LocalDate diaSelecionado;
-    private LocalDate mesExibido;
-    private boolean calendarioExpandido = false;
+    private static final int DIAS_COLAPSADO = 7;
 
     private SessionManager sessionManager;
     private long petId = -1;
+    private LocalDate diaSelecionado = LocalDate.now();
+    private boolean calendarioExpandido = false;
 
-    public AgendaFragment() {
+    private MaterialCardView cardCalendario;
+    private View conteudoCalendario;
+    private RecyclerView recyclerDias, recyclerMes, recyclerTarefas;
+    private TextView txtMesAno, txtTituloLista, txtSemTarefas;
+    private ImageView btnExpandirCalendario, btnMesAnterior, btnMesProximo;
+    private FloatingActionButton btnNovaTarefa;
+
+    private DiaAdapter diaAdapter;
+    private DiaAdapter mesAdapter;
+    private TarefaAdapter tarefaAdapter;
+
+    private final List<Tarefa> todasTarefasDoPet = new ArrayList<>();
+    private final List<Tarefa> listaTarefasExibidas = new ArrayList<>();
+
+    private boolean podeAtualizarUi() {
+        return isAdded() && getContext() != null && getView() != null;
     }
 
     @Override
@@ -77,47 +77,57 @@ public class AgendaFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        sessionManager = new SessionManager(requireContext());
+        Context ctx = getContext();
+        if (ctx == null) return;
+
+        sessionManager = new SessionManager(ctx);
         petId = sessionManager.obterPetId();
 
+        cardCalendario = view.findViewById(R.id.cardCalendario);
+        conteudoCalendario = view.findViewById(R.id.conteudoCalendario);
         recyclerDias = view.findViewById(R.id.recyclerDias);
-        recyclerTarefas = view.findViewById(R.id.recyclerTarefas);
         recyclerMes = view.findViewById(R.id.recyclerMes);
+        recyclerTarefas = view.findViewById(R.id.recyclerTarefas);
+        txtMesAno = view.findViewById(R.id.txtMesAno);
         txtTituloLista = view.findViewById(R.id.txtTituloLista);
         txtSemTarefas = view.findViewById(R.id.txtSemTarefas);
-        txtMesAno = view.findViewById(R.id.txtMesAno);
-        txtNomeMesExpandido = view.findViewById(R.id.txtNomeMesExpandido);
-        containerCalendarioMes = view.findViewById(R.id.containerCalendarioMes);
         btnExpandirCalendario = view.findViewById(R.id.btnExpandirCalendario);
         btnMesAnterior = view.findViewById(R.id.btnMesAnterior);
         btnMesProximo = view.findViewById(R.id.btnMesProximo);
         btnNovaTarefa = view.findViewById(R.id.btnNovaTarefa);
 
-        diaSelecionado = LocalDate.now();
-        mesExibido = diaSelecionado.withDayOfMonth(1);
+        diaAdapter = new DiaAdapter();
+        diaAdapter.setModoGrade(false);
+        diaAdapter.setOnDiaClickListener(this::onDiaEscolhido);
 
-        recyclerTarefas.setLayoutManager(new LinearLayoutManager(requireContext()));
-        tarefaAdapter = new TarefaAdapter(requireContext(), listaTarefasExibidas);
-        tarefaAdapter.setOnTarefaClickListener((tarefa, position) ->
-                Toast.makeText(requireContext(),
-                        "Conclusão de tarefa: aguardando endpoint na API.",
-                        Toast.LENGTH_SHORT).show());
-        recyclerTarefas.setAdapter(tarefaAdapter);
+        if (recyclerDias != null) {
+            recyclerDias.setLayoutManager(
+                    new LinearLayoutManager(ctx, LinearLayoutManager.HORIZONTAL, false));
+            recyclerDias.setAdapter(diaAdapter);
+            recyclerDias.setClipToPadding(false);
+            recyclerDias.post(this::aplicarLarguraCincoDias);
+        }
 
-        configurarCalendario();
-
-        if (btnNovaTarefa != null) {
-            btnNovaTarefa.setOnClickListener(v -> {
-                if (petId <= 0) {
-                    Toast.makeText(requireContext(), "Selecione um pet antes.", Toast.LENGTH_SHORT).show();
-                    return;
+        mesAdapter = new DiaAdapter();
+        mesAdapter.setModoGrade(true);
+        mesAdapter.setOnDiaClickListener(this::onDiaEscolhido);
+        if (recyclerMes != null) {
+            recyclerMes.setLayoutManager(new GridLayoutManager(ctx, 7));
+            recyclerMes.setAdapter(mesAdapter);
+            recyclerMes.setVisibility(View.GONE);
+            final int s = (int) (3 * getResources().getDisplayMetrics().density);
+            recyclerMes.addItemDecoration(new RecyclerView.ItemDecoration() {
+                @Override
+                public void getItemOffsets(@NonNull android.graphics.Rect outRect, @NonNull View v,
+                                           @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+                    outRect.set(s, s, s, s);
                 }
-                Intent i = new Intent(requireContext(), CriarTarefaActivity.class);
-                i.putExtra("PET_ID", petId);
-                i.putExtra("DATA_PADRAO", diaSelecionado.toString());
-                startActivity(i);
             });
         }
+
+        aplicarEstiloCalendarioColapsado();
+        montarSemana();
+        atualizarTituloMes();
 
         if (btnExpandirCalendario != null) {
             btnExpandirCalendario.setOnClickListener(v -> alternarCalendario());
@@ -128,217 +138,234 @@ public class AgendaFragment extends Fragment {
         if (btnMesProximo != null) {
             btnMesProximo.setOnClickListener(v -> mudarMes(1));
         }
-
-        if (containerCalendarioMes != null) {
-            containerCalendarioMes.setVisibility(View.GONE);
-        }
-        if (recyclerDias != null) {
-            recyclerDias.setVisibility(View.VISIBLE);
+        if (txtMesAno != null) {
+            txtMesAno.setOnClickListener(v -> {
+                if (!calendarioExpandido) alternarCalendario();
+            });
         }
 
-        atualizarIconeSeta();
-        atualizarTextoMesAno();
-        atualizarBotoesMes();
+        tarefaAdapter = new TarefaAdapter(ctx, listaTarefasExibidas);
+        tarefaAdapter.setOnTarefaClickListener(this::concluirTarefaNaApi);
+        if (recyclerTarefas != null) {
+            recyclerTarefas.setLayoutManager(new LinearLayoutManager(ctx));
+            recyclerTarefas.setAdapter(tarefaAdapter);
+        }
 
-        // Cache + API
-        aplicarCacheTarefas();
-        carregarTarefasDoPet();
+        if (btnNovaTarefa != null) {
+            btnNovaTarefa.setOnClickListener(v -> {
+                if (petId <= 0) {
+                    Toast.makeText(ctx, "Selecione um pet na Home ou em Pets.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (diaSelecionado.isBefore(LocalDate.now())) {
+                    Toast.makeText(ctx,
+                            "Não é possível criar tarefa em datas passadas.\nEscolha hoje ou um dia futuro.",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Intent i = new Intent(ctx, CriarTarefaActivity.class);
+                i.putExtra("PET_ID", petId);
+                i.putExtra("DATA", diaSelecionado.toString());
+                startActivity(i);
+            });
+        }
+
+        carregarTarefas();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (sessionManager != null) {
-            long novoId = sessionManager.obterPetId();
-            if (novoId != petId) {
-                petId = novoId;
-                aplicarCacheTarefas();
+        if (sessionManager == null) return;
+        long novo = sessionManager.obterPetId();
+        if (novo != petId) petId = novo;
+        carregarTarefas();
+    }
+
+    /** ~5 chips visíveis; lista tem 7 dias e rola na horizontal. */
+    private void aplicarLarguraCincoDias() {
+        if (recyclerDias == null || diaAdapter == null) return;
+
+        int larguraLista = recyclerDias.getWidth()
+                - recyclerDias.getPaddingLeft()
+                - recyclerDias.getPaddingRight();
+        if (larguraLista <= 0) return;
+
+        float density = getResources().getDisplayMetrics().density;
+        int margemPorItem = (int) (3 * density * 2);
+        int larguraItem = (larguraLista / 5) - margemPorItem;
+        int min = (int) (48 * density);
+        if (larguraItem < min) larguraItem = min;
+
+        diaAdapter.setLarguraItemSemana(larguraItem);
+    }
+
+    private void mudarMes(int delta) {
+        YearMonth atual = YearMonth.from(diaSelecionado);
+        YearMonth novo = atual.plusMonths(delta);
+        int dia = Math.min(diaSelecionado.getDayOfMonth(), novo.lengthOfMonth());
+        diaSelecionado = novo.atDay(dia);
+
+        if (calendarioExpandido) {
+            montarMes();
+        } else {
+            montarSemana();
+            if (recyclerDias != null) {
+                recyclerDias.post(this::aplicarLarguraCincoDias);
+                recyclerDias.scrollToPosition(0);
             }
-            carregarTarefasDoPet();
         }
-    }
-
-    /** Preenche a lista a partir do AppDataCache (se existir). */
-    private void aplicarCacheTarefas() {
-        petId = sessionManager.obterPetId();
-        if (petId > 0 && AppDataCache.get().temTarefas(petId)) {
-            todasTarefasDoPet.clear();
-            todasTarefasDoPet.addAll(AppDataCache.get().getTarefas(petId));
-            filtrarTarefasPorDia();
-        }
-    }
-
-    // ==================== CALENDÁRIO ====================
-
-    private void configurarCalendario() {
-        montarSemanaDoDia(diaSelecionado);
-        if (recyclerDias != null) {
-            recyclerDias.setLayoutManager(
-                    new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-            diaAdapter = new DiaAdapter(requireContext(), listaDias, diaSelecionado, this::onDiaEscolhido);
-            recyclerDias.setAdapter(diaAdapter);
-        }
-
-        if (recyclerMes != null) {
-            recyclerMes.setLayoutManager(new GridLayoutManager(requireContext(), 7));
-            mesAdapter = new MesAdapter(this::onDiaEscolhido);
-            recyclerMes.setAdapter(mesAdapter);
-            mesAdapter.setMes(mesExibido, diaSelecionado);
-        }
-    }
-
-    private void onDiaEscolhido(LocalDate data) {
-        if (data.isBefore(LocalDate.now())) {
-            Toast.makeText(requireContext(), "Não é possível selecionar datas passadas.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        diaSelecionado = data;
-        mesExibido = data.withDayOfMonth(1);
-
-        montarSemanaDoDia(data);
         if (diaAdapter != null) diaAdapter.setDiaSelecionado(diaSelecionado);
-        if (mesAdapter != null) mesAdapter.setMes(mesExibido, diaSelecionado);
-
-        atualizarTextoMesAno();
-        atualizarBotoesMes();
+        if (mesAdapter != null) mesAdapter.setDiaSelecionado(diaSelecionado);
+        atualizarTituloMes();
         filtrarTarefasPorDia();
-    }
-
-    private void montarSemanaDoDia(LocalDate ref) {
-        listaDias.clear();
-        LocalDate segunda = ref.minusDays(ref.getDayOfWeek().getValue() - 1L);
-        for (int i = 0; i < 7; i++) {
-            listaDias.add(segunda.plusDays(i));
-        }
-        if (diaAdapter != null) {
-            diaAdapter.setListaDias(listaDias);
-            diaAdapter.setDiaSelecionado(diaSelecionado);
-        }
     }
 
     private void alternarCalendario() {
         calendarioExpandido = !calendarioExpandido;
 
-        if (containerCalendarioMes != null) {
-            containerCalendarioMes.setVisibility(calendarioExpandido ? View.VISIBLE : View.GONE);
-        }
         if (recyclerDias != null) {
             recyclerDias.setVisibility(calendarioExpandido ? View.GONE : View.VISIBLE);
         }
-
-        if (calendarioExpandido && mesAdapter != null) {
-            mesExibido = diaSelecionado.withDayOfMonth(1);
-            mesAdapter.setMes(mesExibido, diaSelecionado);
-            atualizarNomeMesExpandido();
-            atualizarBotoesMes();
+        if (recyclerMes != null) {
+            recyclerMes.setVisibility(calendarioExpandido ? View.VISIBLE : View.GONE);
         }
-        atualizarIconeSeta();
-    }
-
-    private void mudarMes(int delta) {
-        LocalDate candidato = mesExibido.plusMonths(delta).withDayOfMonth(1);
-        LocalDate inicioMesAtual = LocalDate.now().withDayOfMonth(1);
-
-        if (candidato.isBefore(inicioMesAtual)) {
-            Toast.makeText(requireContext(), "Não há datas disponíveis neste mês.", Toast.LENGTH_SHORT).show();
-            return;
+        if (btnExpandirCalendario != null) {
+            btnExpandirCalendario.setRotation(calendarioExpandido ? 180f : 0f);
         }
 
-        mesExibido = candidato;
-        if (mesAdapter != null) {
-            mesAdapter.setMes(mesExibido, diaSelecionado);
-        }
-        atualizarNomeMesExpandido();
-        atualizarBotoesMes();
-    }
-
-    private void atualizarBotoesMes() {
-        if (btnMesAnterior == null) return;
-        LocalDate inicioMesAtual = LocalDate.now().withDayOfMonth(1);
-        boolean podeVoltar = mesExibido.isAfter(inicioMesAtual);
-        btnMesAnterior.setEnabled(podeVoltar);
-        btnMesAnterior.setAlpha(podeVoltar ? 1f : 0.3f);
-    }
-
-    private void atualizarNomeMesExpandido() {
-        if (txtNomeMesExpandido == null || mesExibido == null) return;
-        String mes = capitalizar(mesExibido.getMonth()
-                .getDisplayName(TextStyle.FULL, new Locale("pt", "BR")));
-        txtNomeMesExpandido.setText(mes + " " + mesExibido.getYear());
-    }
-
-    private void atualizarIconeSeta() {
-        if (btnExpandirCalendario == null) return;
-        btnExpandirCalendario.setRotation(calendarioExpandido ? 180f : 0f);
-    }
-
-    private void atualizarTextoMesAno() {
-        if (txtMesAno == null || diaSelecionado == null) return;
-        String nomeDia = capitalizar(diaSelecionado.getDayOfWeek()
-                .getDisplayName(TextStyle.FULL, new Locale("pt", "BR")));
-        String mes = capitalizar(diaSelecionado.getMonth()
-                .getDisplayName(TextStyle.FULL, new Locale("pt", "BR")));
-        txtMesAno.setText(nomeDia + ", " + diaSelecionado.getDayOfMonth()
-                + " de " + mes + " " + diaSelecionado.getYear());
-        atualizarNomeMesExpandido();
-    }
-
-    private String capitalizar(String s) {
-        if (s == null || s.isEmpty()) return "";
-        return s.substring(0, 1).toUpperCase() + s.substring(1);
-    }
-
-    // ==================== TAREFAS (API + CACHE) ====================
-
-    private void carregarTarefasDoPet() {
-        petId = sessionManager.obterPetId();
-        if (petId <= 0) {
-            if (txtTituloLista != null) {
-                txtTituloLista.setText("Nenhum pet selecionado");
+        if (calendarioExpandido) {
+            montarMes();
+            aplicarEstiloCalendarioExpandido();
+        } else {
+            montarSemana();
+            aplicarEstiloCalendarioColapsado();
+            if (recyclerDias != null) {
+                recyclerDias.post(this::aplicarLarguraCincoDias);
             }
+        }
+        atualizarTituloMes();
+    }
+
+    private void aplicarEstiloCalendarioColapsado() {
+        if (cardCalendario != null) {
+            cardCalendario.setCardBackgroundColor(Color.TRANSPARENT);
+            cardCalendario.setStrokeWidth(0);
+        }
+        if (conteudoCalendario != null) {
+            int p = (int) (4 * getResources().getDisplayMetrics().density);
+            conteudoCalendario.setPadding(p, p, p, p);
+        }
+    }
+
+    private void aplicarEstiloCalendarioExpandido() {
+        if (cardCalendario != null) {
+            cardCalendario.setCardBackgroundColor(Color.WHITE);
+            int stroke = (int) (1.5f * getResources().getDisplayMetrics().density);
+            cardCalendario.setStrokeWidth(stroke);
+            cardCalendario.setStrokeColor(Color.BLACK);
+        }
+        if (conteudoCalendario != null) {
+            int p = (int) (12 * getResources().getDisplayMetrics().density);
+            conteudoCalendario.setPadding(p, p, p, p);
+        }
+    }
+
+    private void montarSemana() {
+        List<LocalDate> dias = new ArrayList<>();
+        LocalDate inicio = diaSelecionado.with(DayOfWeek.MONDAY);
+        for (int i = 0; i < DIAS_COLAPSADO; i++) {
+            dias.add(inicio.plusDays(i));
+        }
+        if (diaAdapter != null) {
+            diaAdapter.setModoGrade(false);
+            diaAdapter.setDias(dias);
+            diaAdapter.setDiaSelecionado(diaSelecionado);
+        }
+    }
+
+    private void montarMes() {
+        YearMonth ym = YearMonth.from(diaSelecionado);
+        LocalDate primeiro = ym.atDay(1);
+        LocalDate inicioGrade = primeiro.with(DayOfWeek.MONDAY);
+
+        List<LocalDate> dias = new ArrayList<>();
+        LocalDate d = inicioGrade;
+        for (int i = 0; i < 42; i++) {
+            dias.add(d);
+            d = d.plusDays(1);
+        }
+        if (mesAdapter != null) {
+            mesAdapter.setModoGrade(true);
+            mesAdapter.setMesReferencia(ym);
+            mesAdapter.setDias(dias);
+            mesAdapter.setDiaSelecionado(diaSelecionado);
+        }
+    }
+
+    private void atualizarTituloMes() {
+        if (txtMesAno == null) return;
+        Locale pt = new Locale("pt", "BR");
+        String diaSemana = diaSelecionado.getDayOfWeek().getDisplayName(TextStyle.FULL, pt);
+        String mes = diaSelecionado.getMonth().getDisplayName(TextStyle.FULL, pt);
+        txtMesAno.setText(diaSemana + ", " + diaSelecionado.getDayOfMonth()
+                + " de " + mes + " " + diaSelecionado.getYear());
+    }
+
+    private void onDiaEscolhido(LocalDate data) {
+        if (data == null) return;
+        diaSelecionado = data;
+        if (diaAdapter != null) diaAdapter.setDiaSelecionado(data);
+        if (mesAdapter != null) mesAdapter.setDiaSelecionado(data);
+        atualizarTituloMes();
+        filtrarTarefasPorDia();
+    }
+
+    private void carregarTarefas() {
+        if (!podeAtualizarUi()) return;
+
+        if (petId <= 0) {
             todasTarefasDoPet.clear();
             filtrarTarefasPorDia();
+            if (txtTituloLista != null) txtTituloLista.setText("Nenhum pet selecionado");
             return;
+        }
+
+        if (AppDataCache.get().temTarefas(petId)) {
+            todasTarefasDoPet.clear();
+            todasTarefasDoPet.addAll(AppDataCache.get().getTarefas(petId));
+            filtrarTarefasPorDia();
         }
 
         String token = sessionManager.obterToken();
-        if (token == null || token.isEmpty()) {
-            Toast.makeText(requireContext(), "Sessão expirada.", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (token == null || token.isEmpty()) return;
+
+        Context ctx = getContext();
+        if (ctx == null) return;
 
         String url = ApiConfig.URL_TAREFAS_DO_PET + petId + "/tarefas";
-        Log.d(TAG, "GET " + url);
 
         JsonArrayRequest request = new JsonArrayRequest(
                 Request.Method.GET,
                 url,
                 null,
                 response -> {
-                    todasTarefasDoPet.clear();
+                    List<Tarefa> todas = new ArrayList<>();
                     for (int i = 0; i < response.length(); i++) {
                         try {
-                            todasTarefasDoPet.add(Tarefa.fromJson(response.getJSONObject(i)));
+                            todas.add(Tarefa.fromJson(response.getJSONObject(i)));
                         } catch (Exception e) {
-                            Log.e(TAG, "item " + i, e);
+                            Log.e(TAG, "parse", e);
                         }
                     }
-                    // Grava no cache global
-                    AppDataCache.get().setTarefas(petId, todasTarefasDoPet);
+                    AppDataCache.get().setTarefas(petId, todas);
+                    if (!podeAtualizarUi()) return;
+                    if (sessionManager.obterPetId() != petId) return;
+                    todasTarefasDoPet.clear();
+                    todasTarefasDoPet.addAll(todas);
                     filtrarTarefasPorDia();
                 },
-                error -> {
-                    // Se já mostrou cache, não precisa toast
-                    if (!AppDataCache.get().temTarefas(petId)) {
-                        String msg = "Erro ao carregar tarefas";
-                        if (error.networkResponse != null) {
-                            msg += " (" + error.networkResponse.statusCode + ")";
-                        }
-                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
-                        todasTarefasDoPet.clear();
-                        filtrarTarefasPorDia();
-                    }
-                }
+                error -> Log.e(TAG, "GET tarefas", error)
         ) {
             @Override
             public Map<String, String> getHeaders() {
@@ -347,39 +374,18 @@ public class AgendaFragment extends Fragment {
                 return h;
             }
         };
-
-        VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
+        VolleySingleton.getInstance(ctx.getApplicationContext()).addToRequestQueue(request);
     }
 
     private void filtrarTarefasPorDia() {
         listaTarefasExibidas.clear();
-
-        if (petId <= 0) {
-            if (txtTituloLista != null) {
-                txtTituloLista.setText("Nenhum pet selecionado");
-            }
-            tarefaAdapter.setItens(listaTarefasExibidas);
-            atualizarVisibilidadeLista();
-            return;
-        }
-
-        if (diaSelecionado != null) {
-            for (Tarefa t : todasTarefasDoPet) {
-                if (t.getData() != null && t.getData().equals(diaSelecionado)) {
-                    listaTarefasExibidas.add(t);
-                }
+        for (Tarefa t : todasTarefasDoPet) {
+            if (t.getData() != null && t.getData().equals(diaSelecionado)) {
+                listaTarefasExibidas.add(t);
             }
         }
+        if (tarefaAdapter != null) tarefaAdapter.setItens(listaTarefasExibidas);
 
-        if (txtTituloLista != null) {
-            txtTituloLista.setText("Tarefas do Dia");
-        }
-
-        tarefaAdapter.setItens(listaTarefasExibidas);
-        atualizarVisibilidadeLista();
-    }
-
-    private void atualizarVisibilidadeLista() {
         boolean vazio = listaTarefasExibidas.isEmpty();
         if (recyclerTarefas != null) {
             recyclerTarefas.setVisibility(vazio ? View.GONE : View.VISIBLE);
@@ -387,5 +393,56 @@ public class AgendaFragment extends Fragment {
         if (txtSemTarefas != null) {
             txtSemTarefas.setVisibility(vazio ? View.VISIBLE : View.GONE);
         }
+        if (txtTituloLista != null && petId > 0) {
+            txtTituloLista.setText("Tarefas do Dia");
+        }
+    }
+
+    private void concluirTarefaNaApi(Tarefa tarefa, int position) {
+        if (tarefa == null || tarefa.getId() <= 0 || tarefa.isConcluida()) return;
+        if (sessionManager == null) return;
+
+        String token = sessionManager.obterToken();
+        if (token == null || token.isEmpty()) return;
+
+        Context ctx = getContext();
+        if (ctx == null) return;
+
+        String url = ApiConfig.URL_CONCLUIR_TAREFA + tarefa.getId() + "/concluir";
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.PATCH,
+                url,
+                null,
+                response -> {
+                    try {
+                        Tarefa atualizada = Tarefa.fromJson(response);
+                        for (int i = 0; i < todasTarefasDoPet.size(); i++) {
+                            if (todasTarefasDoPet.get(i).getId() == atualizada.getId()) {
+                                todasTarefasDoPet.set(i, atualizada);
+                                break;
+                            }
+                        }
+                        AppDataCache.get().setTarefas(petId, todasTarefasDoPet);
+                        if (podeAtualizarUi()) filtrarTarefasPorDia();
+                    } catch (Exception e) {
+                        Log.e(TAG, "parse concluir", e);
+                    }
+                },
+                error -> {
+                    if (podeAtualizarUi()) {
+                        Toast.makeText(ctx, "Erro ao concluir tarefa.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> h = new HashMap<>();
+                h.put("Authorization", "Bearer " + token);
+                h.put("Content-Type", "application/json");
+                return h;
+            }
+        };
+        VolleySingleton.getInstance(ctx.getApplicationContext()).addToRequestQueue(request);
     }
 }

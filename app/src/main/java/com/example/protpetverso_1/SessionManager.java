@@ -2,19 +2,21 @@ package com.example.protpetverso_1;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 
 /**
- * Armazena e recupera a sessão do usuário e dados locais do último pet.
- * Usa EncryptedSharedPreferences (AES-256).
+ * Sessão do usuário + último pet.
+ * Se o Keystore falhar (VERIFICATION_FAILED), usa prefs normais.
  */
 public class SessionManager {
 
+    private static final String TAG = "SessionManager";
     private static final String PREF_NAME = "user_session";
+    private static final String PREF_NAME_FALLBACK = "user_session_fallback";
 
-    // Usuário / sessão
     private static final String KEY_TOKEN = "AUTH_TOKEN";
     private static final String KEY_USER_ID = "USER_ID";
     private static final String KEY_USER_NAME = "USER_NAME";
@@ -22,7 +24,6 @@ public class SessionManager {
     private static final String KEY_APELIDO = "USER_APELIDO";
     private static final String KEY_TELEFONE = "USER_TELEFONE";
 
-    // Último pet cadastrado
     private static final String KEY_PET_ID = "PET_ID";
     private static final String KEY_PET_NOME = "PET_NOME";
     private static final String KEY_PET_RACA = "PET_RACA";
@@ -32,15 +33,16 @@ public class SessionManager {
     private static final String KEY_PET_PORTE = "PET_PORTE";
     private static final String KEY_PET_DATA = "PET_DATA";
 
-    private SharedPreferences prefs;
+    private final SharedPreferences prefs;
 
     public SessionManager(Context context) {
+        SharedPreferences p;
         try {
             MasterKey masterKey = new MasterKey.Builder(context)
                     .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                     .build();
 
-            prefs = EncryptedSharedPreferences.create(
+            p = EncryptedSharedPreferences.create(
                     context,
                     PREF_NAME,
                     masterKey,
@@ -48,11 +50,13 @@ public class SessionManager {
                     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             );
         } catch (Exception e) {
-            prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            Log.e(TAG, "EncryptedSharedPreferences falhou — usando fallback. Limpe os dados do app se o login falhar.", e);
+            // Evita crash por Keystore VERIFICATION_FAILED
+            p = context.getApplicationContext()
+                    .getSharedPreferences(PREF_NAME_FALLBACK, Context.MODE_PRIVATE);
         }
+        this.prefs = p;
     }
-
-    // ==================== SESSÃO / USUÁRIO ====================
 
     public void salvarSessao(String token, long idUsuario, String nome, String email) {
         prefs.edit()
@@ -61,6 +65,14 @@ public class SessionManager {
                 .putString(KEY_USER_NAME, nome)
                 .putString(KEY_USER_EMAIL, email)
                 .apply();
+    }
+
+    public void salvarApelido(String apelido) {
+        prefs.edit().putString(KEY_APELIDO, apelido).apply();
+    }
+
+    public void salvarTelefone(String telefone) {
+        prefs.edit().putString(KEY_TELEFONE, telefone).apply();
     }
 
     public String obterToken() {
@@ -79,32 +91,18 @@ public class SessionManager {
         return prefs.getString(KEY_USER_EMAIL, null);
     }
 
-    public void salvarApelido(String apelido) {
-        prefs.edit().putString(KEY_APELIDO, apelido).apply();
-    }
-
     public String obterApelido() {
-        return prefs.getString(KEY_APELIDO, "");
-    }
-
-    public void salvarTelefone(String telefone) {
-        prefs.edit().putString(KEY_TELEFONE, telefone).apply();
+        return prefs.getString(KEY_APELIDO, null);
     }
 
     public String obterTelefone() {
-        return prefs.getString(KEY_TELEFONE, "");
+        return prefs.getString(KEY_TELEFONE, null);
     }
 
     public boolean isLogado() {
         String token = obterToken();
         return token != null && !token.isEmpty();
     }
-
-    public void limparSessao() {
-        prefs.edit().clear().apply();
-    }
-
-    // ==================== PET ====================
 
     public void salvarPet(long id, String nome, String raca, String especie,
                           String peso, String sexo, String porte, String dataNascimento) {
@@ -155,6 +153,8 @@ public class SessionManager {
     public boolean temPetSalvo() {
         return obterPetId() > 0 || !obterPetNome().isEmpty();
     }
-}
 
-//Antes de alterar o código
+    public void limparSessao() {
+        prefs.edit().clear().apply();
+    }
+}

@@ -12,7 +12,11 @@ import java.util.Map;
 
 /**
  * Cache em memória de tudo que veio da API nesta sessão.
- * Limpar sempre no logout.
+ * Limpar sempre no logout ({@link #limparTudo()}).
+ *
+ * Pets: preferir setMeusPets / getMeusPets / temMeusPets.
+ * Aliases setListaPets / getListaPets / temListaPets apontam para a mesma lista
+ * (compatível com HomeFragment e outros usos).
  */
 public final class AppDataCache {
 
@@ -25,14 +29,14 @@ public final class AppDataCache {
     private AppDataCache() {}
 
     // ---- Usuário ----
-    private JSONObject usuarioPerfilJson; // resposta bruta do GET /usuarios/perfil
+    private JSONObject usuarioPerfilJson;
     private String usuarioNome;
     private String usuarioApelido;
     private String usuarioEmail;
     private String usuarioTelefone;
     private String usuarioFotoBase64;
 
-    // ---- Lista de pets ----
+    // ---- Lista de pets (meusPets da API) ----
     private final List<PetResumo> meusPets = new ArrayList<>();
 
     // ---- Perfil do pet (por id) ----
@@ -57,18 +61,37 @@ public final class AppDataCache {
         return usuarioPerfilJson != null;
     }
 
-    public String getUsuarioNome() { return usuarioNome != null ? usuarioNome : ""; }
-    public String getUsuarioApelido() { return usuarioApelido != null ? usuarioApelido : ""; }
-    public String getUsuarioEmail() { return usuarioEmail != null ? usuarioEmail : ""; }
-    public String getUsuarioTelefone() { return usuarioTelefone != null ? usuarioTelefone : ""; }
-    public String getUsuarioFotoBase64() { return usuarioFotoBase64; }
-    public JSONObject getUsuarioPerfilJson() { return usuarioPerfilJson; }
+    public String getUsuarioNome() {
+        return usuarioNome != null ? usuarioNome : "";
+    }
+
+    public String getUsuarioApelido() {
+        return usuarioApelido != null ? usuarioApelido : "";
+    }
+
+    public String getUsuarioEmail() {
+        return usuarioEmail != null ? usuarioEmail : "";
+    }
+
+    public String getUsuarioTelefone() {
+        return usuarioTelefone != null ? usuarioTelefone : "";
+    }
+
+    public String getUsuarioFotoBase64() {
+        return usuarioFotoBase64;
+    }
+
+    public JSONObject getUsuarioPerfilJson() {
+        return usuarioPerfilJson;
+    }
 
     // ==================== PETS ====================
 
     public void setMeusPets(List<PetResumo> lista) {
         meusPets.clear();
-        if (lista != null) meusPets.addAll(lista);
+        if (lista != null) {
+            meusPets.addAll(lista);
+        }
     }
 
     public List<PetResumo> getMeusPets() {
@@ -77,6 +100,21 @@ public final class AppDataCache {
 
     public boolean temMeusPets() {
         return !meusPets.isEmpty();
+    }
+
+    /** Alias de {@link #setMeusPets(List)} — HomeFragment / nomes antigos. */
+    public void setListaPets(List<PetResumo> lista) {
+        setMeusPets(lista);
+    }
+
+    /** Alias de {@link #getMeusPets()}. */
+    public List<PetResumo> getListaPets() {
+        return getMeusPets();
+    }
+
+    /** Alias de {@link #temMeusPets()}. */
+    public boolean temListaPets() {
+        return temMeusPets();
     }
 
     public void setPerfilPet(long petId, JSONObject json) {
@@ -105,15 +143,24 @@ public final class AppDataCache {
         return list != null ? new ArrayList<>(list) : new ArrayList<>();
     }
 
+    /**
+     * true se já houve GET de tarefas para esse pet nesta sessão
+     * (mesmo que a lista esteja vazia).
+     */
     public boolean temTarefas(long petId) {
         return tarefasPorPetId.containsKey(petId);
     }
 
     // ==================== LIMPAR ====================
 
+    /** Chamar no logout. */
     public void limparTudo() {
         usuarioPerfilJson = null;
-        usuarioNome = usuarioApelido = usuarioEmail = usuarioTelefone = usuarioFotoBase64 = null;
+        usuarioNome = null;
+        usuarioApelido = null;
+        usuarioEmail = null;
+        usuarioTelefone = null;
+        usuarioFotoBase64 = null;
         meusPets.clear();
         perfilPetPorId.clear();
         tarefasPorPetId.clear();

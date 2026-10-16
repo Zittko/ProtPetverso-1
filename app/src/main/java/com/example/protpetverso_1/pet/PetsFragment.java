@@ -21,7 +21,6 @@ import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
 import com.example.protpetverso_1.data.AppDataCache;
-import com.example.protpetverso_1.data.DataPreloader;
 
 import org.json.JSONObject;
 
@@ -30,10 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Aba Pets — lista meusPets + card Adicionar.
- * Cache (AppDataCache) → UI na hora → GET em background.
- */
 public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
 
     private static final String TAG = "PETS_LISTA";
@@ -52,40 +47,31 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         sessionManager = new SessionManager(requireContext());
 
         RecyclerView recycler = view.findViewById(R.id.recyclerPets);
-        // Ajuste o id se no seu XML for outro (ex.: recyclerViewPets)
         if (recycler == null) {
-            Log.e(TAG, "RecyclerView não encontrado no layout");
+            Log.e(TAG, "recyclerPets não encontrado no layout");
             return;
         }
-
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new PetListaAdapter(this);
         recycler.setAdapter(adapter);
 
-        // 1) Cache na hora (vindo do DataPreloader na MenuActivity)
         if (AppDataCache.get().temMeusPets()) {
             adapter.setItens(AppDataCache.get().getMeusPets());
         }
-
-        // 2) Atualiza da API e grava no cache
-        carregarMeusPets();
+        carregarPets();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // Ao voltar (ex.: após cadastrar pet), mostra o que já tem e refresca
-        if (AppDataCache.get().temMeusPets() && adapter != null) {
-            adapter.setItens(AppDataCache.get().getMeusPets());
-        }
-        carregarMeusPets();
+        carregarPets();
     }
 
-    /** GET /api/pets/meusPets → AppDataCache + adapter */
-    private void carregarMeusPets() {
+    private void carregarPets() {
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
             Toast.makeText(requireContext(), "Sessão expirada.", Toast.LENGTH_SHORT).show();
@@ -112,19 +98,18 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
                                 lista.add(new PetResumo(id, nome, papel, foto));
                             }
                         } catch (Exception e) {
-                            Log.e(TAG, "item", e);
+                            Log.e(TAG, "parse pet", e);
                         }
                     }
-
                     AppDataCache.get().setMeusPets(lista);
-
-                    if (isAdded() && adapter != null) {
+                    AppDataCache.get().setListaPets(lista);
+                    if (adapter != null) {
                         adapter.setItens(lista);
                     }
                 },
                 error -> {
-                    // Só avisa se não houver nada em cache
-                    if (!AppDataCache.get().temMeusPets() && isAdded()) {
+                    Log.e(TAG, "erro meusPets", error);
+                    if (isAdded()) {
                         Toast.makeText(requireContext(), "Erro ao carregar pets.", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -147,11 +132,11 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
             return;
         }
 
-        // Define pet selecionado na sessão
-        sessionManager.salvarPet(pet.getIdPet(), pet.getNome(), "", "", "", "", "", "");
-
-        // Pré-carrega perfil + tarefas desse pet no cache
-        DataPreloader.preloadPetSelecionado(requireContext(), pet.getIdPet());
+        sessionManager.salvarPet(
+                pet.getIdPet(),
+                pet.getNome(),
+                "", "", "", "", "", ""
+        );
 
         PerfilPetFragment fragment = new PerfilPetFragment();
         Bundle args = new Bundle();
