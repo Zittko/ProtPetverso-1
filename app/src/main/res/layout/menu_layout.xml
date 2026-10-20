@@ -10,26 +10,26 @@
         android:id="@+id/main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#ffe8ce">
+        android:background="#FFE8CE">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbarMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#f08c4b"
+            android:background="#F08C4B"
             app:menu="@menu/menu_main"
             app:navigationIcon="@drawable/ic_menu"
-            app:navigationIconTint="@color/text_orange"
+            app:navigationIconTint="#000000"
             app:title="Tela Inicial"
             app:titleCentered="true"
-            app:titleTextColor="@color/text_orange" />
+            app:titleTextColor="#000000" />
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragmentContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/toolbarMenu"
-            android:layout_above="@id/bottomNavbar" />
+            android:layout_above="@id/bottomNavbar"
+            android:layout_below="@id/toolbarMenu" />
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavbar"
@@ -37,13 +37,11 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:background="@color/primary_orange"
+            app:itemActiveIndicatorStyle="@style/CustomActiveIndicator"
             app:itemIconTint="@color/text_orange"
             app:itemTextColor="@color/text_orange"
             app:labelVisibilityMode="labeled"
-            app:menu="@menu/bottom_nav_menu"
-            app:itemActiveIndicatorStyle="@style/CustomActiveIndicator" />
-
-
+            app:menu="@menu/bottom_nav_menu" />
     </RelativeLayout>
 
     <com.google.android.material.navigation.NavigationView
@@ -51,7 +49,9 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="#ffe8ce"
-        app:menu="@menu/drawer_menu"/>
+        android:background="#FFE8CE"
+        app:itemIconTint="#000000"
+        app:itemTextColor="#000000"
+        app:menu="@menu/drawer_menu" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

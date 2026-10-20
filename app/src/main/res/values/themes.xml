@@ -82,4 +82,11 @@
         <!-- API 28+: não desenhar por cima do furo da câmera -->
         <item name="android:windowLayoutInDisplayCutoutMode">never</item>
     </style>
+    <style name="Theme.PetVerso.Splash" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:windowBackground">#f08c4b</item>
+        <item name="android:windowSplashScreenBackground">#f08c4b</item>
+        <item name="android:statusBarColor">#f08c4b</item>
+        <item name="android:navigationBarColor">#f08c4b</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
 </resources>

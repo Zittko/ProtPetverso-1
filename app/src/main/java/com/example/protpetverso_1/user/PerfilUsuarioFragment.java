@@ -44,7 +44,7 @@ import java.util.Map;
  * GET  /api/usuarios/perfil
  * PUT  /api/usuarios/atualizarPerfil  (apelido + fotoBase64)
  *
- * Fluxo de dados: cache (AppDataCache) → UI → GET em background → atualiza cache + UI
+ * Cache (AppDataCache) → UI → GET em background → atualiza cache + UI
  */
 public class PerfilUsuarioFragment extends Fragment {
 
@@ -68,6 +68,7 @@ public class PerfilUsuarioFragment extends Fragment {
 
     private final ActivityResultLauncher<Intent> recortarFoto =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (!isAdded()) return;
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     Uri resultUri = UCrop.getOutput(result.getData());
                     if (resultUri != null) {
@@ -82,6 +83,10 @@ public class PerfilUsuarioFragment extends Fragment {
             });
 
     public PerfilUsuarioFragment() {
+    }
+
+    private boolean podeAtualizarUi() {
+        return isAdded() && getContext() != null && getView() != null;
     }
 
     @Override
@@ -105,8 +110,14 @@ public class PerfilUsuarioFragment extends Fragment {
             imgFotoPerfil.setScaleType(ImageView.ScaleType.CENTER_CROP);
         }
 
-        // 1) Cache na hora  2) GET em background
         carregarDados();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Garante o título se a toolbar tiver sido alterada por outra tela
+        atualizarTituloToolbar("Perfil do Usuário");
     }
 
     @Override
@@ -133,22 +144,21 @@ public class PerfilUsuarioFragment extends Fragment {
         }
     }
 
-    /**
-     * Mostra o que já está no AppDataCache e depois atualiza pela API.
-     */
     private void carregarDados() {
         AppDataCache cache = AppDataCache.get();
 
         if (cache.temUsuario()) {
             String apelido = cache.getUsuarioApelido();
-            apelidoAtual = apelido;
+            apelidoAtual = apelido != null ? apelido : "";
             fotoBase64Atual = cache.getUsuarioFotoBase64();
 
             preencherCampos(
-                    apelido.isEmpty() ? "usuário" : apelido,
-                    cache.getUsuarioNome(),
-                    cache.getUsuarioEmail(),
-                    cache.getUsuarioTelefone().isEmpty() ? "—" : cache.getUsuarioTelefone()
+                    apelidoAtual.isEmpty() ? "usuário" : apelidoAtual,
+                    valorOuPadrao(cache.getUsuarioNome(), ""),
+                    valorOuPadrao(cache.getUsuarioEmail(), ""),
+                    valorOuPadrao(cache.getUsuarioTelefone(), "—").isEmpty()
+                            ? "—"
+                            : cache.getUsuarioTelefone()
             );
             if (fotoBase64Atual != null && !fotoBase64Atual.isEmpty()) {
                 mostrarFotoBase64(fotoBase64Atual, imgFotoPerfil);
@@ -161,6 +171,7 @@ public class PerfilUsuarioFragment extends Fragment {
     }
 
     private void iniciarRecorte(Uri origem) {
+        if (getContext() == null) return;
         Intent intent = UCropHelper.criarIntentRecorte(
                 requireContext(),
                 origem,
@@ -170,6 +181,7 @@ public class PerfilUsuarioFragment extends Fragment {
     }
 
     private void processarFotoRecortada(Uri uri) {
+        if (!podeAtualizarUi()) return;
         try {
             InputStream input = requireContext().getContentResolver().openInputStream(uri);
             Bitmap bitmap = BitmapFactory.decodeStream(input);
@@ -193,12 +205,15 @@ public class PerfilUsuarioFragment extends Fragment {
     }
 
     private void buscarUsuarioNaApi() {
+        if (sessionManager == null) return;
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
-            Toast.makeText(requireContext(),
-                    "Sessão expirada. Faça login novamente.",
-                    Toast.LENGTH_SHORT).show();
-            preencherComSessaoLocal();
+            if (podeAtualizarUi()) {
+                Toast.makeText(requireContext(),
+                        "Sessão expirada. Faça login novamente.",
+                        Toast.LENGTH_SHORT).show();
+                preencherComSessaoLocal();
+            }
             return;
         }
 
@@ -207,8 +222,8 @@ public class PerfilUsuarioFragment extends Fragment {
                 ApiConfig.URL_USUARIO_PERFIL,
                 null,
                 response -> {
-                    // Atualiza cache global
                     AppDataCache.get().setUsuarioPerfil(response);
+                    if (!podeAtualizarUi()) return;
 
                     String nome = response.optString("nome", "");
                     String apelido = response.optString("apelido", "");
@@ -231,7 +246,7 @@ public class PerfilUsuarioFragment extends Fragment {
                     mostrarFotoBase64(fotoBase64, imgFotoPerfil);
                 },
                 error -> {
-                    // Se já tem cache, não assusta o usuário
+                    if (!podeAtualizarUi()) return;
                     if (!AppDataCache.get().temUsuario()) {
                         String msg = "Erro ao carregar perfil.";
                         if (error.networkResponse != null) {
@@ -251,17 +266,23 @@ public class PerfilUsuarioFragment extends Fragment {
             }
         };
 
-        VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
+        VolleySingleton.getInstance(requireContext().getApplicationContext())
+                .addToRequestQueue(request);
     }
 
     private void enviarFotoUsuario() {
+        if (sessionManager == null) return;
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
-            Toast.makeText(requireContext(), "Sessão expirada.", Toast.LENGTH_SHORT).show();
+            if (podeAtualizarUi()) {
+                Toast.makeText(requireContext(), "Sessão expirada.", Toast.LENGTH_SHORT).show();
+            }
             return;
         }
         if (fotoBase64Atual == null || fotoBase64Atual.isEmpty()) {
-            Toast.makeText(requireContext(), "Nenhuma foto selecionada.", Toast.LENGTH_SHORT).show();
+            if (podeAtualizarUi()) {
+                Toast.makeText(requireContext(), "Nenhuma foto selecionada.", Toast.LENGTH_SHORT).show();
+            }
             return;
         }
 
@@ -275,14 +296,15 @@ public class PerfilUsuarioFragment extends Fragment {
                     ApiConfig.URL_ATUALIZAR_PERFIL,
                     body,
                     response -> {
+                        if (!podeAtualizarUi()) return;
                         Toast.makeText(requireContext(), "Foto atualizada!", Toast.LENGTH_SHORT).show();
-                        // Mantém cache coerente
                         AppDataCache.get().setUsuarioPerfil(response);
                         String foto = response.optString("fotoBase64", fotoBase64Atual);
                         fotoBase64Atual = foto;
                         mostrarFotoBase64(foto, imgFotoPerfil);
                     },
                     error -> {
+                        if (!podeAtualizarUi()) return;
                         String msg = "Erro ao enviar foto.";
                         if (error.networkResponse != null) {
                             msg += " Código: " + error.networkResponse.statusCode;
@@ -299,14 +321,18 @@ public class PerfilUsuarioFragment extends Fragment {
                 }
             };
 
-            VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
+            VolleySingleton.getInstance(requireContext().getApplicationContext())
+                    .addToRequestQueue(request);
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(requireContext(), "Erro ao montar envio da foto.", Toast.LENGTH_SHORT).show();
+            if (podeAtualizarUi()) {
+                Toast.makeText(requireContext(), "Erro ao montar envio da foto.", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
     private void preencherComSessaoLocal() {
+        if (sessionManager == null) return;
         apelidoAtual = valorOuPadrao(sessionManager.obterApelido(), "usuário");
         preencherCampos(
                 apelidoAtual,
@@ -351,9 +377,10 @@ public class PerfilUsuarioFragment extends Fragment {
     }
 
     private void atualizarTituloToolbar(String titulo) {
-        if (getActivity() != null) {
-            MaterialToolbar toolbar = getActivity().findViewById(R.id.toolbarMenu);
-            if (toolbar != null) toolbar.setTitle(titulo);
+        if (getActivity() == null) return;
+        MaterialToolbar toolbar = getActivity().findViewById(R.id.toolbarMenu);
+        if (toolbar != null) {
+            toolbar.setTitle(titulo);
         }
     }
 }

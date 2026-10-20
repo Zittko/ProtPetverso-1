@@ -1,11 +1,15 @@
 package com.example.protpetverso_1;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.graphics.drawable.DrawerArrowDrawable;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
@@ -50,13 +54,19 @@ public class MenuActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         NavigationView navigationView = findViewById(R.id.navigationView);
 
+        final int preto = Color.parseColor("#000000");
+
+        // Título da toolbar em preto
         if (toolbar != null) {
+            toolbar.setTitleTextColor(preto);
+
             ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
                 v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
                 return insets;
             });
         }
+
         if (bottomNav != null) {
             ViewCompat.setOnApplyWindowInsetsListener(bottomNav, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -65,7 +75,7 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
-        // Drawer + ícone hambúrguer
+        // Drawer + ícone hambúrguer preto
         if (drawerLayout != null && toolbar != null) {
             ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                     this, drawerLayout, toolbar,
@@ -73,6 +83,11 @@ public class MenuActivity extends AppCompatActivity {
             );
             drawerLayout.addDrawerListener(toggle);
             toggle.syncState();
+
+            // Pinta o hambúrguer padrão do toggle (evita cinza)
+            DrawerArrowDrawable seta = toggle.getDrawerArrowDrawable();
+            seta.setColor(preto);
+            toolbar.setNavigationIcon(seta);
 
             toolbar.setNavigationOnClickListener(v -> {
                 if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -83,8 +98,12 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
-        // Menu lateral
+        // Menu lateral: textos e ícones pretos + listener
         if (navigationView != null) {
+            ColorStateList pretoCsl = ColorStateList.valueOf(preto);
+            navigationView.setItemIconTintList(pretoCsl);
+            navigationView.setItemTextColor(pretoCsl);
+
             navigationView.setNavigationItemSelectedListener(item -> {
                 int id = item.getItemId();
                 String t = item.getTitle() != null ? item.getTitle().toString().trim() : "";
@@ -164,7 +183,7 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
-        // ===== Pré-carrega API no cache (usuário, pets, perfil pet, tarefas) =====
+        // Pré-carrega API no cache
         DataPreloader.preloadTudo(this);
     }
 
@@ -172,7 +191,6 @@ public class MenuActivity extends AppCompatActivity {
         SessionManager sm = new SessionManager(this);
         long petId = sm.obterPetId();
 
-        // Garante perfil/tarefas desse pet no cache
         if (petId > 0) {
             DataPreloader.preloadPetSelecionado(this, petId);
         }
@@ -185,7 +203,6 @@ public class MenuActivity extends AppCompatActivity {
         abrirFragment(fragment, "Perfil do Pet");
     }
 
-    /** Limpa cache + sessão e volta ao login. */
     private void fazerLogout() {
         AppDataCache.get().limparTudo();
         SessionManager sm = new SessionManager(this);

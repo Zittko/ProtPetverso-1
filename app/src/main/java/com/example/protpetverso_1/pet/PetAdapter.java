@@ -49,7 +49,6 @@ public class PetAdapter extends RecyclerView.Adapter<PetAdapter.PetViewHolder> {
         public PetViewHolder(@NonNull View itemView) {
             super(itemView);
             imgPet = itemView.findViewById(R.id.imgPet);
-            txtPetNome = itemView.findViewById(R.id.txtPetNome);
         }
     }
 }

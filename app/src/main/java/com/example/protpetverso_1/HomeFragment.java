@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,8 +26,10 @@ import com.example.protpetverso_1.schedule.TarefaIconHelper;
 import com.example.protpetverso_1.vaccine.AlertaSaude;
 import com.example.protpetverso_1.vaccine.AlertaSaudeAdapter;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -36,15 +39,14 @@ import java.util.stream.Collectors;
 
 /**
  * Home integrada à API.
- * Importante: callbacks do Volley só atualizam a UI se o Fragment ainda estiver attached
- * (isAdded() + getContext() != null), senão ocorre:
- * IllegalStateException: Fragment not attached to a context.
+ * Callbacks do Volley só atualizam a UI se o Fragment ainda estiver attached.
  */
 public class HomeFragment extends Fragment {
 
     private static final String TAG = "HOME";
-    private static final int MAX_TAREFAS_HOME = 2;
+    private static final int MAX_TAREFAS_HOME = 3;
 
+    private TextView txtSemTarefasHome;
     private ViewPager2 viewPagerPets;
     private ImageButton btnAnterior, btnProximo;
     private RecyclerView recyclerViewTarefas, recyclerViewTarefasAlertasSaude;
@@ -56,7 +58,6 @@ public class HomeFragment extends Fragment {
     public HomeFragment() {
     }
 
-    /** true só se ainda podemos usar requireContext() / views com segurança */
     private boolean podeAtualizarUi() {
         return isAdded() && getContext() != null && !isDetached() && getView() != null;
     }
@@ -75,6 +76,7 @@ public class HomeFragment extends Fragment {
 
         sessionManager = new SessionManager(ctx);
 
+        txtSemTarefasHome = view.findViewById(R.id.txtSemTarefasHome);
         viewPagerPets = view.findViewById(R.id.viewPagerPets);
         btnAnterior = view.findViewById(R.id.btnAnterior);
         btnProximo = view.findViewById(R.id.btnProximo);
@@ -88,7 +90,7 @@ public class HomeFragment extends Fragment {
             recyclerViewTarefasAlertasSaude.setLayoutManager(new LinearLayoutManager(ctx));
         }
 
-        petPagerAdapter = new HomePetPagerAdapter(listaPets);
+        petPagerAdapter = new HomePetPagerAdapter();
         if (viewPagerPets != null) {
             viewPagerPets.setAdapter(petPagerAdapter);
         }
@@ -120,14 +122,15 @@ public class HomeFragment extends Fragment {
             });
         }
 
+        // Cache → atualiza lista + adapter (setItens, não só notify)
         if (AppDataCache.get().temListaPets()) {
-            listaPets.clear();
-            listaPets.addAll(AppDataCache.get().getListaPets());
-            if (petPagerAdapter != null) {
-                petPagerAdapter.notifyDataSetChanged();
-            }
+            aplicarListaPets(AppDataCache.get().getListaPets());
+            selecionarPetInicial();
+        } else if (AppDataCache.get().temMeusPets()) {
+            aplicarListaPets(AppDataCache.get().getMeusPets());
             selecionarPetInicial();
         }
+
         carregarPetsDaApi();
     }
 
@@ -144,6 +147,24 @@ public class HomeFragment extends Fragment {
                 }
                 break;
             }
+        }
+    }
+
+    /** Mantém listaPets e a lista interna do adapter sincronizadas. */
+    private void aplicarListaPets(List<PetResumo> origem) {
+        listaPets.clear();
+        if (origem != null) {
+            listaPets.addAll(origem);
+        }
+        if (petPagerAdapter != null) {
+            petPagerAdapter.setItens(listaPets);
+        }
+        Log.d(TAG, "Pets na Home: " + listaPets.size());
+        for (PetResumo p : listaPets) {
+            String f = p.getFotoPetBase64();
+            Log.d(TAG, "  id=" + p.getIdPet()
+                    + " nome=" + p.getNome()
+                    + " fotoLen=" + (f != null ? f.length() : 0));
         }
     }
 
@@ -165,23 +186,13 @@ public class HomeFragment extends Fragment {
                 ApiConfig.URL_MEUS_PETS,
                 null,
                 response -> {
-                    // Fragment pode ter sido trocado (Pets/Agenda) enquanto a API respondia
-                    if (!podeAtualizarUi()) {
-                        // Ainda grava no cache para as outras telas
-                        List<PetResumo> temp = parsePets(response);
-                        AppDataCache.get().setListaPets(temp);
-                        AppDataCache.get().setMeusPets(temp);
-                        return;
-                    }
+                    List<PetResumo> parseados = parsePets(response);
+                    AppDataCache.get().setListaPets(parseados);
+                    AppDataCache.get().setMeusPets(parseados);
 
-                    listaPets.clear();
-                    listaPets.addAll(parsePets(response));
-                    AppDataCache.get().setListaPets(listaPets);
-                    AppDataCache.get().setMeusPets(listaPets);
+                    if (!podeAtualizarUi()) return;
 
-                    if (petPagerAdapter != null) {
-                        petPagerAdapter.notifyDataSetChanged();
-                    }
+                    aplicarListaPets(parseados);
                     selecionarPetInicial();
                 },
                 error -> {
@@ -202,19 +213,22 @@ public class HomeFragment extends Fragment {
         VolleySingleton.getInstance(ctx.getApplicationContext()).addToRequestQueue(request);
     }
 
-    private List<PetResumo> parsePets(org.json.JSONArray response) {
+    private List<PetResumo> parsePets(JSONArray response) {
         List<PetResumo> lista = new ArrayList<>();
         if (response == null) return lista;
+
         for (int i = 0; i < response.length(); i++) {
             try {
-                org.json.JSONObject o = response.getJSONObject(i);
+                JSONObject o = response.getJSONObject(i);
                 long id = o.optLong("idPet", o.optLong("id", -1));
                 String nome = o.optString("nome", "Pet");
                 String papel = o.optString("papel", "");
+
                 String foto = o.optString("fotoPetBase64", "");
                 if (foto.isEmpty()) {
                     foto = o.optString("fotoBase64", "");
                 }
+
                 if (id > 0) {
                     lista.add(new PetResumo(id, nome, papel, foto));
                 }
@@ -294,7 +308,6 @@ public class HomeFragment extends Fragment {
                     }
                     AppDataCache.get().setTarefas(petId, todas);
 
-                    // Só atualiza UI se ainda estiver na Home e for o pet atual
                     if (!podeAtualizarUi() || sessionManager == null) return;
                     if (sessionManager.obterPetId() == petId) {
                         atualizarAgenda(todas);
@@ -319,37 +332,41 @@ public class HomeFragment extends Fragment {
         Context ctx = getContext();
         if (ctx == null) return;
 
-        List<Tarefa> proximas = filtrarProximasTarefas(tarefasDoPet, MAX_TAREFAS_HOME);
-        for (Tarefa t : proximas) {
+        List<Tarefa> doDia = filtrarTarefasDeHojeNaoConcluidas(tarefasDoPet, MAX_TAREFAS_HOME);
+
+        for (Tarefa t : doDia) {
             if (t.getImagemResId() == 0) {
                 t.setImagemResId(TarefaIconHelper.resolverIcone(t.getTitulo(), t.getDesc()));
             }
         }
 
-        TarefaAdapter adapter = new TarefaAdapter(ctx, proximas);
-        adapter.setOnTarefaClickListener((tarefa, position) -> {
-            // opcional
-        });
-        recyclerViewTarefas.setAdapter(adapter);
+        boolean vazio = doDia.isEmpty();
+        recyclerViewTarefas.setVisibility(vazio ? View.GONE : View.VISIBLE);
+        if (txtSemTarefasHome != null) {
+            txtSemTarefasHome.setVisibility(vazio ? View.VISIBLE : View.GONE);
+        }
+
+        if (!vazio) {
+            TarefaAdapter adapter = new TarefaAdapter(ctx, doDia);
+            adapter.setOnTarefaClickListener((tarefa, position) -> { /* opcional */ });
+            recyclerViewTarefas.setAdapter(adapter);
+        } else {
+            recyclerViewTarefas.setAdapter(null);
+        }
     }
 
-    private List<Tarefa> filtrarProximasTarefas(List<Tarefa> origem, int limite) {
+    private List<Tarefa> filtrarTarefasDeHojeNaoConcluidas(List<Tarefa> origem, int limite) {
         if (origem == null || origem.isEmpty()) return new ArrayList<>();
 
         LocalDate hoje = LocalDate.now();
-        LocalTime agora = LocalTime.now();
 
         return origem.stream()
-                .filter(t -> t != null && !t.isConcluida())
-                .filter(t -> {
-                    if (t.getData() == null) return false;
-                    if (t.getData().isAfter(hoje)) return true;
-                    if (t.getData().isBefore(hoje)) return false;
-                    return t.getHorario() == null || !t.getHorario().isBefore(agora);
-                })
+                .filter(t -> t != null)
+                .filter(t -> !t.isConcluida())
+                .filter(t -> t.getData() != null && t.getData().equals(hoje))
                 .sorted(Comparator
-                        .comparing(Tarefa::getData, Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(Tarefa::getHorario, Comparator.nullsLast(Comparator.naturalOrder())))
+                        .comparing(Tarefa::getHorario, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(Tarefa::getTitulo, Comparator.nullsLast(String::compareToIgnoreCase)))
                 .limit(limite)
                 .collect(Collectors.toList());
     }

@@ -16,7 +16,7 @@ import java.util.Map;
  *
  * Pets: preferir setMeusPets / getMeusPets / temMeusPets.
  * Aliases setListaPets / getListaPets / temListaPets apontam para a mesma lista
- * (compatível com HomeFragment e outros usos).
+ * (compatível com HomeFragment e DataPreloader).
  */
 public final class AppDataCache {
 
@@ -102,7 +102,7 @@ public final class AppDataCache {
         return !meusPets.isEmpty();
     }
 
-    /** Alias de {@link #setMeusPets(List)} — HomeFragment / nomes antigos. */
+    /** Alias de {@link #setMeusPets(List)}. */
     public void setListaPets(List<PetResumo> lista) {
         setMeusPets(lista);
     }
@@ -135,7 +135,10 @@ public final class AppDataCache {
 
     public void setTarefas(long petId, List<Tarefa> tarefas) {
         if (petId <= 0) return;
-        tarefasPorPetId.put(petId, tarefas != null ? new ArrayList<>(tarefas) : new ArrayList<>());
+        tarefasPorPetId.put(
+                petId,
+                tarefas != null ? new ArrayList<>(tarefas) : new ArrayList<>()
+        );
     }
 
     public List<Tarefa> getTarefas(long petId) {

@@ -238,7 +238,7 @@
                             android:layout_height="36dp"
                             android:layout_alignParentEnd="true"
                             android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@android:drawable/ic_menu_edit"
+                            android:src="@drawable/ic_edit"
                             app:tint="#DF945D"
                             android:contentDescription="Editar tutores" />
                     </RelativeLayout>
