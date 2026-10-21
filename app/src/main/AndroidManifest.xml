@@ -16,7 +16,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ProtPetverso1">
-
+        <activity
+            android:name=".vaccine.CadastrarVacinaActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <!-- ===== LAUNCHER ===== -->
         <activity
             android:name=".SplashActivity"
@@ -25,11 +28,10 @@
             android:theme="@style/Theme.PetVerso.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- ===== ACCOUNT ===== -->
+        </activity> <!-- ===== ACCOUNT ===== -->
         <activity
             android:name=".account.LoginActivity"
             android:exported="false"
@@ -45,14 +47,10 @@
         <activity
             android:name=".user.CriarUsuarioActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-
-        <!-- ===== MENU PRINCIPAL ===== -->
+            android:windowSoftInputMode="adjustResize" /> <!-- ===== MENU PRINCIPAL ===== -->
         <activity
             android:name=".MenuActivity"
-            android:exported="false" />
-
-        <!-- ===== PET ===== -->
+            android:exported="false" /> <!-- ===== PET ===== -->
         <activity
             android:name=".pet.EscolhaPetActivity"
             android:exported="false"
@@ -64,15 +62,11 @@
         <activity
             android:name=".pet.MaisInfoPetActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-
-        <!-- ===== AGENDA ===== -->
+            android:windowSoftInputMode="adjustResize" /> <!-- ===== AGENDA ===== -->
         <activity
             android:name=".schedule.CriarTarefaActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-
-        <!-- ===== UCROP (recorte de foto) ===== -->
+            android:windowSoftInputMode="adjustResize" /> <!-- ===== UCROP (recorte de foto) ===== -->
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:exported="false"
@@ -82,12 +76,10 @@
             android:name=".CenterTitleUCropActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PetVerso.UCrop" />
-
-        <!-- ===== LEGADO (não usada no fluxo) ===== -->
+            android:theme="@style/Theme.PetVerso.UCrop" /> <!-- ===== LEGADO (não usada no fluxo) ===== -->
         <activity
             android:name=".MainActivity"
             android:exported="false" />
-
     </application>
+
 </manifest>

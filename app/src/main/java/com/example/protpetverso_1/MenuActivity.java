@@ -34,7 +34,7 @@ import com.google.android.material.navigation.NavigationView;
 /**
  * Tela principal após o login.
  * Toolbar + Drawer + BottomNavigation + troca de Fragments.
- *
+ * <p>
  * Ao abrir: DataPreloader.preloadTudo() enche o AppDataCache
  * (usuário, meusPets, perfil do pet selecionado, tarefas).
  */
@@ -167,6 +167,9 @@ public class MenuActivity extends AppCompatActivity {
                 } else if (itemId == R.id.menuTrending) {
                     selectedFragment = new PetsFragment();
                     titulo = "Pets";
+                } else if (itemId == R.id.menuForyou) {
+                    selectedFragment = new VacinaFragment();
+                    titulo = "Vacinas e Imunização";
                 }
 
                 if (selectedFragment != null) {

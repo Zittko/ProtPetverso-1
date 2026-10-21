@@ -2,6 +2,7 @@ package com.example.protpetverso_1.data;
 
 import com.example.protpetverso_1.pet.PetResumo;
 import com.example.protpetverso_1.schedule.Tarefa;
+import com.example.protpetverso_1.vaccine.Vacina;
 
 import org.json.JSONObject;
 
@@ -44,6 +45,10 @@ public final class AppDataCache {
 
     // ---- Tarefas do pet (por id) ----
     private final Map<Long, List<Tarefa>> tarefasPorPetId = new HashMap<>();
+
+    // ---- Vacinas do pet (por id) ----
+
+    private final Map<Long, List<Vacina>> vacinasPorPetId = new HashMap<>();
 
     // ==================== USUÁRIO ====================
 
@@ -154,6 +159,26 @@ public final class AppDataCache {
         return tarefasPorPetId.containsKey(petId);
     }
 
+    // ==================== VACINAS ====================
+
+    public void setVacinas(long petId, List<Vacina> lista) {
+        if (petId <= 0) return;
+        vacinasPorPetId.put(petId, lista != null ? new ArrayList<>(lista) : new ArrayList<>());
+    }
+
+    public List<Vacina> getVacinas(long petId) {
+        List<Vacina> l = vacinasPorPetId.get(petId);
+        return l != null ? new ArrayList<>(l) : new ArrayList<>();
+    }
+
+    public boolean temVacinas(long petId) {
+        return vacinasPorPetId.containsKey(petId);
+    }
+
+    public void invalidarVacinas(long petId) {
+        vacinasPorPetId.remove(petId);
+    }
+
     // ==================== LIMPAR ====================
 
     /** Chamar no logout. */
@@ -167,5 +192,6 @@ public final class AppDataCache {
         meusPets.clear();
         perfilPetPorId.clear();
         tarefasPorPetId.clear();
+        vacinasPorPetId.clear();
     }
 }

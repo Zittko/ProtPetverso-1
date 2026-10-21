@@ -32,6 +32,7 @@ public class SessionManager {
     private static final String KEY_PET_SEXO = "PET_SEXO";
     private static final String KEY_PET_PORTE = "PET_PORTE";
     private static final String KEY_PET_DATA = "PET_DATA";
+    private static final String KEY_PET_PAPEL = "PET_PAPEL";
 
     private final SharedPreferences prefs;
 
@@ -73,6 +74,19 @@ public class SessionManager {
 
     public void salvarTelefone(String telefone) {
         prefs.edit().putString(KEY_TELEFONE, telefone).apply();
+    }
+
+    public void salvarPetPapel(String papel) {
+        prefs.edit().putString(KEY_PET_PAPEL, papel != null ? papel : "").apply();
+    }
+
+    public String obterPetPapel() {
+        return prefs.getString(KEY_PET_PAPEL, "DONO");
+    }
+
+    public boolean obterPetEhDono() {
+        String p = obterPetPapel();
+        return p == null || p.isEmpty() || p.equalsIgnoreCase("DONO");
     }
 
     public String obterToken() {

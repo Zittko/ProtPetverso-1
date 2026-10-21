@@ -31,4 +31,8 @@ public class ApiConfig {
     public static final String URL_CONCLUIR_TAREFA = BASE_URL + "/api/tarefas/"; // + idTarefa + "/concluir"
     public static final String URL_FOTO_PET = BASE_URL + "/api/pets/";
 
+    // Vacinas
+    public static final String URL_VACINAS_DO_PET = BASE_URL + "/api/pets/";
+    public static final String URL_VACINA = BASE_URL + "/api/vacinas/";
+
 }
