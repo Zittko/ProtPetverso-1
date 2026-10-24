@@ -19,12 +19,19 @@ import java.util.List;
 public class TarefaAdapter extends RecyclerView.Adapter<TarefaAdapter.VH> {
 
     public interface OnTarefaClickListener {
+        /** Clique no botão de status (concluir) */
         void onTarefaClick(Tarefa tarefa, int position);
+    }
+
+    public interface OnEditarTarefaListener {
+        /** Clique no card inteiro (editar) */
+        void onEditarTarefa(Tarefa tarefa);
     }
 
     private final Context context;
     private final List<Tarefa> lista = new ArrayList<>();
     private OnTarefaClickListener listener;
+    private OnEditarTarefaListener editarListener;
 
     public TarefaAdapter(Context context, List<Tarefa> inicial) {
         this.context = context;
@@ -33,6 +40,10 @@ public class TarefaAdapter extends RecyclerView.Adapter<TarefaAdapter.VH> {
 
     public void setOnTarefaClickListener(OnTarefaClickListener listener) {
         this.listener = listener;
+    }
+
+    public void setOnEditarTarefaListener(OnEditarTarefaListener listener) {
+        this.editarListener = listener;
     }
 
     public void setItens(List<Tarefa> tarefas) {
@@ -61,7 +72,11 @@ public class TarefaAdapter extends RecyclerView.Adapter<TarefaAdapter.VH> {
         Tarefa t = lista.get(position);
 
         if (h.titleTarefa != null) h.titleTarefa.setText(t.getTituloComHorario());
-        if (h.descTarefa != null) h.descTarefa.setText(t.getDesc());
+        if (h.descTarefa != null) {
+            String d = t.getDesc();
+            h.descTarefa.setText(d);
+            h.descTarefa.setVisibility(d == null || d.isEmpty() ? View.GONE : View.VISIBLE);
+        }
 
         if (h.txtRodape != null) {
             String rodape = t.getRodapeTexto();
@@ -80,10 +95,9 @@ public class TarefaAdapter extends RecyclerView.Adapter<TarefaAdapter.VH> {
             h.imgTarefa.setImageResource(icon);
         }
 
+        // Status (concluir)
         if (t.isConcluida()) {
-            if (h.viewStatusBg != null) {
-                h.viewStatusBg.setBackgroundResource(R.drawable.bg_status_concluida);
-            }
+            if (h.viewStatusBg != null) h.viewStatusBg.setBackgroundResource(R.drawable.bg_status_concluida);
             if (h.imgStatusCheck != null) {
                 h.imgStatusCheck.setImageResource(R.drawable.ic_check_branco);
                 h.imgStatusCheck.setVisibility(View.VISIBLE);
@@ -93,12 +107,8 @@ public class TarefaAdapter extends RecyclerView.Adapter<TarefaAdapter.VH> {
                 h.btnStatus.setOnClickListener(null);
             }
         } else {
-            if (h.viewStatusBg != null) {
-                h.viewStatusBg.setBackgroundResource(R.drawable.bg_status_pendente);
-            }
-            if (h.imgStatusCheck != null) {
-                h.imgStatusCheck.setVisibility(View.GONE);
-            }
+            if (h.viewStatusBg != null) h.viewStatusBg.setBackgroundResource(R.drawable.bg_status_pendente);
+            if (h.imgStatusCheck != null) h.imgStatusCheck.setVisibility(View.GONE);
             if (h.btnStatus != null) {
                 h.btnStatus.setClickable(true);
                 h.btnStatus.setOnClickListener(v -> {
@@ -109,6 +119,13 @@ public class TarefaAdapter extends RecyclerView.Adapter<TarefaAdapter.VH> {
                 });
             }
         }
+
+        // Clique no card → editar (somente se não concluída)
+        h.itemView.setOnClickListener(v -> {
+            if (!t.isConcluida() && editarListener != null) {
+                editarListener.onEditarTarefa(t);
+            }
+        });
     }
 
     @Override

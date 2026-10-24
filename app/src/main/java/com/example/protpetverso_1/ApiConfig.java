@@ -30,6 +30,7 @@ public class ApiConfig {
     public static final String URL_PET_TAREFAS = BASE_URL + "/api/pets/"; // + id + "/tarefas"-dd
     public static final String URL_CONCLUIR_TAREFA = BASE_URL + "/api/tarefas/"; // + idTarefa + "/concluir"
     public static final String URL_FOTO_PET = BASE_URL + "/api/pets/";
+    public static final String URL_ATUALIZAR_TAREFA = BASE_URL + "/api/tarefas/";     // + idTarefa  (PUT)
 
     // Vacinas
     public static final String URL_VACINAS_DO_PET = BASE_URL + "/api/pets/";

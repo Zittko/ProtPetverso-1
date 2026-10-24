@@ -26,14 +26,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Cria tarefa na API:
- * POST /api/pets/{id}/tarefas
- * Body: { titulo, descricao, dataTarefa, hora }
- *
- * Não permite data passada (DatePicker com minDate + validação no salvar).
- * Intent extras: PET_ID, DATA ou DATA_PADRAO (yyyy-MM-dd).
- */
 public class CriarTarefaActivity extends AppCompatActivity {
 
     private static final String TAG = "CRIAR_TAREFA";
@@ -41,7 +33,11 @@ public class CriarTarefaActivity extends AppCompatActivity {
     private TextInputEditText edtTitulo, edtData, edtHora, edtDesc;
     private MaterialButton btnConfirmar;
     private SessionManager sessionManager;
+
     private long petId = -1;
+    private long idTarefa = -1;
+    private boolean modoEdicao = false;
+
     private LocalDate dataSelecionada = LocalDate.now();
     private LocalTime horaSelecionada = LocalTime.of(8, 0);
 
@@ -51,27 +47,33 @@ public class CriarTarefaActivity extends AppCompatActivity {
         setContentView(R.layout.activity_criar_tarefa);
 
         sessionManager = new SessionManager(this);
+
+        modoEdicao = getIntent().getBooleanExtra("MODO_EDICAO", false);
+        idTarefa = getIntent().getLongExtra("ID_TAREFA", -1);
         petId = getIntent().getLongExtra("PET_ID", sessionManager.obterPetId());
 
-        // Aceita DATA (Agenda) ou DATA_PADRAO (legado)
-        String dataPadrao = getIntent().getStringExtra("DATA");
-        if (dataPadrao == null || dataPadrao.isEmpty()) {
-            dataPadrao = getIntent().getStringExtra("DATA_PADRAO");
+        // Prefill
+        String tituloExtra = getIntent().getStringExtra("TITULO");
+        String descExtra = getIntent().getStringExtra("DESCRICAO");
+        String dataExtra = getIntent().getStringExtra("DATA");
+        String horaExtra = getIntent().getStringExtra("HORA");
+
+        if (dataExtra != null && !dataExtra.isEmpty()) {
+            try { dataSelecionada = LocalDate.parse(dataExtra); } catch (Exception ignored) {}
         }
-        if (dataPadrao != null && !dataPadrao.isEmpty()) {
+        if (horaExtra != null && !horaExtra.isEmpty()) {
             try {
-                dataSelecionada = LocalDate.parse(dataPadrao);
-            } catch (Exception ignored) {
-            }
+                horaSelecionada = LocalTime.parse(horaExtra.length() >= 5 ? horaExtra.substring(0, 5) : horaExtra);
+            } catch (Exception ignored) {}
         }
 
-        // Se veio data passada do calendário, força hoje (criação não permite passado)
-        if (dataSelecionada.isBefore(LocalDate.now())) {
+        if (!modoEdicao && dataSelecionada.isBefore(LocalDate.now())) {
             dataSelecionada = LocalDate.now();
         }
 
         MaterialToolbar toolbar = findViewById(R.id.toolbarCriarTarefa);
         if (toolbar != null) {
+            toolbar.setTitle(modoEdicao ? "Editar tarefa" : "Nova tarefa");
             toolbar.setNavigationOnClickListener(v -> finish());
         }
 
@@ -80,6 +82,9 @@ public class CriarTarefaActivity extends AppCompatActivity {
         edtHora = findViewById(R.id.edtHoraTarefa);
         edtDesc = findViewById(R.id.edtDescTarefa);
         btnConfirmar = findViewById(R.id.btnConfirmarTarefa);
+
+        if (edtTitulo != null && tituloExtra != null) edtTitulo.setText(tituloExtra);
+        if (edtDesc != null && descExtra != null) edtDesc.setText(descExtra);
 
         atualizarTextoData();
         atualizarTextoHora();
@@ -94,8 +99,8 @@ public class CriarTarefaActivity extends AppCompatActivity {
             edtHora.setClickable(true);
             edtHora.setOnClickListener(v -> abrirTimePicker());
         }
-
         if (btnConfirmar != null) {
+            btnConfirmar.setText(modoEdicao ? "Salvar alterações" : "Confirmar");
             btnConfirmar.setOnClickListener(v -> salvarTarefa());
         }
     }
@@ -119,10 +124,8 @@ public class CriarTarefaActivity extends AppCompatActivity {
                 this,
                 (view, y, m, d) -> {
                     LocalDate escolhida = LocalDate.of(y, m + 1, d);
-                    if (escolhida.isBefore(LocalDate.now())) {
-                        Toast.makeText(this,
-                                "Não é possível criar tarefa em data passada.",
-                                Toast.LENGTH_SHORT).show();
+                    if (!modoEdicao && escolhida.isBefore(LocalDate.now())) {
+                        Toast.makeText(this, "Não é possível criar tarefa em data passada.", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     dataSelecionada = escolhida;
@@ -132,9 +135,9 @@ public class CriarTarefaActivity extends AppCompatActivity {
                 dataSelecionada.getMonthValue() - 1,
                 dataSelecionada.getDayOfMonth()
         );
-
-        // Impede dias anteriores no seletor
-        dialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        if (!modoEdicao) {
+            dialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        }
         dialog.show();
     }
 
@@ -165,9 +168,7 @@ public class CriarTarefaActivity extends AppCompatActivity {
             Toast.makeText(this, "Pet inválido", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        // Validação final: não cria em data passada
-        if (dataSelecionada.isBefore(LocalDate.now())) {
+        if (!modoEdicao && dataSelecionada.isBefore(LocalDate.now())) {
             Toast.makeText(this, "Não é possível criar tarefa em data passada.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -178,46 +179,51 @@ public class CriarTarefaActivity extends AppCompatActivity {
             return;
         }
 
-        if (btnConfirmar != null) {
-            btnConfirmar.setEnabled(false);
-        }
+        if (btnConfirmar != null) btnConfirmar.setEnabled(false);
 
         try {
             JSONObject body = new JSONObject();
             body.put("titulo", titulo);
             body.put("descricao", desc);
-            body.put("dataTarefa", dataSelecionada.toString()); // yyyy-MM-dd
+            body.put("dataTarefa", dataSelecionada.toString());
             body.put("hora", String.format(Locale.getDefault(), "%02d:%02d:00",
                     horaSelecionada.getHour(), horaSelecionada.getMinute()));
 
-            String url = ApiConfig.URL_TAREFAS_DO_PET + petId + "/tarefas";
-            Log.d(TAG, "POST " + url + " body=" + body);
+            int method;
+            String url;
+
+            if (modoEdicao && idTarefa > 0) {
+                method = Request.Method.PUT;
+                url = ApiConfig.URL_ATUALIZAR_TAREFA + idTarefa;
+            } else {
+                method = Request.Method.POST;
+                url = ApiConfig.URL_TAREFAS_DO_PET + petId + "/tarefas";
+            }
+
+            Log.d(TAG, (modoEdicao ? "PUT " : "POST ") + url + " body=" + body);
 
             JsonObjectRequest request = new JsonObjectRequest(
-                    Request.Method.POST,
+                    method,
                     url,
                     body,
                     response -> {
-                        Toast.makeText(this, "Tarefa criada!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this,
+                                modoEdicao ? "Tarefa atualizada!" : "Tarefa criada!",
+                                Toast.LENGTH_SHORT).show();
                         setResult(RESULT_OK);
-                        finish(); // Agenda recarrega no onResume
+                        finish();
                     },
                     error -> {
                         if (btnConfirmar != null) btnConfirmar.setEnabled(true);
-                        String msg = "Erro ao criar tarefa.";
+                        String msg = modoEdicao ? "Erro ao atualizar tarefa." : "Erro ao criar tarefa.";
                         if (error.networkResponse != null) {
                             int s = error.networkResponse.statusCode;
                             if (s == 403) {
-                                msg = "Apenas o tutor principal pode criar tarefas.";
+                                msg = "Apenas o tutor principal (DONO) pode alterar tarefas.";
+                            } else if (s == 409 || s == 400) {
+                                msg = "Esta tarefa já foi concluída e não pode ser alterada.";
                             } else {
                                 msg += " (" + s + ")";
-                            }
-                            try {
-                                String err = new String(
-                                        error.networkResponse.data,
-                                        java.nio.charset.StandardCharsets.UTF_8);
-                                Log.e(TAG, err);
-                            } catch (Exception ignored) {
                             }
                         }
                         Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
