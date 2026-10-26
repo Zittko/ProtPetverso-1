@@ -22,9 +22,15 @@ public class VacinaAdapter extends RecyclerView.Adapter<VacinaAdapter.VH> {
     }
 
     private final List<Vacina> lista = new ArrayList<>();
-    private final Listener listener;
+    private Listener listener;
+
+    public VacinaAdapter() {}
 
     public VacinaAdapter(Listener listener) {
+        this.listener = listener;
+    }
+
+    public void setListener(Listener listener) {
         this.listener = listener;
     }
 
@@ -58,10 +64,13 @@ public class VacinaAdapter extends RecyclerView.Adapter<VacinaAdapter.VH> {
 
         String status = vac.getStatusLabel();
         h.txtStatus.setText("Status: " + status);
-        if ("Ok".equalsIgnoreCase(status)) {
+        if (vac.isAplicada() || "Ok".equalsIgnoreCase(status)) {
             h.txtStatus.setTextColor(Color.parseColor("#2E7D32"));
-        } else {
+        } else if (Vacina.STATUS_ATRASADA.equalsIgnoreCase(vac.getStatusVacina())
+                || "Atrasada".equalsIgnoreCase(status)) {
             h.txtStatus.setTextColor(Color.parseColor("#C62828"));
+        } else {
+            h.txtStatus.setTextColor(Color.parseColor("#E65100"));
         }
 
         h.itemView.setOnClickListener(v -> {

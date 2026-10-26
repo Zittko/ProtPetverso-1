@@ -4,12 +4,15 @@ import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatSpinner;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -24,128 +27,118 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
- * Cadastro / edição de vacina ou imunização.
  * POST /api/pets/{idPet}/vacinas
  * PUT  /api/vacinas/{idVacina}
  *
- * Intervalos do spinner (uso real):
- * - 1 mês: vermífugo/prevenção mensal, risco alto
- * - 3 meses: vermífugo adulto clássico
- * - 6 meses: reforços intermediários
- * - 1 ano: vacinas anuais (não essenciais, raiva 1 ano)
- * - 3 anos: vacinas essenciais (adulto)
- * Dose única: não envia dataProximaDose.
+ * Body API (VacinaRequestDTO):
+ * nome, dataAplicacao, dosagemUnica, jaAplicada,
+ * intervaloQuantidade, intervaloUnidade, observacao
  */
 public class CadastrarVacinaActivity extends AppCompatActivity {
 
     private static final String TAG = "CADASTRAR_VACINA";
 
-    /** Rótulos do spinner — ordem deve bater com {@link #mesesDoIntervalo(int)}. */
-    private static final String[] INTERVALOS = {
-            "1 Mês",
-            "3 Meses",
-            "6 Meses",
-            "1 Ano",
-            "3 Anos"
-    };
+    public static final String EXTRA_PET_ID = "PET_ID";
+    public static final String EXTRA_ID_VACINA = "ID_VACINA";
+    public static final String EXTRA_MODO_EDICAO = "MODO_EDICAO";
+    public static final String EXTRA_NOME = "NOME";
+    public static final String EXTRA_DATA = "DATA";
+    public static final String EXTRA_OBS = "OBS";
+    public static final String EXTRA_DOSE_UNICA = "DOSE_UNICA";
+    public static final String EXTRA_INTERVALO_QTD = "INTERVALO_QTD";
+    public static final String EXTRA_INTERVALO_UN = "INTERVALO_UN";
+    public static final String EXTRA_STATUS = "STATUS";
+    public static final String EXTRA_DATA_PROXIMA = "DATA_PROXIMA";
+    public static final String EXTRA_PRECISA_CONFIRMAR = "PRECISA_CONFIRMAR";
 
-    private TextInputEditText edtNome, edtDataAplicacao, edtObservacao;
-    private AppCompatSpinner spinnerDosagemUnica, spinnerIntervalo;
-    private MaterialButton btnConfirmar;
-    private View lblAplicarNovamente;
-    private ImageView btnCalendarioVacina;
+    private static final String[] DOSE_UNICA_OPCOES = {"Não", "Sim"};
+    private static final String[] UNIDADES = {"Dias", "Semanas", "Meses", "Anos"};
+    private static final String[] UNIDADES_API = {"DIAS", "SEMANAS", "MESES", "ANOS"};
+
+    private static final DateTimeFormatter FMT_BR =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy", new Locale("pt", "BR"));
 
     private SessionManager sessionManager;
     private long petId = -1;
-    private long vacinaId = -1;
-    private LocalDate dataAplicacao = LocalDate.now();
+    private long idVacina = -1;
+    private boolean modoEdicao = false;
+    private boolean precisaConfirmarAplicacao = false;
+    private boolean jaAplicadaChecked = false;
 
-    private final DateTimeFormatter fmtTela =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private final DateTimeFormatter fmtApi =
-            DateTimeFormatter.ISO_LOCAL_DATE;
+    private MaterialToolbar toolbar;
+    private TextInputEditText edtNome, edtData, edtIntervaloQtd, edtObservacao;
+    private Spinner spDosagemUnica, spIntervaloUnidade;
+    private View boxJaAplicada, boxIntervalo;
+    private FrameLayout btnJaAplicada;
+    private View viewJaAplicadaBg;
+    private ImageView imgJaAplicadaCheck;
+    private MaterialButton btnConfirmar;
+
+    private LocalDate dataSelecionada = LocalDate.now();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cadastrar_vacina_layout);
 
         sessionManager = new SessionManager(this);
-        petId = getIntent().getLongExtra("PET_ID", sessionManager.obterPetId());
-        vacinaId = getIntent().getLongExtra("VACINA_ID", -1);
 
-        MaterialToolbar toolbar = findViewById(R.id.toolbarCadastrarVacina);
+        toolbar = findViewById(R.id.toolbarCadastrarVacina);
         if (toolbar != null) {
-            if (vacinaId > 0) {
-                toolbar.setTitle("Editar Imunidade");
-            }
             toolbar.setNavigationOnClickListener(v -> finish());
         }
 
         edtNome = findViewById(R.id.edtNomeVacina);
-        edtDataAplicacao = findViewById(R.id.edtDataAplicacao);
+        edtData = findViewById(R.id.edtDataAplicacao);
+        edtIntervaloQtd = findViewById(R.id.edtIntervaloQtd);
         edtObservacao = findViewById(R.id.edtObservacao);
-        spinnerDosagemUnica = findViewById(R.id.spinnerDosagemUnica);
-        spinnerIntervalo = findViewById(R.id.spinnerIntervalo);
-        lblAplicarNovamente = findViewById(R.id.lblAplicarNovamente);
+        spDosagemUnica = findViewById(R.id.spDosagemUnica);
+        spIntervaloUnidade = findViewById(R.id.spIntervaloUnidade);
+        boxJaAplicada = findViewById(R.id.boxJaAplicada);
+        boxIntervalo = findViewById(R.id.boxIntervalo);
+        btnJaAplicada = findViewById(R.id.btnJaAplicada);
+        viewJaAplicadaBg = findViewById(R.id.viewJaAplicadaBg);
+        imgJaAplicadaCheck = findViewById(R.id.imgJaAplicadaCheck);
         btnConfirmar = findViewById(R.id.btnConfirmarVacina);
-        btnCalendarioVacina = findViewById(R.id.btnCalendarioVacina);
 
-        ArrayAdapter<String> adSimNao = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_dropdown_item,
-                new String[]{"Não", "Sim"}
-        );
-        if (spinnerDosagemUnica != null) {
-            spinnerDosagemUnica.setAdapter(adSimNao);
-            spinnerDosagemUnica.setOnItemSelectedListener(
-                    new android.widget.AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(android.widget.AdapterView<?> parent,
-                                                   View view, int position, long id) {
-                            boolean unica = position == 1; // Sim
-                            int vis = unica ? View.GONE : View.VISIBLE;
-                            if (spinnerIntervalo != null) {
-                                spinnerIntervalo.setVisibility(vis);
-                            }
-                            if (lblAplicarNovamente != null) {
-                                lblAplicarNovamente.setVisibility(vis);
-                            }
-                        }
+        configurarSpinners();
+        lerExtras();
+        aplicarTitulo();
+        atualizarUiJaAplicada();
+        atualizarVisibilidade();
 
-                        @Override
-                        public void onNothingSelected(android.widget.AdapterView<?> parent) {
-                        }
-                    });
+        if (edtData != null) {
+            edtData.setText(dataSelecionada.format(FMT_BR));
+            edtData.setOnClickListener(v -> abrirDatePicker());
         }
 
-        ArrayAdapter<String> adIntervalo = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_dropdown_item,
-                INTERVALOS
-        );
-        if (spinnerIntervalo != null) {
-            spinnerIntervalo.setAdapter(adIntervalo);
-            spinnerIntervalo.setSelection(1); // 3 Meses — padrão mais comum em vermífugo adulto
+        if (btnJaAplicada != null) {
+            btnJaAplicada.setOnClickListener(v -> {
+                jaAplicadaChecked = !jaAplicadaChecked;
+                atualizarUiJaAplicada();
+                atualizarVisibilidade();
+            });
         }
 
-        if (edtDataAplicacao != null) {
-            edtDataAplicacao.setText(dataAplicacao.format(fmtTela));
-            edtDataAplicacao.setOnClickListener(v -> abrirDatePicker());
-        }
-        if (btnCalendarioVacina != null) {
-            btnCalendarioVacina.setOnClickListener(v -> abrirDatePicker());
-        }
+        if (spDosagemUnica != null) {
+            spDosagemUnica.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    atualizarVisibilidade();
+                }
 
-        if (vacinaId > 0) {
-            preencherModoEdicao();
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
         }
 
         if (btnConfirmar != null) {
@@ -153,133 +146,214 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
         }
     }
 
-    private void preencherModoEdicao() {
-        String nome = getIntent().getStringExtra("NOME");
-        String da = getIntent().getStringExtra("DATA_APLICACAO");
-        String dp = getIntent().getStringExtra("DATA_PROXIMA");
-        String obs = getIntent().getStringExtra("OBSERVACAO");
-
-        if (edtNome != null && nome != null) {
-            edtNome.setText(nome);
+    private void aplicarTitulo() {
+        if (toolbar != null) {
+            toolbar.setTitle(modoEdicao ? "Atualizar Imunidade" : "Cadastrar Imunidade");
         }
-        if (da != null && !da.isEmpty()) {
+    }
+
+    private void configurarSpinners() {
+        ArrayAdapter<String> adDose = new ArrayAdapter<>(
+                this, R.layout.spinner_item_vacina, DOSE_UNICA_OPCOES);
+        adDose.setDropDownViewResource(R.layout.spinner_dropdown_vacina);
+        if (spDosagemUnica != null) {
+            spDosagemUnica.setAdapter(adDose);
+            spDosagemUnica.setSelection(0);
+        }
+
+        ArrayAdapter<String> adUn = new ArrayAdapter<>(
+                this, R.layout.spinner_item_vacina, UNIDADES);
+        adUn.setDropDownViewResource(R.layout.spinner_dropdown_vacina);
+        if (spIntervaloUnidade != null) {
+            spIntervaloUnidade.setAdapter(adUn);
+            spIntervaloUnidade.setSelection(2); // Meses
+        }
+    }
+
+    private void lerExtras() {
+        petId = getIntent().getLongExtra(EXTRA_PET_ID, sessionManager.obterPetId());
+        idVacina = getIntent().getLongExtra(EXTRA_ID_VACINA, -1);
+        modoEdicao = getIntent().getBooleanExtra(EXTRA_MODO_EDICAO, idVacina > 0);
+
+        precisaConfirmarAplicacao = getIntent().getBooleanExtra(EXTRA_PRECISA_CONFIRMAR, false);
+        String status = getIntent().getStringExtra(EXTRA_STATUS);
+        String dataProx = getIntent().getStringExtra(EXTRA_DATA_PROXIMA);
+        if (!precisaConfirmarAplicacao && modoEdicao) {
+            precisaConfirmarAplicacao = calcularPrecisaConfirmar(status, dataProx);
+        }
+
+        String nome = getIntent().getStringExtra(EXTRA_NOME);
+        if (nome != null && edtNome != null) edtNome.setText(nome);
+
+        String data = getIntent().getStringExtra(EXTRA_DATA);
+        if (data != null && !data.isEmpty()) {
             try {
-                dataAplicacao = LocalDate.parse(da);
-                if (edtDataAplicacao != null) {
-                    edtDataAplicacao.setText(dataAplicacao.format(fmtTela));
-                }
-            } catch (Exception ignored) {
-            }
-        }
-        if (edtObservacao != null && obs != null) {
-            edtObservacao.setText(obs);
+                dataSelecionada = LocalDate.parse(data.substring(0, Math.min(10, data.length())));
+            } catch (Exception ignored) {}
         }
 
-        if (dp == null || dp.isEmpty()) {
-            if (spinnerDosagemUnica != null) {
-                spinnerDosagemUnica.setSelection(1); // dose única
+        String obs = getIntent().getStringExtra(EXTRA_OBS);
+        if (obs != null && edtObservacao != null) edtObservacao.setText(obs);
+
+        boolean doseUnica = getIntent().getBooleanExtra(EXTRA_DOSE_UNICA, false);
+        if (spDosagemUnica != null) {
+            spDosagemUnica.setSelection(doseUnica ? 1 : 0);
+        }
+
+        int qtd = getIntent().getIntExtra(EXTRA_INTERVALO_QTD, 0);
+        if (qtd > 0 && edtIntervaloQtd != null) {
+            edtIntervaloQtd.setText(String.valueOf(qtd));
+        }
+
+        String un = getIntent().getStringExtra(EXTRA_INTERVALO_UN);
+        if (un != null && spIntervaloUnidade != null) {
+            for (int i = 0; i < UNIDADES_API.length; i++) {
+                if (UNIDADES_API[i].equalsIgnoreCase(un)) {
+                    spIntervaloUnidade.setSelection(i);
+                    break;
+                }
             }
+        }
+
+        // Cadastro novo: começa desmarcado (usuário confirma)
+        // Edição pendente: desmarcado até confirmar de novo
+        jaAplicadaChecked = false;
+    }
+
+    private boolean calcularPrecisaConfirmar(String status, String dataProximaIso) {
+        if (status != null) {
+            String s = status.trim().toUpperCase(Locale.ROOT);
+            if (Vacina.STATUS_PENDENTE.equals(s) || Vacina.STATUS_ATRASADA.equals(s)) {
+                return true;
+            }
+            if (Vacina.STATUS_APLICADA.equals(s) || Vacina.STATUS_OK.equals(s)) {
+                return false;
+            }
+        }
+        if (dataProximaIso == null || dataProximaIso.isEmpty()) return false;
+        try {
+            LocalDate dp = LocalDate.parse(
+                    dataProximaIso.substring(0, Math.min(10, dataProximaIso.length())));
+            return !dp.isAfter(LocalDate.now());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean isDoseUnica() {
+        return spDosagemUnica != null && spDosagemUnica.getSelectedItemPosition() == 1;
+    }
+
+    private void atualizarUiJaAplicada() {
+        if (viewJaAplicadaBg == null || imgJaAplicadaCheck == null) return;
+        if (jaAplicadaChecked) {
+            viewJaAplicadaBg.setBackgroundResource(R.drawable.bg_status_concluida);
+            imgJaAplicadaCheck.setVisibility(View.VISIBLE);
         } else {
-            if (spinnerDosagemUnica != null) {
-                spinnerDosagemUnica.setSelection(0);
-            }
-            // Tenta marcar o intervalo mais próximo pela diferença em meses
-            try {
-                LocalDate prox = LocalDate.parse(dp);
-                long meses = java.time.temporal.ChronoUnit.MONTHS.between(dataAplicacao, prox);
-                if (spinnerIntervalo != null) {
-                    spinnerIntervalo.setSelection(indicePeloMeses((int) meses));
-                }
-            } catch (Exception ignored) {
-            }
+            viewJaAplicadaBg.setBackgroundResource(R.drawable.bg_status_pendente);
+            imgJaAplicadaCheck.setVisibility(View.GONE);
         }
     }
 
-    /**
-     * Converte posição do spinner em meses a somar na data de aplicação.
-     * 0→1, 1→3, 2→6, 3→12, 4→36
-     */
-    private int mesesDoIntervalo(int posicaoSpinner) {
-        switch (posicaoSpinner) {
-            case 0:
-                return 1;
-            case 1:
-                return 3;
-            case 2:
-                return 6;
-            case 3:
-                return 12;
-            case 4:
-                return 36;
-            default:
-                return 3;
+    private void atualizarVisibilidade() {
+        // Cadastro: sempre mostra "Já foi aplicada?"
+        // Edição: só se Pendente/Atrasada
+        boolean mostrarJa = !modoEdicao || precisaConfirmarAplicacao;
+        if (boxJaAplicada != null) {
+            boxJaAplicada.setVisibility(mostrarJa ? View.VISIBLE : View.GONE);
         }
-    }
 
-    /** Para edição: escolhe o índice do spinner mais próximo dos meses reais. */
-    private int indicePeloMeses(int meses) {
-        if (meses <= 1) return 0;
-        if (meses <= 3) return 1;
-        if (meses <= 6) return 2;
-        if (meses <= 12) return 3;
-        return 4; // 3 anos
+        // Intervalo: oculto se dose única
+        boolean mostrarIntervalo = !isDoseUnica();
+        // Na confirmação da próxima dose, só após marcar aplicada (opcional de UX)
+        if (modoEdicao && precisaConfirmarAplicacao && !jaAplicadaChecked) {
+            // ainda permite ver intervalo se quiser programar após aplicar;
+            // se preferir esconder até marcar, descomente:
+            // mostrarIntervalo = false;
+        }
+        if (boxIntervalo != null) {
+            boxIntervalo.setVisibility(mostrarIntervalo ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void abrirDatePicker() {
         Calendar c = Calendar.getInstance();
-        c.set(
-                dataAplicacao.getYear(),
-                dataAplicacao.getMonthValue() - 1,
-                dataAplicacao.getDayOfMonth()
-        );
+        c.set(dataSelecionada.getYear(),
+                dataSelecionada.getMonthValue() - 1,
+                dataSelecionada.getDayOfMonth());
 
         DatePickerDialog dlg = new DatePickerDialog(
                 this,
                 (view, year, month, dayOfMonth) -> {
-                    dataAplicacao = LocalDate.of(year, month + 1, dayOfMonth);
-                    if (dataAplicacao.isAfter(LocalDate.now())) {
-                        Toast.makeText(
-                                this,
-                                "A data de aplicação não pode ser futura.",
-                                Toast.LENGTH_SHORT
-                        ).show();
-                        dataAplicacao = LocalDate.now();
-                    }
-                    if (edtDataAplicacao != null) {
-                        edtDataAplicacao.setText(dataAplicacao.format(fmtTela));
+                    dataSelecionada = LocalDate.of(year, month + 1, dayOfMonth);
+                    if (edtData != null) {
+                        edtData.setText(dataSelecionada.format(FMT_BR));
                     }
                 },
                 c.get(Calendar.YEAR),
                 c.get(Calendar.MONTH),
                 c.get(Calendar.DAY_OF_MONTH)
         );
-        dlg.getDatePicker().setMaxDate(System.currentTimeMillis());
+        // Se já aplicada, não permite data futura (regra API)
+        if (jaAplicadaChecked) {
+            dlg.getDatePicker().setMaxDate(System.currentTimeMillis());
+        }
         dlg.show();
     }
 
     private void salvar() {
-        String nome = edtNome != null ? String.valueOf(edtNome.getText()).trim() : "";
+        String nome = edtNome != null && edtNome.getText() != null
+                ? edtNome.getText().toString().trim() : "";
         if (nome.isEmpty()) {
-            Toast.makeText(this, "Informe o nome.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Informe o nome da vacina.", Toast.LENGTH_SHORT).show();
             return;
         }
         if (petId <= 0) {
-            Toast.makeText(this, "Pet inválido.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Pet inválido. Selecione um pet.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        boolean doseUnica = spinnerDosagemUnica != null
-                && spinnerDosagemUnica.getSelectedItemPosition() == 1;
+        boolean doseUnica = isDoseUnica();
 
-        LocalDate dataProxima = null;
-        if (!doseUnica && spinnerIntervalo != null) {
-            int meses = mesesDoIntervalo(spinnerIntervalo.getSelectedItemPosition());
-            dataProxima = dataAplicacao.plusMonths(meses);
+        // Cadastro / confirmação: usa o oval
+        // Edição com status Ok: assume já aplicada
+        boolean jaAplicada;
+        if (!modoEdicao || precisaConfirmarAplicacao) {
+            jaAplicada = jaAplicadaChecked;
+        } else {
+            jaAplicada = true;
         }
 
-        String obs = edtObservacao != null
-                ? String.valueOf(edtObservacao.getText()).trim()
-                : "";
+        if (jaAplicada && dataSelecionada.isAfter(LocalDate.now())) {
+            Toast.makeText(this,
+                    "Vacina já aplicada não pode ter data futura.",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Integer intervaloQtd = null;
+        String intervaloUn = null;
+        if (!doseUnica) {
+            String qtdStr = edtIntervaloQtd != null && edtIntervaloQtd.getText() != null
+                    ? edtIntervaloQtd.getText().toString().trim() : "";
+            if (qtdStr.isEmpty()) {
+                Toast.makeText(this, "Informe o intervalo (quantidade).", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            try {
+                intervaloQtd = Integer.parseInt(qtdStr);
+                if (intervaloQtd <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, "Quantidade de intervalo inválida.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            int idx = spIntervaloUnidade != null ? spIntervaloUnidade.getSelectedItemPosition() : 2;
+            if (idx < 0 || idx >= UNIDADES_API.length) idx = 2;
+            intervaloUn = UNIDADES_API[idx];
+        }
+
+        String obs = edtObservacao != null && edtObservacao.getText() != null
+                ? edtObservacao.getText().toString().trim() : "";
 
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
@@ -287,71 +361,70 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
             return;
         }
 
-        if (btnConfirmar != null) {
-            btnConfirmar.setEnabled(false);
-        }
+        if (btnConfirmar != null) btnConfirmar.setEnabled(false);
 
         try {
             JSONObject body = new JSONObject();
             body.put("nome", nome);
-            body.put("dataAplicacao", dataAplicacao.format(fmtApi));
-            if (dataProxima != null) {
-                body.put("dataProximaDose", dataProxima.format(fmtApi));
+            body.put("dataAplicacao", dataSelecionada.toString()); // yyyy-MM-dd
+            body.put("dosagemUnica", doseUnica);
+            body.put("jaAplicada", jaAplicada);
+            if (doseUnica) {
+                body.put("intervaloQuantidade", JSONObject.NULL);
+                body.put("intervaloUnidade", JSONObject.NULL);
             } else {
-                body.put("dataProximaDose", JSONObject.NULL);
+                body.put("intervaloQuantidade", intervaloQtd);
+                body.put("intervaloUnidade", intervaloUn);
             }
             body.put("observacao", obs.isEmpty() ? JSONObject.NULL : obs);
+            // NÃO enviar dataProximaDose — a API calcula
 
-            boolean edicao = vacinaId > 0;
-            String url = edicao
-                    ? ApiConfig.URL_VACINA + vacinaId
+            final boolean editar = modoEdicao && idVacina > 0;
+            String url = editar
+                    ? ApiConfig.URL_VACINA + idVacina
                     : ApiConfig.URL_VACINAS_DO_PET + petId + "/vacinas";
-            int method = edicao ? Request.Method.PUT : Request.Method.POST;
+            int method = editar ? Request.Method.PUT : Request.Method.POST;
 
-            Log.d(TAG, (edicao ? "PUT " : "POST ") + url
-                    + " aplicacao=" + dataAplicacao
-                    + " proxima=" + dataProxima);
+            Log.d(TAG, (editar ? "PUT " : "POST ") + url + " body=" + body);
 
-            JsonObjectRequest request = new JsonObjectRequest(
-                    method,
-                    url,
-                    body,
+            JsonObjectRequest req = new JsonObjectRequest(
+                    method, url, body,
                     response -> {
-                        Toast.makeText(
-                                this,
-                                edicao ? "Vacina atualizada!" : "Vacina cadastrada!",
-                                Toast.LENGTH_SHORT
-                        ).show();
                         AppDataCache.get().invalidarVacinas(petId);
+                        Toast.makeText(this,
+                                editar ? "Imunidade atualizada!" : "Vacina cadastrada!",
+                                Toast.LENGTH_SHORT).show();
                         finish();
                     },
                     error -> {
-                        if (btnConfirmar != null) {
-                            btnConfirmar.setEnabled(true);
-                        }
-                        String msg = "Erro ao salvar.";
+                        if (btnConfirmar != null) btnConfirmar.setEnabled(true);
+                        String msg = "Erro ao salvar vacina.";
                         if (error.networkResponse != null) {
-                            int s = error.networkResponse.statusCode;
-                            if (s == 403) {
+                            int code = error.networkResponse.statusCode;
+                            String errBody = "";
+                            try {
+                                errBody = new String(error.networkResponse.data, StandardCharsets.UTF_8);
+                                Log.e(TAG, "HTTP " + code + " " + errBody);
+                            } catch (Exception ignored) {}
+
+                            if (code == 403) {
                                 msg = "Apenas o tutor principal pode cadastrar/editar vacinas.";
-                            } else if (s == 400) {
-                                msg = "Dados inválidos. Verifique as datas.";
-                                try {
-                                    String err = new String(
-                                            error.networkResponse.data,
-                                            java.nio.charset.StandardCharsets.UTF_8
-                                    );
-                                    Log.e(TAG, err);
-                                    String lower = err.toLowerCase();
-                                    if (lower.contains("aplicacao")) {
-                                        msg = "A data de aplicação não pode ser futura.";
-                                    } else if (lower.contains("proxima")) {
-                                        msg = "A próxima dose não pode ser anterior à aplicação.";
-                                    }
-                                } catch (Exception ignored) {
+                            } else if (code == 400) {
+                                String lower = errBody.toLowerCase(Locale.ROOT);
+                                if (lower.contains("futura")) {
+                                    msg = "Vacina já aplicada não pode ter data futura.";
+                                } else if (lower.contains("intervalo")) {
+                                    msg = "Verifique o intervalo (quantidade e unidade).";
+                                } else if (lower.contains("dose unica") || lower.contains("dose única")) {
+                                    msg = "Dose única não pode ter intervalo.";
+                                } else if (!errBody.isEmpty()) {
+                                    msg = "Dados inválidos: " + errBody;
+                                    if (msg.length() > 180) msg = msg.substring(0, 180) + "…";
+                                } else {
+                                    msg = "Dados inválidos. Confira nome, data, dose única e \"já aplicada\".";
                                 }
                             } else {
-                                msg += " (" + s + ")";
+                                msg = "Erro ao salvar (" + code + ").";
                             }
                         } else {
                             msg = "Sem conexão com o servidor.";
@@ -367,14 +440,11 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
                     return h;
                 }
             };
-
-            VolleySingleton.getInstance(this).addToRequestQueue(request);
+            VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(req);
         } catch (Exception e) {
-            if (btnConfirmar != null) {
-                btnConfirmar.setEnabled(true);
-            }
-            e.printStackTrace();
-            Toast.makeText(this, "Erro ao montar dados.", Toast.LENGTH_SHORT).show();
+            if (btnConfirmar != null) btnConfirmar.setEnabled(true);
+            Log.e(TAG, "montar body", e);
+            Toast.makeText(this, "Falha ao montar dados.", Toast.LENGTH_SHORT).show();
         }
     }
 }

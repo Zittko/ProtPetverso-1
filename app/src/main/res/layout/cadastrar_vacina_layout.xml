@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -12,27 +13,21 @@
         android:layout_height="?attr/actionBarSize"
         android:background="#F08C4B"
         app:navigationIcon="@drawable/baseline_arrow_back"
-        app:navigationIconTint="#000000"
+        app:navigationIconTint="#FFFFFF"
         app:title="Cadastrar Imunidade"
-        app:titleCentered="true"
-        app:titleTextColor="#000000" />
+        app:titleTextColor="#FFFFFF" />
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
+        android:layout_height="match_parent"
         android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="24dp"
-            android:paddingTop="20dp"
-            android:paddingBottom="28dp">
+            android:padding="20dp">
 
-            <!-- Nome -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -46,7 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="18dp"
+                android:layout_marginBottom="16dp"
                 android:background="@drawable/bg_campo_branco"
                 android:hint="Nome do medicamento"
                 android:inputType="textCapSentences"
@@ -55,7 +50,6 @@
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
 
-            <!-- Data da aplicação -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -64,40 +58,21 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <FrameLayout
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtDataAplicacao"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="18dp"
-                android:background="@drawable/bg_campo_branco">
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_campo_branco"
+                android:clickable="true"
+                android:focusable="false"
+                android:hint="dd/mm/aaaa"
+                android:paddingHorizontal="14dp"
+                android:textColor="#000000"
+                android:textColorHint="#AAAAAA"
+                android:textSize="14sp" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edtDataAplicacao"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/transparent"
-                    android:clickable="true"
-                    android:focusable="false"
-                    android:hint="dd/mm/aaaa"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="48dp"
-                    android:textColor="#000000"
-                    android:textColorHint="#AAAAAA"
-                    android:textSize="14sp" />
-
-                <ImageView
-                    android:id="@+id/btnCalendarioVacina"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_gravity="end|center_vertical"
-                    android:layout_marginEnd="6dp"
-                    android:contentDescription="Abrir calendário"
-                    android:padding="8dp"
-                    android:src="@android:drawable/ic_menu_my_calendar"
-                    app:tint="#FF9800" />
-            </FrameLayout>
-
-            <!-- Dosagem única -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -106,37 +81,106 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <androidx.appcompat.widget.AppCompatSpinner
-                android:id="@+id/spinnerDosagemUnica"
-                android:layout_width="wrap_content"
+            <Spinner
+                android:id="@+id/spDosagemUnica"
+                android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="18dp"
+                android:layout_marginBottom="16dp"
                 android:background="@drawable/bg_spinner_vacina"
-                android:paddingHorizontal="12dp"
+                android:popupBackground="#FFFFFF"
                 android:spinnerMode="dropdown" />
 
-            <!-- Aplicar novamente daqui -->
-            <TextView
-                android:id="@+id/lblAplicarNovamente"
-                android:layout_width="wrap_content"
+            <!-- Sempre no cadastro; na edição só se Pendente/Atrasada -->
+            <LinearLayout
+                android:id="@+id/boxJaAplicada"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Aplicar novamente daqui"
-                android:textColor="#000000"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="visible">
 
-            <androidx.appcompat.widget.AppCompatSpinner
-                android:id="@+id/spinnerIntervalo"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="18dp"
-                android:background="@drawable/bg_spinner_vacina"
-                android:paddingHorizontal="12dp"
-                android:spinnerMode="dropdown" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Já foi aplicada?"
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-            <!-- Observações -->
+                <FrameLayout
+                    android:id="@+id/btnJaAplicada"
+                    android:layout_width="23dp"
+                    android:layout_height="23dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/viewJaAplicadaBg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_status_pendente" />
+
+                    <ImageView
+                        android:id="@+id/imgJaAplicadaCheck"
+                        android:layout_width="13dp"
+                        android:layout_height="13dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="Aplicada"
+                        android:src="@drawable/ic_check_branco"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/boxIntervalo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aplicar novamente daqui"
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edtIntervaloQtd"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_campo_branco"
+                        android:hint="Qtd"
+                        android:inputType="number"
+                        android:paddingHorizontal="14dp"
+                        android:textColor="#000000"
+                        android:textColorHint="#AAAAAA"
+                        android:textSize="14sp" />
+
+                    <Spinner
+                        android:id="@+id/spIntervaloUnidade"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1.2"
+                        android:background="@drawable/bg_spinner_vacina"
+                        android:popupBackground="#FFFFFF"
+                        android:spinnerMode="dropdown" />
+                </LinearLayout>
+            </LinearLayout>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -150,7 +194,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="130dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="28dp"
+                android:layout_marginBottom="8dp"
                 android:background="@drawable/bg_campo_branco"
                 android:gravity="top|start"
                 android:hint="Digite suas observações"
@@ -165,6 +209,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
                 android:layout_gravity="end"
+                android:layout_marginTop="12dp"
                 android:minWidth="140dp"
                 android:paddingHorizontal="28dp"
                 android:text="Confirmar"
@@ -173,7 +218,6 @@
                 android:textSize="15sp"
                 app:backgroundTint="#DF945D"
                 app:cornerRadius="24dp" />
-
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

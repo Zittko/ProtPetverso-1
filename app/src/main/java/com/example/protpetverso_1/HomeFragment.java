@@ -25,8 +25,8 @@ import com.example.protpetverso_1.schedule.TarefaAdapter;
 import com.example.protpetverso_1.schedule.TarefaIconHelper;
 import com.example.protpetverso_1.vaccine.AlertaSaude;
 import com.example.protpetverso_1.vaccine.AlertaSaudeAdapter;
+import com.example.protpetverso_1.vaccine.Vacina;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.time.LocalDate;
@@ -38,8 +38,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Home integrada à API.
- * Callbacks do Volley só atualizam a UI se o Fragment ainda estiver attached.
+ * Home: pet selecionado (foto + setas), tarefas do dia DESSE pet, alertas DESSE pet.
+ * Agenda global continua em AgendaFragment.
  */
 public class HomeFragment extends Fragment {
 
@@ -49,17 +49,22 @@ public class HomeFragment extends Fragment {
     private TextView txtSemTarefasHome;
     private ViewPager2 viewPagerPets;
     private ImageButton btnAnterior, btnProximo;
-    private RecyclerView recyclerViewTarefas, recyclerViewTarefasAlertasSaude;
+    private RecyclerView recyclerViewTarefas, recyclerViewAlertasSaude;
 
     private SessionManager sessionManager;
     private final List<PetResumo> listaPets = new ArrayList<>();
     private HomePetPagerAdapter petPagerAdapter;
 
-    public HomeFragment() {
-    }
+    private final List<Tarefa> tarefasHome = new ArrayList<>();
+    private TarefaAdapter tarefaAdapter;
+
+    private final List<AlertaSaude> alertasHome = new ArrayList<>();
+    private AlertaSaudeAdapter alertaAdapter;
+
+    public HomeFragment() {}
 
     private boolean podeAtualizarUi() {
-        return isAdded() && getContext() != null && !isDetached() && getView() != null;
+        return isAdded() && getContext() != null && getView() != null;
     }
 
     @Override
@@ -70,7 +75,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         Context ctx = getContext();
         if (ctx == null) return;
 
@@ -81,18 +85,17 @@ public class HomeFragment extends Fragment {
         btnAnterior = view.findViewById(R.id.btnAnterior);
         btnProximo = view.findViewById(R.id.btnProximo);
         recyclerViewTarefas = view.findViewById(R.id.recyclerViewTarefas);
-        recyclerViewTarefasAlertasSaude = view.findViewById(R.id.recyclerViewAlertasSaude);
+        recyclerViewAlertasSaude = view.findViewById(R.id.recyclerViewAlertasSaude);
 
-        if (recyclerViewTarefas != null) {
-            recyclerViewTarefas.setLayoutManager(new LinearLayoutManager(ctx));
-        }
-        if (recyclerViewTarefasAlertasSaude != null) {
-            recyclerViewTarefasAlertasSaude.setLayoutManager(new LinearLayoutManager(ctx));
-        }
-
-        petPagerAdapter = new HomePetPagerAdapter();
+        petPagerAdapter = new HomePetPagerAdapter(listaPets);
         if (viewPagerPets != null) {
             viewPagerPets.setAdapter(petPagerAdapter);
+            viewPagerPets.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                @Override
+                public void onPageSelected(int position) {
+                    if (podeAtualizarUi()) onPetSelecionado(position);
+                }
+            });
         }
 
         if (btnProximo != null) {
@@ -102,7 +105,6 @@ public class HomeFragment extends Fragment {
                 viewPagerPets.setCurrentItem(p, true);
             });
         }
-
         if (btnAnterior != null) {
             btnAnterior.setOnClickListener(v -> {
                 if (listaPets.isEmpty() || viewPagerPets == null) return;
@@ -111,73 +113,79 @@ public class HomeFragment extends Fragment {
             });
         }
 
-        if (viewPagerPets != null) {
-            viewPagerPets.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-                @Override
-                public void onPageSelected(int position) {
-                    if (podeAtualizarUi()) {
-                        onPetSelecionado(position);
-                    }
-                }
-            });
+        tarefaAdapter = new TarefaAdapter(ctx, tarefasHome);
+        if (recyclerViewTarefas != null) {
+            recyclerViewTarefas.setLayoutManager(new LinearLayoutManager(ctx));
+            recyclerViewTarefas.setAdapter(tarefaAdapter);
+            recyclerViewTarefas.setNestedScrollingEnabled(false);
         }
 
-        // Cache → atualiza lista + adapter (setItens, não só notify)
-        if (AppDataCache.get().temListaPets()) {
-            aplicarListaPets(AppDataCache.get().getListaPets());
-            selecionarPetInicial();
-        } else if (AppDataCache.get().temMeusPets()) {
+        alertaAdapter = new AlertaSaudeAdapter(ctx, alertasHome);
+        if (recyclerViewAlertasSaude != null) {
+            recyclerViewAlertasSaude.setLayoutManager(new LinearLayoutManager(ctx));
+            recyclerViewAlertasSaude.setAdapter(alertaAdapter);
+            recyclerViewAlertasSaude.setNestedScrollingEnabled(false);
+        }
+
+        if (AppDataCache.get().temMeusPets()) {
             aplicarListaPets(AppDataCache.get().getMeusPets());
             selecionarPetInicial();
         }
-
         carregarPetsDaApi();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (!podeAtualizarUi() || sessionManager == null || listaPets.isEmpty()) return;
-
-        long idSalvo = sessionManager.obterPetId();
-        for (int i = 0; i < listaPets.size(); i++) {
-            if (listaPets.get(i).getIdPet() == idSalvo) {
-                if (viewPagerPets != null && viewPagerPets.getCurrentItem() != i) {
-                    viewPagerPets.setCurrentItem(i, false);
+        if (!podeAtualizarUi() || sessionManager == null) return;
+        if (!listaPets.isEmpty()) {
+            long idSalvo = sessionManager.obterPetId();
+            for (int i = 0; i < listaPets.size(); i++) {
+                if (listaPets.get(i).getIdPet() == idSalvo) {
+                    if (viewPagerPets != null && viewPagerPets.getCurrentItem() != i) {
+                        viewPagerPets.setCurrentItem(i, false);
+                    }
+                    onPetSelecionado(i);
+                    return;
                 }
-                break;
+            }
+            onPetSelecionado(viewPagerPets != null ? viewPagerPets.getCurrentItem() : 0);
+        } else {
+            carregarPetsDaApi();
+        }
+    }
+
+    private void aplicarListaPets(List<PetResumo> origem) {
+        listaPets.clear();
+        if (origem != null) listaPets.addAll(origem);
+        if (petPagerAdapter != null) {
+            // Preferir setItens se existir; senão notify
+            try {
+                petPagerAdapter.setItens(new ArrayList<>(listaPets));
+            } catch (Throwable t) {
+                petPagerAdapter.notifyDataSetChanged();
             }
         }
     }
 
-    /** Mantém listaPets e a lista interna do adapter sincronizadas. */
-    private void aplicarListaPets(List<PetResumo> origem) {
-        listaPets.clear();
-        if (origem != null) {
-            listaPets.addAll(origem);
+    private void selecionarPetInicial() {
+        if (listaPets.isEmpty() || viewPagerPets == null) return;
+        long idSalvo = sessionManager.obterPetId();
+        int idx = 0;
+        for (int i = 0; i < listaPets.size(); i++) {
+            if (listaPets.get(i).getIdPet() == idSalvo) {
+                idx = i;
+                break;
+            }
         }
-        if (petPagerAdapter != null) {
-            petPagerAdapter.setItens(listaPets);
-        }
-        Log.d(TAG, "Pets na Home: " + listaPets.size());
-        for (PetResumo p : listaPets) {
-            String f = p.getFotoPetBase64();
-            Log.d(TAG, "  id=" + p.getIdPet()
-                    + " nome=" + p.getNome()
-                    + " fotoLen=" + (f != null ? f.length() : 0));
-        }
+        viewPagerPets.setCurrentItem(idx, false);
+        onPetSelecionado(idx);
     }
-
-    // ==================== PETS ====================
 
     private void carregarPetsDaApi() {
         if (sessionManager == null) return;
         String token = sessionManager.obterToken();
-        if (token == null || token.isEmpty()) {
-            Log.w(TAG, "Sem token — não carrega meusPets");
-            return;
-        }
-
+        if (token == null || token.isEmpty()) return;
         Context ctx = getContext();
         if (ctx == null) return;
 
@@ -186,21 +194,27 @@ public class HomeFragment extends Fragment {
                 ApiConfig.URL_MEUS_PETS,
                 null,
                 response -> {
-                    List<PetResumo> parseados = parsePets(response);
-                    AppDataCache.get().setListaPets(parseados);
+                    List<PetResumo> parseados = new ArrayList<>();
+                    for (int i = 0; i < response.length(); i++) {
+                        try {
+                            JSONObject o = response.getJSONObject(i);
+                            long id = o.optLong("idPet", o.optLong("id", -1));
+                            String nome = o.optString("nome", "Pet");
+                            String papel = o.optString("papel", "");
+                            String foto = o.optString("fotoPetBase64", "");
+                            if (foto.isEmpty()) foto = o.optString("fotoBase64", "");
+                            if (foto.isEmpty()) foto = o.optString("foto", "");
+                            if (id > 0) parseados.add(new PetResumo(id, nome, papel, foto));
+                        } catch (Exception e) {
+                            Log.e(TAG, "parse pet", e);
+                        }
+                    }
                     AppDataCache.get().setMeusPets(parseados);
-
                     if (!podeAtualizarUi()) return;
-
                     aplicarListaPets(parseados);
                     selecionarPetInicial();
                 },
-                error -> {
-                    Log.e(TAG, "meusPets erro", error);
-                    if (podeAtualizarUi() && listaPets.isEmpty()) {
-                        atualizarAgenda(new ArrayList<>());
-                    }
-                }
+                error -> Log.e(TAG, "meusPets", error)
         ) {
             @Override
             public Map<String, String> getHeaders() {
@@ -209,111 +223,49 @@ public class HomeFragment extends Fragment {
                 return h;
             }
         };
-
         VolleySingleton.getInstance(ctx.getApplicationContext()).addToRequestQueue(request);
     }
 
-    private List<PetResumo> parsePets(JSONArray response) {
-        List<PetResumo> lista = new ArrayList<>();
-        if (response == null) return lista;
-
-        for (int i = 0; i < response.length(); i++) {
-            try {
-                JSONObject o = response.getJSONObject(i);
-                long id = o.optLong("idPet", o.optLong("id", -1));
-                String nome = o.optString("nome", "Pet");
-                String papel = o.optString("papel", "");
-
-                String foto = o.optString("fotoPetBase64", "");
-                if (foto.isEmpty()) {
-                    foto = o.optString("fotoBase64", "");
-                }
-
-                if (id > 0) {
-                    lista.add(new PetResumo(id, nome, papel, foto));
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "parse pet " + i, e);
-            }
-        }
-        return lista;
-    }
-
-    private void selecionarPetInicial() {
-        if (!podeAtualizarUi()) return;
-
-        if (listaPets.isEmpty()) {
-            atualizarAgenda(new ArrayList<>());
-            atualizarSaude(new ArrayList<>());
-            return;
-        }
-
-        int index = 0;
-        long idSalvo = sessionManager != null ? sessionManager.obterPetId() : -1;
-        for (int i = 0; i < listaPets.size(); i++) {
-            if (listaPets.get(i).getIdPet() == idSalvo) {
-                index = i;
-                break;
-            }
-        }
-        if (viewPagerPets != null) {
-            viewPagerPets.setCurrentItem(index, false);
-        }
-        onPetSelecionado(index);
-    }
-
     private void onPetSelecionado(int position) {
-        if (!podeAtualizarUi()) return;
-        if (position < 0 || position >= listaPets.size()) return;
-        if (sessionManager == null) return;
-
+        if (position < 0 || position >= listaPets.size() || sessionManager == null) return;
         PetResumo pet = listaPets.get(position);
-        sessionManager.salvarPet(
-                pet.getIdPet(),
-                pet.getNome(),
-                "", "", "", "", "", ""
-        );
+        // Mantém papel para DONO/SUPORTE
+        sessionManager.salvarPet(pet.getIdPet(), pet.getNome(), pet.getPapel());
 
-        if (AppDataCache.get().temTarefas(pet.getIdPet())) {
-            atualizarAgenda(AppDataCache.get().getTarefas(pet.getIdPet()));
-        }
         carregarTarefasDoPet(pet.getIdPet());
-        atualizarSaude(new ArrayList<>());
+        carregarVacinasDoPet(pet.getIdPet());
     }
 
-    // ==================== TAREFAS ====================
-
+    /** Tarefas só do pet selecionado (Home). */
     private void carregarTarefasDoPet(long petId) {
         if (sessionManager == null || petId <= 0) return;
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) return;
-
         Context ctx = getContext();
         if (ctx == null) return;
 
-        String url = ApiConfig.URL_TAREFAS_DO_PET + petId + "/tarefas";
+        if (AppDataCache.get().temTarefas(petId)) {
+            atualizarAgenda(AppDataCache.get().getTarefas(petId));
+        }
 
+        String url = ApiConfig.URL_TAREFAS_DO_PET + petId + "/tarefas";
         JsonArrayRequest request = new JsonArrayRequest(
-                Request.Method.GET,
-                url,
-                null,
+                Request.Method.GET, url, null,
                 response -> {
                     List<Tarefa> todas = new ArrayList<>();
                     for (int i = 0; i < response.length(); i++) {
                         try {
                             todas.add(Tarefa.fromJson(response.getJSONObject(i)));
                         } catch (Exception e) {
-                            Log.e(TAG, "parse tarefa " + i, e);
+                            Log.e(TAG, "parse tarefa", e);
                         }
                     }
                     AppDataCache.get().setTarefas(petId, todas);
-
-                    if (!podeAtualizarUi() || sessionManager == null) return;
-                    if (sessionManager.obterPetId() == petId) {
+                    if (podeAtualizarUi() && sessionManager.obterPetId() == petId) {
                         atualizarAgenda(todas);
                     }
                 },
-                error -> Log.e(TAG, "tarefas erro petId=" + petId, error)
+                error -> Log.e(TAG, "tarefas pet", error)
         ) {
             @Override
             public Map<String, String> getHeaders() {
@@ -322,61 +274,108 @@ public class HomeFragment extends Fragment {
                 return h;
             }
         };
-
         VolleySingleton.getInstance(ctx.getApplicationContext()).addToRequestQueue(request);
     }
 
     private void atualizarAgenda(List<Tarefa> tarefasDoPet) {
-        if (!podeAtualizarUi() || recyclerViewTarefas == null) return;
-
-        Context ctx = getContext();
-        if (ctx == null) return;
-
-        List<Tarefa> doDia = filtrarTarefasDeHojeNaoConcluidas(tarefasDoPet, MAX_TAREFAS_HOME);
-
+        if (!podeAtualizarUi()) return;
+        LocalDate hoje = LocalDate.now();
+        List<Tarefa> doDia = new ArrayList<>();
+        if (tarefasDoPet != null) {
+            doDia = tarefasDoPet.stream()
+                    .filter(t -> t != null && !t.isConcluida())
+                    .filter(t -> t.getData() == null || t.getData().equals(hoje))
+                    .sorted(Comparator.comparing(
+                            Tarefa::getHorario, Comparator.nullsLast(Comparator.naturalOrder())))
+                    .limit(MAX_TAREFAS_HOME)
+                    .collect(Collectors.toList());
+        }
         for (Tarefa t : doDia) {
             if (t.getImagemResId() == 0) {
                 t.setImagemResId(TarefaIconHelper.resolverIcone(t.getTitulo(), t.getDesc()));
             }
         }
+        tarefasHome.clear();
+        tarefasHome.addAll(doDia);
+        if (tarefaAdapter != null) tarefaAdapter.setItens(tarefasHome);
 
-        boolean vazio = doDia.isEmpty();
-        recyclerViewTarefas.setVisibility(vazio ? View.GONE : View.VISIBLE);
+        boolean vazio = tarefasHome.isEmpty();
+        if (recyclerViewTarefas != null) {
+            recyclerViewTarefas.setVisibility(vazio ? View.GONE : View.VISIBLE);
+        }
         if (txtSemTarefasHome != null) {
             txtSemTarefasHome.setVisibility(vazio ? View.VISIBLE : View.GONE);
         }
-
-        if (!vazio) {
-            TarefaAdapter adapter = new TarefaAdapter(ctx, doDia);
-            adapter.setOnTarefaClickListener((tarefa, position) -> { /* opcional */ });
-            recyclerViewTarefas.setAdapter(adapter);
-        } else {
-            recyclerViewTarefas.setAdapter(null);
-        }
     }
 
-    private List<Tarefa> filtrarTarefasDeHojeNaoConcluidas(List<Tarefa> origem, int limite) {
-        if (origem == null || origem.isEmpty()) return new ArrayList<>();
-
-        LocalDate hoje = LocalDate.now();
-
-        return origem.stream()
-                .filter(t -> t != null)
-                .filter(t -> !t.isConcluida())
-                .filter(t -> t.getData() != null && t.getData().equals(hoje))
-                .sorted(Comparator
-                        .comparing(Tarefa::getHorario, Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(Tarefa::getTitulo, Comparator.nullsLast(String::compareToIgnoreCase)))
-                .limit(limite)
-                .collect(Collectors.toList());
-    }
-
-    private void atualizarSaude(List<AlertaSaude> lista) {
-        if (!podeAtualizarUi() || recyclerViewTarefasAlertasSaude == null) return;
+    private void carregarVacinasDoPet(long petId) {
+        if (sessionManager == null || petId <= 0) return;
+        String token = sessionManager.obterToken();
+        if (token == null || token.isEmpty()) return;
         Context ctx = getContext();
         if (ctx == null) return;
 
-        List<AlertaSaude> dados = lista != null ? lista : new ArrayList<>();
-        recyclerViewTarefasAlertasSaude.setAdapter(new AlertaSaudeAdapter(ctx, dados));
+        if (AppDataCache.get().temVacinas(petId)) {
+            montarAlertas(AppDataCache.get().getVacinas(petId));
+        }
+
+        String url = ApiConfig.URL_VACINAS_DO_PET + petId + "/vacinas";
+        JsonArrayRequest request = new JsonArrayRequest(
+                Request.Method.GET, url, null,
+                response -> {
+                    List<Vacina> lista = new ArrayList<>();
+                    for (int i = 0; i < response.length(); i++) {
+                        try {
+                            lista.add(Vacina.fromJson(response.getJSONObject(i)));
+                        } catch (Exception e) {
+                            Log.e(TAG, "parse vacina", e);
+                        }
+                    }
+                    AppDataCache.get().setVacinas(petId, lista);
+                    if (podeAtualizarUi() && sessionManager.obterPetId() == petId) {
+                        montarAlertas(lista);
+                    }
+                },
+                error -> Log.e(TAG, "vacinas home", error)
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> h = new HashMap<>();
+                h.put("Authorization", "Bearer " + token);
+                return h;
+            }
+        };
+        VolleySingleton.getInstance(ctx.getApplicationContext()).addToRequestQueue(request);
+    }
+
+    private void montarAlertas(List<Vacina> vacinas) {
+        alertasHome.clear();
+        LocalDate hoje = LocalDate.now();
+        int icon = R.drawable.ic_vacina;
+
+        if (vacinas != null) {
+            for (Vacina v : vacinas) {
+                if (v == null) continue;
+                if (v.isPendenteOuAtrasada()) {
+                    alertasHome.add(new AlertaSaude(
+                            v.getNome(),
+                            "Vacina " + v.getStatusLabel().toLowerCase()
+                                    + " — prevista: " + v.getDataAplicacaoFormatada(),
+                            icon
+                    ));
+                } else if (v.getDataProximaDose() != null
+                        && !v.getDataProximaDose().isBefore(hoje)
+                        && !v.getDataProximaDose().isAfter(hoje.plusDays(30))) {
+                    alertasHome.add(new AlertaSaude(
+                            v.getNome(),
+                            "A data para renovar está próxima (" + v.getDataProximaDoseFormatada() + ").",
+                            icon
+                    ));
+                }
+            }
+        }
+        if (alertaAdapter != null) {
+            alertaAdapter.setItens(alertasHome);
+        }
     }
 }

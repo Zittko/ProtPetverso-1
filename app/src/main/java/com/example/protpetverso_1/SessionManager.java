@@ -8,7 +8,7 @@ import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 
 /**
- * Sessão do usuário + último pet.
+ * Sessão do usuário + último pet selecionado.
  * Se o Keystore falhar (VERIFICATION_FAILED), usa prefs normais.
  */
 public class SessionManager {
@@ -51,42 +51,61 @@ public class SessionManager {
                     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             );
         } catch (Exception e) {
-            Log.e(TAG, "EncryptedSharedPreferences falhou — usando fallback. Limpe os dados do app se o login falhar.", e);
-            // Evita crash por Keystore VERIFICATION_FAILED
+            Log.e(TAG, "EncryptedSharedPreferences falhou — usando fallback.", e);
             p = context.getApplicationContext()
                     .getSharedPreferences(PREF_NAME_FALLBACK, Context.MODE_PRIVATE);
         }
         this.prefs = p;
     }
 
-    public void salvarSessao(String token, long idUsuario, String nome, String email) {
+    // ==================== USUÁRIO ====================
+
+    /** Login: salvarSessao(token, userId, nome, email) */
+    public void salvarSessao(String token, long userId, String nome, String email) {
         prefs.edit()
                 .putString(KEY_TOKEN, token)
-                .putLong(KEY_USER_ID, idUsuario)
-                .putString(KEY_USER_NAME, nome)
-                .putString(KEY_USER_EMAIL, email)
+                .putLong(KEY_USER_ID, userId)
+                .putString(KEY_USER_NAME, nome != null ? nome : "")
+                .putString(KEY_USER_EMAIL, email != null ? email : "")
+                .apply();
+    }
+
+    /** Alias de salvarSessao. */
+    public void salvarLogin(String token, long userId, String nome, String email) {
+        salvarSessao(token, userId, nome, email);
+    }
+
+    public void salvarPerfil(String nome, String email, String apelido, String telefone) {
+        prefs.edit()
+                .putString(KEY_USER_NAME, nome != null ? nome : "")
+                .putString(KEY_USER_EMAIL, email != null ? email : "")
+                .putString(KEY_APELIDO, apelido != null ? apelido : "")
+                .putString(KEY_TELEFONE, telefone != null ? telefone : "")
+                .apply();
+    }
+
+    public void salvarTelefone(String telefone) {
+        prefs.edit()
+                .putString(KEY_TELEFONE, telefone != null ? telefone : "")
                 .apply();
     }
 
     public void salvarApelido(String apelido) {
-        prefs.edit().putString(KEY_APELIDO, apelido).apply();
+        prefs.edit()
+                .putString(KEY_APELIDO, apelido != null ? apelido : "")
+                .apply();
     }
 
-    public void salvarTelefone(String telefone) {
-        prefs.edit().putString(KEY_TELEFONE, telefone).apply();
+    public void salvarNome(String nome) {
+        prefs.edit()
+                .putString(KEY_USER_NAME, nome != null ? nome : "")
+                .apply();
     }
 
-    public void salvarPetPapel(String papel) {
-        prefs.edit().putString(KEY_PET_PAPEL, papel != null ? papel : "").apply();
-    }
-
-    public String obterPetPapel() {
-        return prefs.getString(KEY_PET_PAPEL, "DONO");
-    }
-
-    public boolean obterPetEhDono() {
-        String p = obterPetPapel();
-        return p == null || p.isEmpty() || p.equalsIgnoreCase("DONO");
+    public void salvarEmail(String email) {
+        prefs.edit()
+                .putString(KEY_USER_EMAIL, email != null ? email : "")
+                .apply();
     }
 
     public String obterToken() {
@@ -118,17 +137,38 @@ public class SessionManager {
         return token != null && !token.isEmpty();
     }
 
+    // ==================== PET ====================
+
+    /** Home / Vacinas / Agenda: salvarPet(idPet, nome, papel) */
+    public void salvarPet(long idPet, String nome, String papel) {
+        prefs.edit()
+                .putLong(KEY_PET_ID, idPet)
+                .putString(KEY_PET_NOME, nome != null ? nome : "")
+                .putString(KEY_PET_PAPEL, papel != null ? papel : "")
+                .apply();
+    }
+
+    /**
+     * Versão completa (perfil do pet).
+     * Não altera o papel; use salvarPet(id, nome, papel) ou salvarPetPapel.
+     */
     public void salvarPet(long id, String nome, String raca, String especie,
                           String peso, String sexo, String porte, String dataNascimento) {
         prefs.edit()
                 .putLong(KEY_PET_ID, id)
-                .putString(KEY_PET_NOME, nome)
-                .putString(KEY_PET_RACA, raca)
-                .putString(KEY_PET_ESPECIE, especie)
-                .putString(KEY_PET_PESO, peso)
-                .putString(KEY_PET_SEXO, sexo)
-                .putString(KEY_PET_PORTE, porte)
-                .putString(KEY_PET_DATA, dataNascimento)
+                .putString(KEY_PET_NOME, nome != null ? nome : "")
+                .putString(KEY_PET_RACA, raca != null ? raca : "")
+                .putString(KEY_PET_ESPECIE, especie != null ? especie : "")
+                .putString(KEY_PET_PESO, peso != null ? peso : "")
+                .putString(KEY_PET_SEXO, sexo != null ? sexo : "")
+                .putString(KEY_PET_PORTE, porte != null ? porte : "")
+                .putString(KEY_PET_DATA, dataNascimento != null ? dataNascimento : "")
+                .apply();
+    }
+
+    public void salvarPetPapel(String papel) {
+        prefs.edit()
+                .putString(KEY_PET_PAPEL, papel != null ? papel : "")
                 .apply();
     }
 
@@ -164,9 +204,24 @@ public class SessionManager {
         return prefs.getString(KEY_PET_DATA, "");
     }
 
+    public String obterPetPapel() {
+        return prefs.getString(KEY_PET_PAPEL, "DONO");
+    }
+
+    public boolean obterPetEhDono() {
+        String p = obterPetPapel();
+        return p == null || p.isEmpty() || p.equalsIgnoreCase("DONO");
+    }
+
+    public boolean isDonoDoPetSelecionado() {
+        return obterPetEhDono();
+    }
+
     public boolean temPetSalvo() {
         return obterPetId() > 0 || !obterPetNome().isEmpty();
     }
+
+    // ==================== SESSÃO ====================
 
     public void limparSessao() {
         prefs.edit().clear().apply();
