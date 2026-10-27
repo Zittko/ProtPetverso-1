@@ -13,14 +13,15 @@
         android:layout_height="?attr/actionBarSize"
         android:background="#F08C4B"
         app:navigationIcon="@drawable/baseline_arrow_back"
-        app:navigationIconTint="#FFFFFF"
+        app:navigationIconTint="#000000"
         app:title="Cadastrar Imunidade"
-        app:titleTextColor="#FFFFFF" />
+        app:titleTextColor="#000000" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:clipToPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -60,10 +61,11 @@
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edtDataAplicacao"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp"
+                android:minWidth="140dp"
                 android:background="@drawable/bg_campo_branco"
                 android:clickable="true"
                 android:focusable="false"
@@ -81,17 +83,27 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <Spinner
-                android:id="@+id/spDosagemUnica"
-                android:layout_width="match_parent"
+            <!-- Mesmo tamanho wrap_content x 48dp; FrameLayout só segura o fundo -->
+            <FrameLayout
+                android:layout_width="wrap_content"
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp"
-                android:background="@drawable/bg_spinner_vacina"
-                android:popupBackground="#FFFFFF"
-                android:spinnerMode="dropdown" />
+                android:minWidth="120dp"
+                android:background="@drawable/bg_spinner_vacina">
 
-            <!-- Sempre no cadastro; na edição só se Pendente/Atrasada -->
+                <Spinner
+                    android:id="@+id/spDosagemUnica"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:minWidth="120dp"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:popupBackground="#FFFFFF"
+                    android:spinnerMode="dropdown" />
+            </FrameLayout>
+
             <LinearLayout
                 android:id="@+id/boxJaAplicada"
                 android:layout_width="match_parent"
@@ -102,9 +114,9 @@
                 android:visibility="visible">
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_marginEnd="15dp"
                     android:text="Já foi aplicada?"
                     android:textColor="#000000"
                     android:textSize="16sp"
@@ -153,31 +165,42 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:gravity="center_vertical"
+                    android:layout_gravity="center_horizontal"
                     android:orientation="horizontal">
 
+                    <!-- Tamanhos originais mantidos: 70dp e 100dp -->
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtIntervaloQtd"
-                        android:layout_width="0dp"
+                        android:layout_width="70dp"
                         android:layout_height="48dp"
                         android:layout_marginEnd="10dp"
-                        android:layout_weight="1"
                         android:background="@drawable/bg_campo_branco"
                         android:hint="Qtd"
                         android:inputType="number"
-                        android:paddingHorizontal="14dp"
+                        android:paddingHorizontal="8dp"
+                        android:gravity="center"
                         android:textColor="#000000"
                         android:textColorHint="#AAAAAA"
                         android:textSize="14sp" />
 
-                    <Spinner
-                        android:id="@+id/spIntervaloUnidade"
-                        android:layout_width="0dp"
+                    <FrameLayout
+                        android:layout_width="100dp"
                         android:layout_height="48dp"
-                        android:layout_weight="1.2"
+                        android:layout_marginStart="10dp"
                         android:background="@drawable/bg_spinner_vacina"
-                        android:popupBackground="#FFFFFF"
-                        android:spinnerMode="dropdown" />
+                        android:clipChildren="true"
+                        android:clipToPadding="true">
+
+                        <Spinner
+                            android:id="@+id/spIntervaloUnidade"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:background="@android:color/transparent"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="28dp"
+                            android:popupBackground="#FFFFFF"
+                            android:spinnerMode="dropdown" />
+                    </FrameLayout>
                 </LinearLayout>
             </LinearLayout>
 
@@ -214,7 +237,7 @@
                 android:paddingHorizontal="28dp"
                 android:text="Confirmar"
                 android:textAllCaps="false"
-                android:textColor="#FFFFFF"
+                android:textColor="#000000"
                 android:textSize="15sp"
                 app:backgroundTint="#DF945D"
                 app:cornerRadius="24dp" />

@@ -26,6 +26,7 @@ import com.example.protpetverso_1.ApiConfig;
 import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.data.AppDataCache;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -351,12 +352,25 @@ public class AgendaFragment extends Fragment {
      * GET /api/tarefas?data=yyyy-MM-dd
      * Retorna tarefas de todos os pets com vínculo ACEITO no dia escolhido.
      */
+
+    /**
+     * GET /api/tarefas?data=yyyy-MM-dd
+     * Retorna tarefas de todos os pets com vínculo ACEITO no dia escolhido.
+     */
     private void carregarTarefasDoDia() {
         if (!podeAtualizarUi()) return;
 
+        // Cache-first (disco/memória)
+        if (AppDataCache.get().temTarefasDoDia(diaSelecionado)) {
+            List<Tarefa> cached = AppDataCache.get().getTarefasDoDia(diaSelecionado);
+            aplicarListaTarefasDoDia(cached);
+        }
+
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
-            atualizarListaVazia("Faça login para ver as tarefas.");
+            if (!AppDataCache.get().temTarefasDoDia(diaSelecionado)) {
+                atualizarListaVazia("Faça login para ver as tarefas.");
+            }
             return;
         }
 
@@ -381,38 +395,20 @@ public class AgendaFragment extends Fragment {
                     }
                     if (!podeAtualizarUi()) return;
 
-                    tarefasDoDia.clear();
-                    tarefasDoDia.addAll(lista);
-                    listaTarefasExibidas.clear();
-                    listaTarefasExibidas.addAll(lista);
-
-                    if (tarefaAdapter != null) {
-                        tarefaAdapter.setItens(listaTarefasExibidas);
-                    }
-
-                    boolean vazio = lista.isEmpty();
-                    if (recyclerTarefas != null) {
-                        recyclerTarefas.setVisibility(vazio ? View.GONE : View.VISIBLE);
-                    }
-                    if (txtSemTarefas != null) {
-                        txtSemTarefas.setVisibility(vazio ? View.VISIBLE : View.GONE);
-                        if (vazio) {
-                            txtSemTarefas.setText(
-                                    "Nenhuma tarefa neste dia.\nToque no + para criar uma nova.");
-                        }
-                    }
-                    if (txtTituloLista != null) {
-                        txtTituloLista.setText("Tarefas do Dia");
-                    }
+                    AppDataCache.get().setTarefasDoDia(diaSelecionado, lista);
+                    aplicarListaTarefasDoDia(lista);
                 },
                 error -> {
                     Log.e(TAG, "GET tarefas por dia", error);
                     if (podeAtualizarUi()) {
-                        String msg = "Erro ao carregar tarefas.";
-                        if (error.networkResponse != null) {
-                            msg += " (" + error.networkResponse.statusCode + ")";
+                        // Mantém cache se a rede falhar
+                        if (!AppDataCache.get().temTarefasDoDia(diaSelecionado)) {
+                            String msg = "Erro ao carregar tarefas.";
+                            if (error.networkResponse != null) {
+                                msg += " (" + error.networkResponse.statusCode + ")";
+                            }
+                            Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
                         }
-                        Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
                     }
                 }
         ) {
@@ -425,6 +421,31 @@ public class AgendaFragment extends Fragment {
         };
 
         VolleySingleton.getInstance(ctx.getApplicationContext()).addToRequestQueue(request);
+    }
+
+    private void aplicarListaTarefasDoDia(List<Tarefa> lista) {
+        if (lista == null) lista = new ArrayList<>();
+        tarefasDoDia.clear();
+        tarefasDoDia.addAll(lista);
+        listaTarefasExibidas.clear();
+        listaTarefasExibidas.addAll(lista);
+        if (tarefaAdapter != null) {
+            tarefaAdapter.setItens(listaTarefasExibidas);
+        }
+        boolean vazio = lista.isEmpty();
+        if (recyclerTarefas != null) {
+            recyclerTarefas.setVisibility(vazio ? View.GONE : View.VISIBLE);
+        }
+        if (txtSemTarefas != null) {
+            txtSemTarefas.setVisibility(vazio ? View.VISIBLE : View.GONE);
+            if (vazio) {
+                txtSemTarefas.setText(
+                        "Nenhuma tarefa neste dia.\nToque no + para criar uma nova.");
+            }
+        }
+        if (txtTituloLista != null) {
+            txtTituloLista.setText("Tarefas do Dia");
+        }
     }
 
     private void atualizarListaVazia(String mensagem) {

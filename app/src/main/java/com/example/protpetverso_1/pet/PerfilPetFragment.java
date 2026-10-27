@@ -34,6 +34,7 @@ import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.UCropHelper;
 import com.example.protpetverso_1.VolleySingleton;
 import com.example.protpetverso_1.data.AppDataCache;
+import com.example.protpetverso_1.data.PhotoDiskCache;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.yalantis.ucrop.UCrop;
@@ -49,8 +50,7 @@ import java.util.Map;
 /**
  * Perfil do Pet — GET /api/pets/{id}/perfil
  *
- * Fluxo de dados:
- * 1) Cache (AppDataCache) → UI na hora, se já existir
+ * 1) Cache (AppDataCache / disco) → UI
  * 2) GET em background → atualiza cache + UI
  *
  * Foto: galeria → uCrop 1:1 → PUT /api/pets/{id}/foto
@@ -145,10 +145,6 @@ public class PerfilPetFragment extends Fragment {
         atualizarTituloToolbar("Perfil do Pet");
     }
 
-    /**
-     * 1) Cache → UI imediata
-     * 2) GET → atualiza cache + UI
-     */
     private void carregarPerfil(long idPet) {
         if (AppDataCache.get().temPerfilPet(idPet)) {
             Log.d(TAG, "Aplicando cache do pet " + idPet);
@@ -204,6 +200,7 @@ public class PerfilPetFragment extends Fragment {
     // ==================== UCROP ====================
 
     private void iniciarRecorte(Uri origem) {
+        // Se no seu projeto o método for buildCropIntent, troque aqui.
         Intent intent = UCropHelper.criarIntentRecorte(
                 requireContext(),
                 origem,
@@ -274,7 +271,6 @@ public class PerfilPetFragment extends Fragment {
 
                         Toast.makeText(requireContext(), "Foto salva!", Toast.LENGTH_SHORT).show();
 
-                        // Atualiza cache do perfil com a nova foto
                         JSONObject cached = AppDataCache.get().getPerfilPet(petId);
                         try {
                             if (cached == null) cached = new JSONObject();
@@ -289,6 +285,7 @@ public class PerfilPetFragment extends Fragment {
                             }
                             cached.put("fotoPetBase64", fotoVolta);
                             AppDataCache.get().setPerfilPet(petId, cached);
+                            PhotoDiskCache.salvarFotoPet(requireContext(), petId, fotoVolta);
 
                             if (imgFotoPet != null) {
                                 mostrarFotoBase64(fotoVolta, imgFotoPet);
@@ -361,7 +358,6 @@ public class PerfilPetFragment extends Fragment {
                 url,
                 null,
                 response -> {
-                    // Sempre grava no cache
                     AppDataCache.get().setPerfilPet(idPet, response);
                     Log.d(TAG, "GET ok — cache atualizado pet " + idPet);
 
@@ -372,7 +368,6 @@ public class PerfilPetFragment extends Fragment {
                     Log.e(TAG, "GET erro pet " + idPet, error);
                     if (!podeAtualizarUi()) return;
 
-                    // Se já mostrou cache, não troca por local vazio
                     if (AppDataCache.get().temPerfilPet(idPet)) {
                         return;
                     }
@@ -400,7 +395,6 @@ public class PerfilPetFragment extends Fragment {
         }
     }
 
-    /** Preenche a tela a partir do JSON (cache ou API). */
     private void aplicarJsonNoPerfil(JSONObject response) {
         if (response == null || !podeAtualizarUi()) return;
 
@@ -448,7 +442,6 @@ public class PerfilPetFragment extends Fragment {
                 ? "Código do Pet: —"
                 : "Código do Pet: " + codigoVinculoAtual;
 
-        // Textos — não força drawable se já houver foto na tela vindas do cache
         if (txtNomePet != null) txtNomePet.setText(nome);
         if (txtRacaPeso != null) txtRacaPeso.setText(racaPeso);
         if (txtEspecie != null) txtEspecie.setText(especie);
@@ -459,12 +452,26 @@ public class PerfilPetFragment extends Fragment {
         if (txtPersonalidade != null) txtPersonalidade.setText(personalidade);
         if (txtSensibilidades != null) txtSensibilidades.setText(sensibilidades);
 
-        String fotoBase64 = response.optString("fotoPetBase64", "");
-        if (fotoBase64.isEmpty()) {
-            fotoBase64 = response.optString("fotoBase64", "");
+        // Disco primeiro, depois base64
+        String fotoPath = response.optString("fotoPath", "");
+        if ((fotoPath == null || fotoPath.isEmpty()) && petId > 0) {
+            java.io.File f = PhotoDiskCache.arquivoPet(requireContext(), petId);
+            if (f.isFile() && f.length() > 0) {
+                fotoPath = f.getAbsolutePath();
+            }
         }
-        if (!fotoBase64.isEmpty() && imgFotoPet != null) {
-            mostrarFotoBase64(fotoBase64, imgFotoPet);
+        Bitmap bmpDisk = PhotoDiskCache.carregarBitmap(fotoPath);
+        if (bmpDisk != null && imgFotoPet != null) {
+            imgFotoPet.setImageBitmap(bmpDisk);
+            imgFotoPet.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        } else {
+            String fotoBase64 = response.optString("fotoPetBase64", "");
+            if (fotoBase64.isEmpty()) {
+                fotoBase64 = response.optString("fotoBase64", "");
+            }
+            if (!fotoBase64.isEmpty() && imgFotoPet != null) {
+                mostrarFotoBase64(fotoBase64, imgFotoPet);
+            }
         }
     }
 

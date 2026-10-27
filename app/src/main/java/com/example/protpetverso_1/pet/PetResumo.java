@@ -1,26 +1,26 @@
 package com.example.protpetverso_1.pet;
 
-/**
- * GET /api/pets/meusPets
- * Campos: idPet/id, nome, papel, fotoPetBase64
- */
 public class PetResumo {
 
     private final long idPet;
     private final String nome;
     private final String papel;
     private final String fotoPetBase64;
+    private final String fotoPath;
 
     public PetResumo(long idPet, String nome, String papel, String fotoPetBase64) {
+        this(idPet, nome, papel, fotoPetBase64, null);
+    }
+
+    public PetResumo(long idPet, String nome, String papel, String fotoPetBase64, String fotoPath) {
         this.idPet = idPet;
         this.nome = nome;
         this.papel = papel;
         this.fotoPetBase64 = fotoPetBase64;
+        this.fotoPath = fotoPath;
     }
 
-    public long getIdPet() {
-        return idPet;
-    }
+    public long getIdPet() { return idPet; }
 
     public String getNome() {
         return nome != null ? nome : "Pet";
@@ -32,6 +32,10 @@ public class PetResumo {
 
     public String getFotoPetBase64() {
         return fotoPetBase64;
+    }
+
+    public String getFotoPath() {
+        return fotoPath;
     }
 
     public String getPapelLabel() {
@@ -46,6 +50,7 @@ public class PetResumo {
     }
 
     public boolean hasFoto() {
-        return fotoPetBase64 != null && !fotoPetBase64.trim().isEmpty();
+        return (fotoPath != null && !fotoPath.trim().isEmpty())
+                || (fotoPetBase64 != null && !fotoPetBase64.trim().isEmpty());
     }
 }

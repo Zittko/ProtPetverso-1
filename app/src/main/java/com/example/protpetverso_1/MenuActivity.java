@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -33,10 +32,9 @@ import com.google.android.material.navigation.NavigationView;
 
 /**
  * Tela principal após o login.
- * Toolbar + Drawer + BottomNavigation + troca de Fragments.
- * <p>
- * Ao abrir: DataPreloader.preloadTudo() enche o AppDataCache
- * (usuário, meusPets, perfil do pet selecionado, tarefas).
+ * 1) Garante cache disco → memória (offline / abertura rápida)
+ * 2) Abre Home (pode pintar com cache)
+ * 3) DataPreloader atualiza pela API em segundo plano
  */
 public class MenuActivity extends AppCompatActivity {
 
@@ -49,6 +47,18 @@ public class MenuActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.menu_layout);
 
+        // Cache persistente → memória (antes dos fragments)
+        AppDataCache.get().init(this);
+        AppDataCache.get().carregarDoDisco();
+
+        // Sem sessão válida → login
+        SessionManager session = new SessionManager(this);
+        if (!session.isLogado()) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
         toolbar = findViewById(R.id.toolbarMenu);
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavbar);
         drawerLayout = findViewById(R.id.drawerLayout);
@@ -56,10 +66,8 @@ public class MenuActivity extends AppCompatActivity {
 
         final int preto = Color.parseColor("#000000");
 
-        // Título da toolbar em preto
         if (toolbar != null) {
             toolbar.setTitleTextColor(preto);
-
             ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
                 v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
@@ -75,7 +83,6 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
-        // Drawer + ícone hambúrguer preto
         if (drawerLayout != null && toolbar != null) {
             ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                     this, drawerLayout, toolbar,
@@ -84,7 +91,6 @@ public class MenuActivity extends AppCompatActivity {
             drawerLayout.addDrawerListener(toggle);
             toggle.syncState();
 
-            // Pinta o hambúrguer padrão do toggle (evita cinza)
             DrawerArrowDrawable seta = toggle.getDrawerArrowDrawable();
             seta.setColor(preto);
             toolbar.setNavigationIcon(seta);
@@ -98,7 +104,6 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
-        // Menu lateral: textos e ícones pretos + listener
         if (navigationView != null) {
             ColorStateList pretoCsl = ColorStateList.valueOf(preto);
             navigationView.setItemIconTintList(pretoCsl);
@@ -137,7 +142,7 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
-        // Fragment inicial
+        // Fragment inicial: Home (pode usar cache do disco imediatamente)
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
@@ -148,7 +153,6 @@ public class MenuActivity extends AppCompatActivity {
             }
         }
 
-        // Bottom navigation
         if (bottomNav != null) {
             bottomNav.setOnItemSelectedListener(item -> {
                 Fragment selectedFragment = null;
@@ -163,13 +167,10 @@ public class MenuActivity extends AppCompatActivity {
                     titulo = "Agenda";
                 } else if (itemId == R.id.menuForyou) {
                     selectedFragment = new VacinaFragment();
-                    titulo = "Vacinas";
+                    titulo = "Vacinas e Imunização";
                 } else if (itemId == R.id.menuTrending) {
                     selectedFragment = new PetsFragment();
                     titulo = "Pets";
-                } else if (itemId == R.id.menuForyou) {
-                    selectedFragment = new VacinaFragment();
-                    titulo = "Vacinas e Imunização";
                 }
 
                 if (selectedFragment != null) {
@@ -186,7 +187,7 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
-        // Pré-carrega API no cache
+        // Atualiza cache pela API (rede); não bloqueia a UI
         DataPreloader.preloadTudo(this);
     }
 
@@ -207,7 +208,9 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     private void fazerLogout() {
-        AppDataCache.get().limparTudo();
+        // true = apaga também fotos em getCacheDir()/petverso_photos
+        AppDataCache.get().limparTudo(true);
+
         SessionManager sm = new SessionManager(this);
         sm.limparSessao();
 

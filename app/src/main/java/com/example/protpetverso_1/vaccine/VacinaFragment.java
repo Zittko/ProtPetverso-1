@@ -26,9 +26,6 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import org.json.JSONObject;
-
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -36,19 +33,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Lista de vacinas do pet selecionado.
- * GET /api/pets/{id}/vacinas
- * Abas: Histórico (todas) | Próximas (com dataProximaDose futura ou pendente)
- * Cadastro/edição: só tutor DONO.
- */
 public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
 
     private static final String TAG = "VACINA";
 
     private SessionManager sessionManager;
     private long petId = -1;
-    private boolean isDono = true; // default; ideal gravar papel no SessionManager
+    private boolean isDono = true;
 
     private RecyclerView recyclerVacinas;
     private TextView txtSemVacinas;
@@ -57,7 +48,6 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
     private VacinaAdapter adapter;
 
     private final List<Vacina> todasVacinas = new ArrayList<>();
-    /** true = Histórico, false = Próximas */
     private boolean abaHistorico = true;
 
     public VacinaFragment() {}
@@ -77,9 +67,7 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
 
         sessionManager = new SessionManager(requireContext());
         petId = sessionManager.obterPetId();
-        // Se você guardar papel no SessionManager:
-        // isDono = sessionManager.obterPetPapel().equalsIgnoreCase("DONO");
-        isDono = sessionManager.obterPetEhDono(); // veja seção SessionManager abaixo
+        isDono = sessionManager.isDonoDoPetSelecionado();
 
         atualizarTituloToolbar("Vacinas e Imunização");
 
@@ -131,45 +119,35 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
     @Override
     public void onResume() {
         super.onResume();
-        atualizarTituloToolbar("Vacinas e Imunização");
-        long idAtual = sessionManager != null ? sessionManager.obterPetId() : -1;
-        if (idAtual > 0 && idAtual != petId) {
-            petId = idAtual;
-            isDono = sessionManager.obterPetEhDono();
+        if (sessionManager == null) return;
+        long atual = sessionManager.obterPetId();
+        if (atual > 0 && atual != petId) {
+            petId = atual;
+            isDono = sessionManager.isDonoDoPetSelecionado();
             if (fabNovaVacina != null) {
                 fabNovaVacina.setVisibility(isDono ? View.VISIBLE : View.GONE);
             }
         }
-        if (petId > 0) {
-            carregarVacinasDaApi();
+        if (petId > 0 && AppDataCache.get().temVacinas(petId)) {
+            todasVacinas.clear();
+            todasVacinas.addAll(AppDataCache.get().getVacinas(petId));
+            filtrarEExibir();
         }
+        carregarVacinasDaApi();
     }
 
     private void atualizarEstiloAbas() {
-        if (btnAbaHistorico == null || btnAbaProximas == null) return;
-        if (abaHistorico) {
-            btnAbaHistorico.setBackgroundTintList(
-                    android.content.res.ColorStateList.valueOf(
-                            android.graphics.Color.parseColor("#DF945D")));
-            btnAbaProximas.setBackgroundTintList(
-                    android.content.res.ColorStateList.valueOf(
-                            android.graphics.Color.parseColor("#F7D4A0")));
-        } else {
-            btnAbaProximas.setBackgroundTintList(
-                    android.content.res.ColorStateList.valueOf(
-                            android.graphics.Color.parseColor("#DF945D")));
-            btnAbaHistorico.setBackgroundTintList(
-                    android.content.res.ColorStateList.valueOf(
-                            android.graphics.Color.parseColor("#F7D4A0")));
-        }
+        if (btnAbaHistorico != null) btnAbaHistorico.setAlpha(abaHistorico ? 1f : 0.55f);
+        if (btnAbaProximas != null) btnAbaProximas.setAlpha(abaHistorico ? 0.55f : 1f);
     }
 
     private void carregarVacinasDaApi() {
-        if (sessionManager == null || petId <= 0) {
+        if (petId <= 0) {
             if (txtSemVacinas != null) {
                 txtSemVacinas.setText("Selecione um pet para ver as vacinas.");
                 txtSemVacinas.setVisibility(View.VISIBLE);
             }
+            if (recyclerVacinas != null) recyclerVacinas.setVisibility(View.GONE);
             return;
         }
 
@@ -177,29 +155,25 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
         if (token == null || token.isEmpty()) return;
 
         String url = ApiConfig.URL_VACINAS_DO_PET + petId + "/vacinas";
-
         JsonArrayRequest request = new JsonArrayRequest(
-                Request.Method.GET,
-                url,
-                null,
+                Request.Method.GET, url, null,
                 response -> {
                     List<Vacina> lista = new ArrayList<>();
                     for (int i = 0; i < response.length(); i++) {
                         try {
                             lista.add(Vacina.fromJson(response.getJSONObject(i)));
                         } catch (Exception e) {
-                            Log.e(TAG, "parse vacina " + i, e);
+                            Log.e(TAG, "parse vacina", e);
                         }
                     }
                     AppDataCache.get().setVacinas(petId, lista);
-
                     if (!podeAtualizarUi()) return;
                     todasVacinas.clear();
                     todasVacinas.addAll(lista);
                     filtrarEExibir();
                 },
                 error -> {
-                    Log.e(TAG, "Erro ao listar vacinas", error);
+                    Log.e(TAG, "listar vacinas", error);
                     if (!podeAtualizarUi()) return;
                     if (todasVacinas.isEmpty()) {
                         Toast.makeText(requireContext(), "Erro ao carregar vacinas.", Toast.LENGTH_SHORT).show();
@@ -213,31 +187,23 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
                 return h;
             }
         };
-
-        VolleySingleton.getInstance(requireContext().getApplicationContext())
-                .addToRequestQueue(request);
+        VolleySingleton.getInstance(requireContext().getApplicationContext()).addToRequestQueue(request);
     }
 
     private void filtrarEExibir() {
         List<Vacina> exibir;
         if (abaHistorico) {
             exibir = new ArrayList<>(todasVacinas);
-            // API já ordena por dataAplicacao desc
         } else {
-            // Próximas: tem dataProximaDose (futuras primeiro, depois vencidas)
-            LocalDate hoje = LocalDate.now();
             exibir = todasVacinas.stream()
                     .filter(v -> v.getDataProximaDose() != null)
                     .sorted(Comparator.comparing(Vacina::getDataProximaDose,
                             Comparator.nullsLast(Comparator.naturalOrder())))
                     .collect(Collectors.toList());
         }
-
-        adapter.setItens(exibir);
+        if (adapter != null) adapter.setItens(exibir);
         boolean vazio = exibir.isEmpty();
-        if (recyclerVacinas != null) {
-            recyclerVacinas.setVisibility(vazio ? View.GONE : View.VISIBLE);
-        }
+        if (recyclerVacinas != null) recyclerVacinas.setVisibility(vazio ? View.GONE : View.VISIBLE);
         if (txtSemVacinas != null) {
             txtSemVacinas.setVisibility(vazio ? View.VISIBLE : View.GONE);
             txtSemVacinas.setText(abaHistorico
@@ -250,8 +216,12 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
     public void onVacinaClick(Vacina vacina) {
         if (!isDono) {
             Toast.makeText(requireContext(),
-                    "Apenas o tutor principal pode editar vacinas.",
-                    Toast.LENGTH_SHORT).show();
+                    "Apenas o tutor principal pode editar vacinas.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (vacina == null || vacina.getIdVacina() <= 0) {
+            Toast.makeText(requireContext(),
+                    "Não foi possível identificar a vacina para edição.", Toast.LENGTH_SHORT).show();
             return;
         }
         abrirCadastro(vacina);
@@ -259,25 +229,41 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
 
     private void abrirCadastro(@Nullable Vacina editar) {
         Intent i = new Intent(requireContext(), CadastrarVacinaActivity.class);
-        i.putExtra("PET_ID", petId);
+        i.putExtra(CadastrarVacinaActivity.EXTRA_PET_ID, petId);
+
         if (editar != null && editar.getIdVacina() > 0) {
+            i.putExtra(CadastrarVacinaActivity.EXTRA_MODO_EDICAO, true);
+            // Chave oficial
+            i.putExtra(CadastrarVacinaActivity.EXTRA_ID_VACINA, editar.getIdVacina());
+            // Compatibilidade com código antigo da Cadu
             i.putExtra("VACINA_ID", editar.getIdVacina());
-            i.putExtra("NOME", editar.getNome());
+
+            i.putExtra(CadastrarVacinaActivity.EXTRA_NOME, editar.getNome());
             if (editar.getDataAplicacao() != null) {
-                i.putExtra("DATA_APLICACAO", editar.getDataAplicacao().toString());
+                i.putExtra(CadastrarVacinaActivity.EXTRA_DATA, editar.getDataAplicacao().toString());
             }
             if (editar.getDataProximaDose() != null) {
-                i.putExtra("DATA_PROXIMA", editar.getDataProximaDose().toString());
+                i.putExtra(CadastrarVacinaActivity.EXTRA_DATA_PROXIMA, editar.getDataProximaDose().toString());
             }
-            i.putExtra("OBSERVACAO", editar.getObservacao());
+            i.putExtra(CadastrarVacinaActivity.EXTRA_OBS, editar.getObservacao());
+            i.putExtra(CadastrarVacinaActivity.EXTRA_DOSE_UNICA, editar.isDosagemUnica());
+            if (editar.getIntervaloQuantidade() != null) {
+                i.putExtra(CadastrarVacinaActivity.EXTRA_INTERVALO_QTD, editar.getIntervaloQuantidade());
+            }
+            if (editar.getIntervaloUnidade() != null) {
+                i.putExtra(CadastrarVacinaActivity.EXTRA_INTERVALO_UN, editar.getIntervaloUnidade());
+            }
+            i.putExtra(CadastrarVacinaActivity.EXTRA_STATUS, editar.getStatusVacina());
+            i.putExtra(CadastrarVacinaActivity.EXTRA_PRECISA_CONFIRMAR, editar.isPendenteOuAtrasada());
+        } else {
+            i.putExtra(CadastrarVacinaActivity.EXTRA_MODO_EDICAO, false);
         }
         startActivity(i);
     }
 
     private void atualizarTituloToolbar(String titulo) {
-        if (getActivity() != null) {
-            MaterialToolbar toolbar = getActivity().findViewById(R.id.toolbarMenu);
-            if (toolbar != null) toolbar.setTitle(titulo);
-        }
+        if (getActivity() == null) return;
+        MaterialToolbar toolbar = getActivity().findViewById(R.id.toolbarMenu);
+        if (toolbar != null) toolbar.setTitle(titulo);
     }
 }
