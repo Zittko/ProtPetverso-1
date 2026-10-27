@@ -2,11 +2,17 @@ package com.example.protpetverso_1.schedule;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -44,7 +50,12 @@ public class CriarTarefaActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_criar_tarefa);
+
+        getWindow().setStatusBarColor(Color.parseColor("#F08C4B"));
+        new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView())
+                .setAppearanceLightStatusBars(true);
 
         sessionManager = new SessionManager(this);
 
@@ -52,7 +63,6 @@ public class CriarTarefaActivity extends AppCompatActivity {
         idTarefa = getIntent().getLongExtra("ID_TAREFA", -1);
         petId = getIntent().getLongExtra("PET_ID", sessionManager.obterPetId());
 
-        // Prefill
         String tituloExtra = getIntent().getStringExtra("TITULO");
         String descExtra = getIntent().getStringExtra("DESCRICAO");
         String dataExtra = getIntent().getStringExtra("DATA");
@@ -73,7 +83,14 @@ public class CriarTarefaActivity extends AppCompatActivity {
 
         MaterialToolbar toolbar = findViewById(R.id.toolbarCriarTarefa);
         if (toolbar != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
+                Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(bars.left, bars.top, bars.right, 0);
+                return insets;
+            });
             toolbar.setTitle(modoEdicao ? "Editar tarefa" : "Nova tarefa");
+            toolbar.setTitleTextColor(Color.parseColor("#000000"));
+            toolbar.setNavigationIconTint(Color.parseColor("#000000"));
             toolbar.setNavigationOnClickListener(v -> finish());
         }
 
@@ -191,7 +208,6 @@ public class CriarTarefaActivity extends AppCompatActivity {
 
             int method;
             String url;
-
             if (modoEdicao && idTarefa > 0) {
                 method = Request.Method.PUT;
                 url = ApiConfig.URL_ATUALIZAR_TAREFA + idTarefa;
@@ -203,9 +219,7 @@ public class CriarTarefaActivity extends AppCompatActivity {
             Log.d(TAG, (modoEdicao ? "PUT " : "POST ") + url + " body=" + body);
 
             JsonObjectRequest request = new JsonObjectRequest(
-                    method,
-                    url,
-                    body,
+                    method, url, body,
                     response -> {
                         Toast.makeText(this,
                                 modoEdicao ? "Tarefa atualizada!" : "Tarefa criada!",

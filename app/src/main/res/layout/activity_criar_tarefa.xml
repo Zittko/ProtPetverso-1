@@ -9,13 +9,15 @@
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbarCriarTarefa"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
         android:background="#F08C4B"
         app:navigationIcon="@drawable/baseline_arrow_back"
-        app:navigationIconTint="#000"
-        app:title="Criar Tarefa"
-        app:titleTextColor="#000"
-        app:titleCentered="true" />
+        app:navigationIconTint="#000000"
+        app:title="Nova Tarefa"
+        app:titleCentered="true"
+        app:titleTextColor="#000000"
+        app:contentInsetStartWithNavigation="0dp" />
 
     <ScrollView
         android:layout_width="match_parent"

@@ -10,12 +10,15 @@
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbarCadastrarVacina"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
         android:background="#F08C4B"
         app:navigationIcon="@drawable/baseline_arrow_back"
         app:navigationIconTint="#000000"
         app:title="Cadastrar Imunidade"
-        app:titleTextColor="#000000" />
+        app:titleCentered="true"
+        app:titleTextColor="#000000"
+        app:contentInsetStartWithNavigation="0dp" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -83,14 +86,15 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <!-- Mesmo tamanho wrap_content x 48dp; FrameLayout só segura o fundo -->
             <FrameLayout
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp"
                 android:minWidth="120dp"
-                android:background="@drawable/bg_spinner_vacina">
+                android:background="@drawable/bg_spinner_vacina"
+                android:clipChildren="true"
+                android:padding="1dp">
 
                 <Spinner
                     android:id="@+id/spDosagemUnica"
@@ -99,7 +103,7 @@
                     android:minWidth="120dp"
                     android:background="@android:color/transparent"
                     android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
+                    android:paddingEnd="28dp"
                     android:popupBackground="#FFFFFF"
                     android:spinnerMode="dropdown" />
             </FrameLayout>
@@ -110,8 +114,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:visibility="visible">
+                android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -165,35 +168,34 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:layout_gravity="center_horizontal"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <!-- Tamanhos originais mantidos: 70dp e 100dp -->
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtIntervaloQtd"
                         android:layout_width="70dp"
                         android:layout_height="48dp"
                         android:layout_marginEnd="10dp"
                         android:background="@drawable/bg_campo_branco"
+                        android:gravity="center"
                         android:hint="Qtd"
                         android:inputType="number"
                         android:paddingHorizontal="8dp"
-                        android:gravity="center"
                         android:textColor="#000000"
                         android:textColorHint="#AAAAAA"
                         android:textSize="14sp" />
 
                     <FrameLayout
-                        android:layout_width="100dp"
+                        android:layout_width="120dp"
                         android:layout_height="48dp"
                         android:layout_marginStart="10dp"
                         android:background="@drawable/bg_spinner_vacina"
                         android:clipChildren="true"
-                        android:clipToPadding="true">
+                        android:padding="1dp">
 
                         <Spinner
                             android:id="@+id/spIntervaloUnidade"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:background="@android:color/transparent"
                             android:paddingStart="8dp"
@@ -217,7 +219,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="130dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
                 android:background="@drawable/bg_campo_branco"
                 android:gravity="top|start"
                 android:hint="Digite suas observações"

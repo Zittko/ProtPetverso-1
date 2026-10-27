@@ -1,6 +1,7 @@
 package com.example.protpetverso_1.vaccine;
 
 import android.app.DatePickerDialog;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -11,8 +12,13 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -35,10 +41,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * POST /api/pets/{idPet}/vacinas
- * PUT  /api/vacinas/{idVacina}
- */
 public class CadastrarVacinaActivity extends AppCompatActivity {
 
     private static final String TAG = "CADASTRAR_VACINA";
@@ -83,12 +85,31 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.cadastrar_vacina_layout);
+
+        getWindow().setStatusBarColor(Color.parseColor("#F08C4B"));
+        new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView())
+                .setAppearanceLightStatusBars(true);
 
         sessionManager = new SessionManager(this);
 
         toolbar = findViewById(R.id.toolbarCadastrarVacina);
-        if (toolbar != null) toolbar.setNavigationOnClickListener(v -> finish());
+        if (toolbar != null) {
+            android.view.ViewGroup.LayoutParams lp = toolbar.getLayoutParams();
+            lp.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+            toolbar.setLayoutParams(lp);
+            toolbar.setMinimumHeight((int) (56 * getResources().getDisplayMetrics().density));
+
+            ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
+                Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(bars.left, bars.top, bars.right, 0);
+                return insets;
+            });
+            toolbar.setNavigationIconTint(Color.parseColor("#000000"));
+            toolbar.setTitleTextColor(Color.parseColor("#000000"));
+            toolbar.setNavigationOnClickListener(v -> finish());
+        }
 
         edtNome = findViewById(R.id.edtNomeVacina);
         edtData = findViewById(R.id.edtDataAplicacao);
@@ -153,7 +174,7 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
         adUn.setDropDownViewResource(R.layout.spinner_dropdown_vacina);
         if (spIntervaloUnidade != null) {
             spIntervaloUnidade.setAdapter(adUn);
-            spIntervaloUnidade.setSelection(2); // Meses
+            spIntervaloUnidade.setSelection(2);
         }
     }
 
@@ -163,7 +184,6 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
             petId = getIntent().getLongExtra("PET_ID", sessionManager.obterPetId());
         }
 
-        // Aceita ID_VACINA (oficial) e VACINA_ID (Cadu antiga)
         idVacina = getIntent().getLongExtra(EXTRA_ID_VACINA, -1);
         if (idVacina <= 0) {
             idVacina = getIntent().getLongExtra("VACINA_ID", -1);
@@ -200,7 +220,12 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
 
         String obs = getIntent().getStringExtra(EXTRA_OBS);
         if (obs == null) obs = getIntent().getStringExtra("OBSERVACAO");
-        if (obs != null && edtObservacao != null) edtObservacao.setText(obs);
+        if (obs != null && ("null".equalsIgnoreCase(obs.trim()) || obs.trim().isEmpty())) {
+            obs = "";
+        }
+        if (edtObservacao != null) {
+            edtObservacao.setText(obs != null ? obs : "");
+        }
 
         boolean doseUnica = getIntent().getBooleanExtra(EXTRA_DOSE_UNICA, false);
         if (spDosagemUnica != null) {
@@ -226,8 +251,6 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
         if (modoEdicao && !precisaConfirmarAplicacao) {
             jaAplicadaChecked = true;
         }
-
-        Log.d(TAG, "lerExtras idVacina=" + idVacina + " modoEdicao=" + modoEdicao + " petId=" + petId);
     }
 
     private boolean calcularPrecisaConfirmar(String status, String dataProximaIso) {
@@ -307,12 +330,9 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
         }
 
         boolean doseUnica = isDoseUnica();
-        boolean jaAplicada;
-        if (!modoEdicao || precisaConfirmarAplicacao) {
-            jaAplicada = jaAplicadaChecked;
-        } else {
-            jaAplicada = true;
-        }
+        boolean jaAplicada = (!modoEdicao || precisaConfirmarAplicacao)
+                ? jaAplicadaChecked
+                : true;
 
         if (jaAplicada && dataSelecionada.isAfter(LocalDate.now())) {
             Toast.makeText(this, "Vacina já aplicada não pode ter data futura.", Toast.LENGTH_LONG).show();
@@ -366,15 +386,11 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
             }
             body.put("observacao", obs.isEmpty() ? JSONObject.NULL : obs);
 
-            // *** CRÍTICO: id > 0 → PUT (atualiza); senão POST (cria) ***
             final boolean editar = idVacina > 0;
             String url = editar
                     ? ApiConfig.URL_VACINA + idVacina
                     : ApiConfig.URL_VACINAS_DO_PET + petId + "/vacinas";
             int method = editar ? Request.Method.PUT : Request.Method.POST;
-
-            Log.d(TAG, (editar ? "PUT " : "POST ") + url
-                    + " idVacina=" + idVacina + " body=" + body);
 
             JsonObjectRequest req = new JsonObjectRequest(
                     method, url, body,
@@ -393,14 +409,11 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
                             String errBody = "";
                             try {
                                 errBody = new String(error.networkResponse.data, StandardCharsets.UTF_8);
-                                Log.e(TAG, "HTTP " + code + " " + errBody);
                             } catch (Exception ignored) {}
                             if (code == 403) {
                                 msg = "Apenas o tutor principal pode cadastrar/editar.";
                             } else if (code == 400) {
-                                msg = errBody.isEmpty()
-                                        ? "Dados inválidos."
-                                        : "Dados inválidos: " + errBody;
+                                msg = errBody.isEmpty() ? "Dados inválidos." : "Dados inválidos: " + errBody;
                                 if (msg.length() > 200) msg = msg.substring(0, 200) + "…";
                             } else {
                                 msg = "Erro (" + code + ").";
