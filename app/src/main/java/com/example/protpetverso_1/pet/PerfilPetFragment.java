@@ -28,6 +28,7 @@ import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.protpetverso_1.pet.EditarPetActivity;
 import com.example.protpetverso_1.ApiConfig;
 import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
@@ -54,6 +55,7 @@ import java.util.Map;
  * 2) GET em background → atualiza cache + UI
  *
  * Foto: galeria → uCrop 1:1 → PUT /api/pets/{id}/foto
+ * Lápis de tutores: abre EditarPetActivity
  */
 public class PerfilPetFragment extends Fragment {
 
@@ -143,6 +145,9 @@ public class PerfilPetFragment extends Fragment {
     public void onResume() {
         super.onResume();
         atualizarTituloToolbar("Perfil do Pet");
+        if (petId > 0 && sessionManager != null) {
+            carregarPerfil(petId);
+        }
     }
 
     private void carregarPerfil(long idPet) {
@@ -172,8 +177,19 @@ public class PerfilPetFragment extends Fragment {
 
     private void configurarBotoes() {
         if (btnEditarTutores != null) {
-            btnEditarTutores.setOnClickListener(v ->
-                    Toast.makeText(requireContext(), "Editar tutores em desenvolvimento", Toast.LENGTH_SHORT).show());
+            btnEditarTutores.setOnClickListener(v -> {
+                Intent i = new Intent(requireContext(), EditarPetActivity.class);
+                i.putExtra("PET_ID", petId);
+                i.putExtra("NOME", textoDe(txtNomePet));
+                i.putExtra("RACA_PESO", textoDe(txtRacaPeso));
+                i.putExtra("ESPECIE", textoDe(txtEspecie));
+                i.putExtra("PORTE", textoDe(txtPorte));
+                i.putExtra("SEXO", textoDe(txtSexo));
+                i.putExtra("NASCIMENTO", textoDe(txtDataNascimento));
+                i.putExtra("SENSIBILIDADE", textoDe(txtSensibilidades));
+                i.putExtra("PERSONALIDADE", textoDe(txtPersonalidade));
+                startActivity(i);
+            });
         }
 
         if (btnCopiarCodigo != null) {
@@ -197,10 +213,13 @@ public class PerfilPetFragment extends Fragment {
         }
     }
 
-    // ==================== UCROP ====================
+    private String textoDe(TextView tv) {
+        if (tv == null || tv.getText() == null) return "";
+        String s = tv.getText().toString().trim();
+        return "—".equals(s) ? "" : s;
+    }
 
     private void iniciarRecorte(Uri origem) {
-        // Se no seu projeto o método for buildCropIntent, troque aqui.
         Intent intent = UCropHelper.criarIntentRecorte(
                 requireContext(),
                 origem,
@@ -336,8 +355,6 @@ public class PerfilPetFragment extends Fragment {
         return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
     }
 
-    // ==================== GET PERFIL ====================
-
     private void buscarPetNaApi(long idPet) {
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
@@ -452,7 +469,6 @@ public class PerfilPetFragment extends Fragment {
         if (txtPersonalidade != null) txtPersonalidade.setText(personalidade);
         if (txtSensibilidades != null) txtSensibilidades.setText(sensibilidades);
 
-        // Disco primeiro, depois base64
         String fotoPath = response.optString("fotoPath", "");
         if ((fotoPath == null || fotoPath.isEmpty()) && petId > 0) {
             java.io.File f = PhotoDiskCache.arquivoPet(requireContext(), petId);

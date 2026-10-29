@@ -3,6 +3,7 @@ package com.example.protpetverso_1.vaccine;
 import org.json.JSONObject;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public class Vacina {
@@ -10,7 +11,10 @@ public class Vacina {
     public static final String STATUS_PENDENTE = "PENDENTE";
     public static final String STATUS_APLICADA = "APLICADA";
     public static final String STATUS_ATRASADA = "ATRASADA";
+    /** A API não envia OK. Mantido só para código antigo compilar. */
     public static final String STATUS_OK = "OK";
+
+    private static final ZoneId FUSO = ZoneId.of("America/Sao_Paulo");
 
     private long idVacina;
     private String nome;
@@ -30,7 +34,8 @@ public class Vacina {
 
         v.idVacina = o.optLong("idVacina", o.optLong("id", -1));
         v.nome = o.optString("nome", "");
-        v.observacao = o.optString("observacao", "");
+        String obs = o.optString("observacao", "");
+        v.observacao = "null".equalsIgnoreCase(obs) ? "" : obs;
         v.dosagemUnica = o.optBoolean("dosagemUnica", false);
 
         String st = o.optString("statusVacina", "");
@@ -42,7 +47,7 @@ public class Vacina {
         } else {
             v.statusVacina = st.trim().toUpperCase();
         }
-        if ("OK".equals(v.statusVacina) || "APLICADO".equals(v.statusVacina)) {
+        if (STATUS_OK.equals(v.statusVacina) || "APLICADO".equals(v.statusVacina)) {
             v.statusVacina = STATUS_APLICADA;
         }
 
@@ -52,53 +57,65 @@ public class Vacina {
         String un = o.optString("intervaloUnidade", "");
         v.intervaloUnidade = un.isEmpty() || "null".equalsIgnoreCase(un) ? null : un;
 
-        String da = o.optString("dataAplicacao", "");
-        if (!da.isEmpty() && !"null".equalsIgnoreCase(da)) {
-            try {
-                v.dataAplicacao = LocalDate.parse(da.substring(0, Math.min(10, da.length())));
-            } catch (Exception ignored) {}
-        }
-
-        if (!o.isNull("dataProximaDose")) {
-            String dp = o.optString("dataProximaDose", "");
-            if (!dp.isEmpty() && !"null".equalsIgnoreCase(dp)) {
-                try {
-                    v.dataProximaDose = LocalDate.parse(dp.substring(0, Math.min(10, dp.length())));
-                } catch (Exception ignored) {}
-            }
-        }
+        v.dataAplicacao = parseData(o.optString("dataAplicacao", ""));
+        v.dataProximaDose = parseData(o.isNull("dataProximaDose") ? "" : o.optString("dataProximaDose", ""));
         return v;
     }
 
+    private static LocalDate parseData(String s) {
+        if (s == null || s.isEmpty() || "null".equalsIgnoreCase(s)) return null;
+        try {
+            return LocalDate.parse(s.substring(0, Math.min(10, s.length())));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * A API guarda APLICADA até alguém confirmar de novo.
+     * No app: no dia da próxima dose vira PENDENTE; depois desse dia, ATRASADA.
+     * Dose única aplicada permanece APLICADA.
+     */
+    public String getStatusEfetivo() {
+        LocalDate hoje = LocalDate.now(FUSO);
+        String base = statusVacina == null ? STATUS_PENDENTE : statusVacina.trim().toUpperCase();
+
+        if (STATUS_ATRASADA.equals(base)) return STATUS_ATRASADA;
+        if (STATUS_PENDENTE.equals(base)) {
+            if (dataAplicacao != null && dataAplicacao.isBefore(hoje)) return STATUS_ATRASADA;
+            if (dataProximaDose != null && dataProximaDose.isBefore(hoje)) return STATUS_ATRASADA;
+            return STATUS_PENDENTE;
+        }
+
+        if (dosagemUnica || dataProximaDose == null) return STATUS_APLICADA;
+        if (dataProximaDose.isAfter(hoje)) return STATUS_APLICADA;
+        if (dataProximaDose.isEqual(hoje)) return STATUS_PENDENTE;
+        return STATUS_ATRASADA;
+    }
+
     public boolean isAplicada() {
-        if (statusVacina == null) return false;
-        String s = statusVacina.trim().toUpperCase();
-        return STATUS_APLICADA.equals(s) || STATUS_OK.equals(s);
+        return STATUS_APLICADA.equals(getStatusEfetivo());
     }
 
     public boolean isPendenteOuAtrasada() {
-        if (statusVacina != null && !statusVacina.trim().isEmpty()) {
-            String s = statusVacina.trim().toUpperCase();
-            if (STATUS_PENDENTE.equals(s) || STATUS_ATRASADA.equals(s)) return true;
-            if (isAplicada()) return false;
-        }
-        if (dataProximaDose == null) return !isAplicada();
-        return !dataProximaDose.isAfter(LocalDate.now());
+        String s = getStatusEfetivo();
+        return STATUS_PENDENTE.equals(s) || STATUS_ATRASADA.equals(s);
     }
 
     public String getStatusLabel() {
-        if (statusVacina == null || statusVacina.trim().isEmpty()) return "Pendente";
-        String s = statusVacina.trim().toUpperCase();
-        switch (s) {
+        switch (getStatusEfetivo()) {
             case STATUS_APLICADA:
-            case STATUS_OK:
-                return "Ok";
+                return "Aplicada";
             case STATUS_ATRASADA:
                 return "Atrasada";
             case STATUS_PENDENTE:
             default:
                 return "Pendente";
         }
+    }
+
+    public String getStatusVacina() {
+        return getStatusEfetivo();
     }
 
     public String getDataAplicacaoFormatada() {
@@ -111,6 +128,30 @@ public class Vacina {
         return dataProximaDose.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
+    public String getIntervaloResumo() {
+        if (dosagemUnica) return "Dose única";
+        if (intervaloQuantidade == null || intervaloUnidade == null) return null;
+        String u;
+        switch (intervaloUnidade.toUpperCase()) {
+            case "DIAS":
+                u = intervaloQuantidade == 1 ? "dia" : "dias";
+                break;
+            case "SEMANAS":
+                u = intervaloQuantidade == 1 ? "semana" : "semanas";
+                break;
+            case "MESES":
+                u = intervaloQuantidade == 1 ? "mês" : "meses";
+                break;
+            case "ANOS":
+                u = intervaloQuantidade == 1 ? "ano" : "anos";
+                break;
+            default:
+                u = intervaloUnidade.toLowerCase();
+                break;
+        }
+        return "A cada " + intervaloQuantidade + " " + u;
+    }
+
     public long getIdVacina() { return idVacina; }
     public String getNome() { return nome != null ? nome : ""; }
     public LocalDate getDataAplicacao() { return dataAplicacao; }
@@ -118,6 +159,8 @@ public class Vacina {
     public Integer getIntervaloQuantidade() { return intervaloQuantidade; }
     public String getIntervaloUnidade() { return intervaloUnidade; }
     public LocalDate getDataProximaDose() { return dataProximaDose; }
-    public String getObservacao() { return observacao != null ? observacao : ""; }
-    public String getStatusVacina() { return statusVacina; }
+    public String getObservacao() {
+        if (observacao == null || "null".equalsIgnoreCase(observacao)) return "";
+        return observacao;
+    }
 }

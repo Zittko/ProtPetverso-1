@@ -41,6 +41,7 @@ import java.util.Map;
 
 /**
  * Perfil do Usuário — cache disco/memória → UI → GET API.
+ * Lápis: abre EditarUsuarioActivity.
  */
 public class PerfilUsuarioFragment extends Fragment {
 
@@ -108,8 +109,14 @@ public class PerfilUsuarioFragment extends Fragment {
             imgFotoPerfil.setOnClickListener(v -> selecionarFoto.launch("image/*"));
         }
         if (btnEditarPerfil != null) {
-            btnEditarPerfil.setOnClickListener(v ->
-                    Toast.makeText(requireContext(), "Editar perfil em breve.", Toast.LENGTH_SHORT).show());
+            btnEditarPerfil.setOnClickListener(v -> {
+                Intent i = new Intent(requireContext(), EditarUsuarioActivity.class);
+                i.putExtra("NOME", textoDe(txtNome));
+                i.putExtra("EMAIL", textoDe(txtEmail));
+                i.putExtra("TELEFONE", textoDe(txtTelefone));
+                i.putExtra("APELIDO", textoDe(txtUsername));
+                startActivity(i);
+            });
         }
 
         if (AppDataCache.get().temUsuario()) {
@@ -118,6 +125,21 @@ public class PerfilUsuarioFragment extends Fragment {
             preencherComSessaoLocal();
         }
         buscarUsuarioNaApi();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        atualizarTituloToolbar("Perfil do Usuário");
+        if (sessionManager != null) {
+            buscarUsuarioNaApi();
+        }
+    }
+
+    private String textoDe(TextView tv) {
+        if (tv == null || tv.getText() == null) return "";
+        String s = tv.getText().toString().trim();
+        return "—".equals(s) ? "" : s;
     }
 
     private void aplicarCacheUsuario() {
@@ -179,7 +201,7 @@ public class PerfilUsuarioFragment extends Fragment {
     }
 
     private void buscarUsuarioNaApi() {
-        if (sessionManager == null) return;
+        if (sessionManager == null || getContext() == null) return;
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) return;
 

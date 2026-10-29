@@ -254,18 +254,17 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
     }
 
     private boolean calcularPrecisaConfirmar(String status, String dataProximaIso) {
-        if (status != null) {
-            String s = status.trim().toUpperCase(Locale.ROOT);
-            if (Vacina.STATUS_PENDENTE.equals(s) || Vacina.STATUS_ATRASADA.equals(s)) return true;
-            if (Vacina.STATUS_APLICADA.equals(s) || Vacina.STATUS_OK.equals(s)) return false;
+        if (dataProximaIso != null && !dataProximaIso.isEmpty() && !"null".equalsIgnoreCase(dataProximaIso)) {
+            try {
+                java.time.LocalDate dp = java.time.LocalDate.parse(
+                        dataProximaIso.substring(0, Math.min(10, dataProximaIso.length())));
+                java.time.LocalDate hoje = java.time.LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo"));
+                if (!dp.isAfter(hoje)) return true;
+            } catch (Exception ignored) {}
         }
-        if (dataProximaIso == null || dataProximaIso.isEmpty()) return false;
-        try {
-            LocalDate dp = LocalDate.parse(dataProximaIso.substring(0, Math.min(10, dataProximaIso.length())));
-            return !dp.isAfter(LocalDate.now());
-        } catch (Exception e) {
-            return false;
-        }
+        if (status == null) return false;
+        String s = status.trim().toUpperCase(java.util.Locale.ROOT);
+        return Vacina.STATUS_PENDENTE.equals(s) || Vacina.STATUS_ATRASADA.equals(s);
     }
 
     private boolean isDoseUnica() {

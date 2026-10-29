@@ -58,16 +58,15 @@ public class VacinaAdapter extends RecyclerView.Adapter<VacinaAdapter.VH> {
         if (prox != null) {
             h.txtProxima.setVisibility(View.VISIBLE);
             h.txtProxima.setText("Próxima dose: " + prox);
-        } else {
+        } else if (h.txtProxima != null) {
             h.txtProxima.setVisibility(View.GONE);
         }
 
-        String status = vac.getStatusLabel();
-        h.txtStatus.setText("Status: " + status);
-        if (vac.isAplicada() || "Ok".equalsIgnoreCase(status)) {
+        h.txtStatus.setText("Status: " + vac.getStatusLabel());
+        String efetivo = vac.getStatusEfetivo();
+        if (Vacina.STATUS_APLICADA.equals(efetivo)) {
             h.txtStatus.setTextColor(Color.parseColor("#2E7D32"));
-        } else if (Vacina.STATUS_ATRASADA.equalsIgnoreCase(vac.getStatusVacina())
-                || "Atrasada".equalsIgnoreCase(status)) {
+        } else if (Vacina.STATUS_ATRASADA.equals(efetivo)) {
             h.txtStatus.setTextColor(Color.parseColor("#C62828"));
         } else {
             h.txtStatus.setTextColor(Color.parseColor("#E65100"));

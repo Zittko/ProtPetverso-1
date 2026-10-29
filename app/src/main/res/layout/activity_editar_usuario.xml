@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFE8CE"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarEditarUsuario"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        android:background="#F08C4B"
+        app:navigationIcon="@drawable/baseline_arrow_back"
+        app:navigationIconTint="#000000"
+        app:title="Editar perfil"
+        app:titleCentered="true"
+        app:titleTextColor="#000000" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nome" android:textColor="#000000" android:textSize="16sp" android:textStyle="bold" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtNome" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" android:paddingHorizontal="14dp" android:textColor="#000000" android:textSize="14sp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Apelido" android:textColor="#000000" android:textSize="16sp" android:textStyle="bold" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtApelido" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" android:paddingHorizontal="14dp" android:textColor="#000000" android:textSize="14sp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="E-mail" android:textColor="#000000" android:textSize="16sp" android:textStyle="bold" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtEmail" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" android:inputType="textEmailAddress" android:paddingHorizontal="14dp" android:textColor="#000000" android:textSize="14sp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Telefone" android:textColor="#000000" android:textSize="16sp" android:textStyle="bold" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtTelefone" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" android:inputType="phone" android:paddingHorizontal="14dp" android:textColor="#000000" android:textSize="14sp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Senha atual" android:textColor="#000000" android:textSize="16sp" android:textStyle="bold" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtSenhaAtual" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" android:hint="Só se for trocar a senha" android:inputType="textPassword" android:paddingHorizontal="14dp" android:textColor="#000000" android:textColorHint="#AAAAAA" android:textSize="14sp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nova senha" android:textColor="#000000" android:textSize="16sp" android:textStyle="bold" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtNovaSenha" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" android:inputType="textPassword" android:paddingHorizontal="14dp" android:textColor="#000000" android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSalvarUsuario"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_gravity="end"
+                android:layout_marginTop="8dp"
+                android:text="Salvar"
+                android:textAllCaps="false"
+                android:textColor="#000000"
+                app:backgroundTint="#DF945D"
+                app:cornerRadius="24dp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
