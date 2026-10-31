@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -33,7 +34,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,17 +45,16 @@ public class CriarUsuarioActivity extends AppCompatActivity {
     private TextInputLayout ipNomeUsuario;
     private MaterialButton btnAvancar, btnVoltar;
     private ImageView imgAvatar;
+    private ImageView imgAddAvatar;
 
     private String fotoBase64;
 
-    /** 1) Galeria */
     private final ActivityResultLauncher<String> selecionarFoto =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri == null) return;
                 iniciarRecorte(uri);
             });
 
-    /** 2) Retorno do uCrop */
     private final ActivityResultLauncher<Intent> recortarFoto =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
@@ -83,12 +82,17 @@ public class CriarUsuarioActivity extends AppCompatActivity {
         btnAvancar = findViewById(R.id.btnAvancar);
         btnVoltar = findViewById(R.id.btnVoltar);
         imgAvatar = findViewById(R.id.imgAvatar);
+        imgAddAvatar = findViewById(R.id.imgAddAvatar);
 
         btnVoltar.setOnClickListener(v -> finish());
 
+        View.OnClickListener abrirGaleria = v -> selecionarFoto.launch("image/*");
         if (imgAvatar != null) {
             imgAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            imgAvatar.setOnClickListener(v -> selecionarFoto.launch("image/*"));
+            imgAvatar.setOnClickListener(abrirGaleria);
+        }
+        if (imgAddAvatar != null) {
+            imgAddAvatar.setOnClickListener(abrirGaleria);
         }
 
         btnAvancar.setOnClickListener(v -> {
@@ -100,16 +104,18 @@ public class CriarUsuarioActivity extends AppCompatActivity {
                 return;
             }
 
-            // Envia apelido + foto (se escolhida)
             atualizarPerfil(apelido, fotoBase64);
         });
     }
 
     private void iniciarRecorte(Uri origem) {
         Intent intent = UCropHelper.criarIntentRecorte(
-                this,           // ou requireContext() no Fragment
+                this,
                 origem,
-                "Ajustar foto"  // ou "Ajustar foto"
+                "Ajustar foto",
+                1f,
+                1f,
+                true
         );
         recortarFoto.launch(intent);
     }
@@ -128,6 +134,9 @@ public class CriarUsuarioActivity extends AppCompatActivity {
             fotoBase64 = bitmapParaBase64(bitmap);
             imgAvatar.setImageBitmap(bitmap);
             imgAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            if (imgAddAvatar != null) {
+                imgAddAvatar.setVisibility(View.GONE);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Erro ao processar foto", Toast.LENGTH_SHORT).show();
@@ -140,10 +149,6 @@ public class CriarUsuarioActivity extends AppCompatActivity {
         return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
     }
 
-    /**
-     * PUT /api/usuarios/atualizarPerfil
-     * Header: Authorization Bearer token
-     */
     private void atualizarPerfil(String apelido, String fotoBase64) {
         btnAvancar.setEnabled(false);
 

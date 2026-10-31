@@ -173,7 +173,10 @@ public class PerfilUsuarioFragment extends Fragment {
             Intent intent = UCropHelper.criarIntentRecorte(
                     requireContext(),
                     origem,
-                    "Ajustar foto"
+                    "Ajustar foto",
+                    1f,
+                    1f,
+                    true
             );
             recortarFoto.launch(intent);
         } catch (Exception e) {

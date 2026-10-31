@@ -2,8 +2,11 @@ package com.example.protpetverso_1.pet;
 
 import android.app.DatePickerDialog;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -46,6 +49,7 @@ public class EditarPetActivity extends AppCompatActivity {
     private long petId;
     private LocalDate nascimento = LocalDate.now();
     private SessionManager session;
+    private ScrollView scrollEditarPet;
     private TextInputEditText edtNome, edtRaca, edtEspecie, edtPeso, edtNascimento, edtSensibilidade, edtPersonalidade;
     private Spinner spPorte, spSexo;
     private MaterialButton btnSalvar;
@@ -70,6 +74,7 @@ public class EditarPetActivity extends AppCompatActivity {
         });
         toolbar.setNavigationOnClickListener(v -> finish());
 
+        scrollEditarPet = findViewById(R.id.scrollEditarPet);
         edtNome = findViewById(R.id.edtNomePet);
         edtRaca = findViewById(R.id.edtRaca);
         edtEspecie = findViewById(R.id.edtEspecie);
@@ -87,8 +92,42 @@ public class EditarPetActivity extends AppCompatActivity {
         spSexo.setAdapter(adSexo);
 
         preencher();
+        configurarScrollComTeclado();
         edtNascimento.setOnClickListener(v -> abrirData());
         btnSalvar.setOnClickListener(v -> salvar());
+    }
+
+    private void configurarScrollComTeclado() {
+        if (scrollEditarPet == null) return;
+        ViewCompat.setOnApplyWindowInsetsListener(scrollEditarPet, (v, insets) -> {
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(0, 0, 0, Math.max(ime.bottom, bars.bottom));
+            if (ime.bottom > 0) rolarAteFoco();
+            return insets;
+        });
+        View.OnFocusChangeListener foco = (view, hasFocus) -> {
+            if (hasFocus) rolarAteFoco();
+        };
+        TextInputEditText[] campos = {edtNome, edtRaca, edtEspecie, edtPeso, edtSensibilidade, edtPersonalidade};
+        for (TextInputEditText campo : campos) {
+            if (campo != null) campo.setOnFocusChangeListener(foco);
+        }
+    }
+
+    private void rolarAteFoco() {
+        if (scrollEditarPet == null) return;
+        scrollEditarPet.post(() -> {
+            View alvo = scrollEditarPet.findFocus();
+            if (alvo == null) return;
+            Rect r = new Rect();
+            alvo.getDrawingRect(r);
+            scrollEditarPet.offsetDescendantRectToMyCoords(alvo, r);
+            int extra = (int) (24 * getResources().getDisplayMetrics().density);
+            int y = r.bottom - scrollEditarPet.getHeight() + scrollEditarPet.getPaddingBottom() + extra;
+            if (y < 0) y = 0;
+            scrollEditarPet.smoothScrollTo(0, y);
+        });
     }
 
     private void preencher() {

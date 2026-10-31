@@ -174,7 +174,10 @@ public class PetSignUpActivity extends AppCompatActivity {
         Intent intent = UCropHelper.criarIntentRecorte(
                 this,
                 origem,
-                "Ajustar foto do pet"
+                "Ajustar foto do pet",
+                12f,
+                7f,
+                false
         );
         recortarFoto.launch(intent);
     }

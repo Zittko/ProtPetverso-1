@@ -1,7 +1,10 @@
 package com.example.protpetverso_1.user;
 
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -31,6 +34,7 @@ import java.util.Map;
 
 public class EditarUsuarioActivity extends AppCompatActivity {
 
+    private ScrollView scrollEditarUsuario;
     private TextInputEditText edtNome, edtApelido, edtEmail, edtTelefone, edtSenhaAtual, edtNovaSenha;
     private MaterialButton btnSalvar;
     private SessionManager session;
@@ -53,6 +57,7 @@ public class EditarUsuarioActivity extends AppCompatActivity {
         });
         toolbar.setNavigationOnClickListener(v -> finish());
 
+        scrollEditarUsuario = findViewById(R.id.scrollEditarUsuario);
         edtNome = findViewById(R.id.edtNome);
         edtApelido = findViewById(R.id.edtApelido);
         edtEmail = findViewById(R.id.edtEmail);
@@ -69,7 +74,40 @@ public class EditarUsuarioActivity extends AppCompatActivity {
         if ("usuário".equalsIgnoreCase(apelido)) apelido = "";
         edtApelido.setText(apelido);
 
+        configurarScrollComTeclado(scrollEditarUsuario,
+                edtNome, edtApelido, edtEmail, edtTelefone, edtSenhaAtual, edtNovaSenha);
         btnSalvar.setOnClickListener(v -> salvar());
+    }
+
+    private void configurarScrollComTeclado(ScrollView scroll, TextInputEditText... campos) {
+        if (scroll == null) return;
+        ViewCompat.setOnApplyWindowInsetsListener(scroll, (v, insets) -> {
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(0, 0, 0, Math.max(ime.bottom, bars.bottom));
+            if (ime.bottom > 0) rolarAteFoco(scroll);
+            return insets;
+        });
+        View.OnFocusChangeListener foco = (view, hasFocus) -> {
+            if (hasFocus) rolarAteFoco(scroll);
+        };
+        for (TextInputEditText campo : campos) {
+            if (campo != null) campo.setOnFocusChangeListener(foco);
+        }
+    }
+
+    private void rolarAteFoco(ScrollView scroll) {
+        scroll.post(() -> {
+            View alvo = scroll.findFocus();
+            if (alvo == null) return;
+            Rect r = new Rect();
+            alvo.getDrawingRect(r);
+            scroll.offsetDescendantRectToMyCoords(alvo, r);
+            int extra = (int) (24 * getResources().getDisplayMetrics().density);
+            int y = r.bottom - scroll.getHeight() + scroll.getPaddingBottom() + extra;
+            if (y < 0) y = 0;
+            scroll.smoothScrollTo(0, y);
+        });
     }
 
     private void salvar() {

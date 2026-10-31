@@ -99,12 +99,10 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
         }
 
         if (fabNovaVacina != null) {
-            if (!isDono) {
-                fabNovaVacina.setVisibility(View.GONE);
-            } else {
-                fabNovaVacina.setOnClickListener(v -> abrirCadastro(null));
-            }
+            fabNovaVacina.setImageResource(R.drawable.baseline_add);
+            fabNovaVacina.setOnClickListener(v -> abrirCadastro(null));
         }
+        atualizarFab();
 
         atualizarEstiloAbas();
 
@@ -121,19 +119,23 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
         super.onResume();
         if (sessionManager == null) return;
         long atual = sessionManager.obterPetId();
-        if (atual > 0 && atual != petId) {
+        if (atual > 0) {
             petId = atual;
-            isDono = sessionManager.isDonoDoPetSelecionado();
-            if (fabNovaVacina != null) {
-                fabNovaVacina.setVisibility(isDono ? View.VISIBLE : View.GONE);
-            }
         }
+        isDono = sessionManager.isDonoDoPetSelecionado();
+        atualizarFab();
         if (petId > 0 && AppDataCache.get().temVacinas(petId)) {
             todasVacinas.clear();
             todasVacinas.addAll(AppDataCache.get().getVacinas(petId));
             filtrarEExibir();
         }
         carregarVacinasDaApi();
+    }
+
+    /** O + só existe nesta tela, e só para o tutor principal. */
+    private void atualizarFab() {
+        if (fabNovaVacina == null) return;
+        fabNovaVacina.setVisibility(isDono ? View.VISIBLE : View.GONE);
     }
 
     private void atualizarEstiloAbas() {
@@ -233,11 +235,8 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
 
         if (editar != null && editar.getIdVacina() > 0) {
             i.putExtra(CadastrarVacinaActivity.EXTRA_MODO_EDICAO, true);
-            // Chave oficial
             i.putExtra(CadastrarVacinaActivity.EXTRA_ID_VACINA, editar.getIdVacina());
-            // Compatibilidade com código antigo da Cadu
             i.putExtra("VACINA_ID", editar.getIdVacina());
-
             i.putExtra(CadastrarVacinaActivity.EXTRA_NOME, editar.getNome());
             if (editar.getDataAplicacao() != null) {
                 i.putExtra(CadastrarVacinaActivity.EXTRA_DATA, editar.getDataAplicacao().toString());

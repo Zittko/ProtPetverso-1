@@ -2,6 +2,7 @@ package com.example.protpetverso_1.vaccine;
 
 import android.app.DatePickerDialog;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -72,6 +74,7 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
     private boolean jaAplicadaChecked = false;
 
     private MaterialToolbar toolbar;
+    private ScrollView scrollCadastrarVacina;
     private TextInputEditText edtNome, edtData, edtIntervaloQtd, edtObservacao;
     private Spinner spDosagemUnica, spIntervaloUnidade;
     private View boxJaAplicada, boxIntervalo;
@@ -111,6 +114,7 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
             toolbar.setNavigationOnClickListener(v -> finish());
         }
 
+        scrollCadastrarVacina = findViewById(R.id.scrollCadastrarVacina);
         edtNome = findViewById(R.id.edtNomeVacina);
         edtData = findViewById(R.id.edtDataAplicacao);
         edtIntervaloQtd = findViewById(R.id.edtIntervaloQtd);
@@ -131,6 +135,7 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
         }
         atualizarUiJaAplicada();
         atualizarVisibilidade();
+        configurarScrollComTeclado();
 
         if (edtData != null) {
             edtData.setText(dataSelecionada.format(FMT_BR));
@@ -160,6 +165,43 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
         if (btnConfirmar != null) {
             btnConfirmar.setOnClickListener(v -> salvar());
         }
+    }
+
+    private void configurarScrollComTeclado() {
+        if (scrollCadastrarVacina == null) return;
+
+        ViewCompat.setOnApplyWindowInsetsListener(scrollCadastrarVacina, (v, insets) -> {
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            int baixo = Math.max(ime.bottom, bars.bottom);
+            v.setPadding(0, 0, 0, baixo);
+            if (ime.bottom > 0) {
+                rolarAteFoco();
+            }
+            return insets;
+        });
+
+        if (edtObservacao != null) {
+            edtObservacao.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) rolarAteFoco();
+            });
+        }
+    }
+
+    private void rolarAteFoco() {
+        if (scrollCadastrarVacina == null || edtObservacao == null || !edtObservacao.hasFocus()) return;
+        scrollCadastrarVacina.post(() -> {
+            int alvo = edtObservacao.getBottom()
+                    - scrollCadastrarVacina.getHeight()
+                    + scrollCadastrarVacina.getPaddingBottom()
+                    + (int) (24 * getResources().getDisplayMetrics().density);
+            if (alvo < 0) alvo = 0;
+            scrollCadastrarVacina.smoothScrollTo(0, alvo);
+            edtObservacao.requestRectangleOnScreen(
+                    new Rect(0, 0, edtObservacao.getWidth(), edtObservacao.getHeight()),
+                    true
+            );
+        });
     }
 
     private void configurarSpinners() {
@@ -256,14 +298,12 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
     private boolean calcularPrecisaConfirmar(String status, String dataProximaIso) {
         if (dataProximaIso != null && !dataProximaIso.isEmpty() && !"null".equalsIgnoreCase(dataProximaIso)) {
             try {
-                java.time.LocalDate dp = java.time.LocalDate.parse(
-                        dataProximaIso.substring(0, Math.min(10, dataProximaIso.length())));
-                java.time.LocalDate hoje = java.time.LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo"));
-                if (!dp.isAfter(hoje)) return true;
+                LocalDate dp = LocalDate.parse(dataProximaIso.substring(0, Math.min(10, dataProximaIso.length())));
+                if (!dp.isAfter(LocalDate.now())) return true;
             } catch (Exception ignored) {}
         }
         if (status == null) return false;
-        String s = status.trim().toUpperCase(java.util.Locale.ROOT);
+        String s = status.trim().toUpperCase(Locale.ROOT);
         return Vacina.STATUS_PENDENTE.equals(s) || Vacina.STATUS_ATRASADA.equals(s);
     }
 
