@@ -10,8 +10,8 @@
         android:id="@+id/toolbarEditarPet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="?attr/actionBarSize"
         android:background="#F08C4B"
+        android:minHeight="?attr/actionBarSize"
         app:navigationIcon="@drawable/baseline_arrow_back"
         app:navigationIconTint="#000000"
         app:title="Editar pet"
@@ -33,32 +33,184 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nome" android:textColor="#000000" android:textStyle="bold" android:textSize="16sp" />
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtNomePet" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" android:paddingHorizontal="14dp" android:textColor="#000000" android:textSize="14sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nome"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Raça" android:textColor="#000000" android:textStyle="bold" android:textSize="16sp" />
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtRaca" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" android:paddingHorizontal="14dp" android:textColor="#000000" android:textSize="14sp" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtNomePet"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/bg_campo_branco"
+                android:paddingHorizontal="14dp"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Espécie" android:textColor="#000000" android:textStyle="bold" android:textSize="16sp" />
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtEspecie" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" android:paddingHorizontal="14dp" android:textColor="#000000" android:textSize="14sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Raça"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Peso (kg)" android:textColor="#000000" android:textStyle="bold" android:textSize="16sp" />
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtPeso" android:layout_width="120dp" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" android:inputType="numberDecimal" android:paddingHorizontal="14dp" android:textColor="#000000" android:textSize="14sp" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtRaca"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/bg_campo_branco"
+                android:paddingHorizontal="14dp"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Porte" android:textColor="#000000" android:textStyle="bold" android:textSize="16sp" />
-            <android.widget.Spinner android:id="@+id/spPorte" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Espécie"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sexo" android:textColor="#000000" android:textStyle="bold" android:textSize="16sp" />
-            <android.widget.Spinner android:id="@+id/spSexo" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtEspecie"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/bg_campo_branco"
+                android:paddingHorizontal="14dp"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Data de nascimento" android:textColor="#000000" android:textStyle="bold" android:textSize="16sp" />
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtNascimento" android:layout_width="wrap_content" android:layout_height="48dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:minWidth="150dp" android:background="@drawable/bg_campo_branco" android:clickable="true" android:focusable="false" android:paddingHorizontal="14dp" android:textColor="#000000" android:textSize="14sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Peso (kg)"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sensibilidades" android:textColor="#000000" android:textStyle="bold" android:textSize="16sp" />
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtSensibilidade" android:layout_width="match_parent" android:layout_height="80dp" android:layout_marginTop="8dp" android:layout_marginBottom="14dp" android:background="@drawable/bg_campo_branco" android:gravity="top" android:inputType="textMultiLine|textCapSentences" android:padding="14dp" android:scrollbars="vertical" android:textColor="#000000" android:textSize="14sp" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtPeso"
+                android:layout_width="120dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/bg_campo_branco"
+                android:inputType="numberDecimal"
+                android:paddingHorizontal="14dp"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Personalidades" android:textColor="#000000" android:textStyle="bold" android:textSize="16sp" />
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/edtPersonalidade" android:layout_width="match_parent" android:layout_height="80dp" android:layout_marginTop="8dp" android:layout_marginBottom="24dp" android:background="@drawable/bg_campo_branco" android:gravity="top" android:hint="Separe por vírgula" android:inputType="textMultiLine|textCapSentences" android:padding="14dp" android:scrollbars="vertical" android:textColor="#000000" android:textColorHint="#AAAAAA" android:textSize="14sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Porte"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <android.widget.Spinner
+                android:id="@+id/spPorte"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/bg_campo_branco" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sexo"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <android.widget.Spinner
+                android:id="@+id/spSexo"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/bg_campo_branco" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Data de nascimento"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtNascimento"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:drawableEnd="@drawable/ic_edit_calendar"
+                android:drawableTint="#ff9800"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/bg_campo_branco"
+                android:clickable="true"
+                android:focusable="false"
+                android:minWidth="150dp"
+                android:paddingHorizontal="14dp"
+                android:textColor="#000000"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sensibilidades"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtSensibilidade"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/bg_campo_branco"
+                android:gravity="top"
+                android:inputType="textMultiLine|textCapSentences"
+                android:padding="14dp"
+                android:scrollbars="vertical"
+                android:textColor="#000000"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Personalidades"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtPersonalidade"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/bg_campo_branco"
+                android:gravity="top"
+                android:hint="Separe por vírgula"
+                android:inputType="textMultiLine|textCapSentences"
+                android:padding="14dp"
+                android:scrollbars="vertical"
+                android:textColor="#000000"
+                android:textColorHint="#AAAAAA"
+                android:textSize="14sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSalvarPet"

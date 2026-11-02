@@ -1,10 +1,12 @@
 package com.example.protpetverso_1.schedule;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -16,10 +18,12 @@ import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.example.protpetverso_1.ApiConfig;
 import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.data.AppDataCache;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -28,7 +32,9 @@ import org.json.JSONObject;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -37,7 +43,8 @@ public class CriarTarefaActivity extends AppCompatActivity {
     private static final String TAG = "CRIAR_TAREFA";
 
     private TextInputEditText edtTitulo, edtData, edtHora, edtDesc;
-    private MaterialButton btnConfirmar;
+    private MaterialButton btnConfirmar, btnExcluirTarefa, btnSalvarTarefa;
+    private View boxAcoesEdicaoTarefa;
     private SessionManager sessionManager;
 
     private long petId = -1;
@@ -99,6 +106,9 @@ public class CriarTarefaActivity extends AppCompatActivity {
         edtHora = findViewById(R.id.edtHoraTarefa);
         edtDesc = findViewById(R.id.edtDescTarefa);
         btnConfirmar = findViewById(R.id.btnConfirmarTarefa);
+        boxAcoesEdicaoTarefa = findViewById(R.id.boxAcoesEdicaoTarefa);
+        btnExcluirTarefa = findViewById(R.id.btnExcluirTarefa);
+        btnSalvarTarefa = findViewById(R.id.btnSalvarTarefa);
 
         if (edtTitulo != null && tituloExtra != null) edtTitulo.setText(tituloExtra);
         if (edtDesc != null && descExtra != null) edtDesc.setText(descExtra);
@@ -116,10 +126,77 @@ public class CriarTarefaActivity extends AppCompatActivity {
             edtHora.setClickable(true);
             edtHora.setOnClickListener(v -> abrirTimePicker());
         }
+        configurarBotoes();
+    }
+
+    private void configurarBotoes() {
+        boolean editando = modoEdicao && idTarefa > 0;
         if (btnConfirmar != null) {
-            btnConfirmar.setText(modoEdicao ? "Salvar alterações" : "Confirmar");
+            btnConfirmar.setVisibility(editando ? View.GONE : View.VISIBLE);
+            btnConfirmar.setText("Confirmar");
             btnConfirmar.setOnClickListener(v -> salvarTarefa());
         }
+        if (boxAcoesEdicaoTarefa != null) {
+            boxAcoesEdicaoTarefa.setVisibility(editando ? View.VISIBLE : View.GONE);
+        }
+        if (btnSalvarTarefa != null) btnSalvarTarefa.setOnClickListener(v -> salvarTarefa());
+        if (btnExcluirTarefa != null) btnExcluirTarefa.setOnClickListener(v -> confirmarExclusaoTarefa());
+    }
+
+    private void setBotoesHabilitados(boolean habilitado) {
+        if (btnConfirmar != null) btnConfirmar.setEnabled(habilitado);
+        if (btnSalvarTarefa != null) btnSalvarTarefa.setEnabled(habilitado);
+        if (btnExcluirTarefa != null) btnExcluirTarefa.setEnabled(habilitado);
+    }
+
+    private void confirmarExclusaoTarefa() {
+        new AlertDialog.Builder(this)
+                .setTitle("Excluir tarefa")
+                .setMessage("Deseja excluir esta tarefa? Essa ação não pode ser desfeita.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Excluir", (d, w) -> excluirTarefa())
+                .show();
+    }
+
+    private void excluirTarefa() {
+        if (idTarefa <= 0) return;
+        String token = sessionManager.obterToken();
+        if (token == null || token.isEmpty()) {
+            Toast.makeText(this, "Sessão expirada.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        setBotoesHabilitados(false);
+        StringRequest req = new StringRequest(
+                Request.Method.DELETE,
+                ApiConfig.URL_ATUALIZAR_TAREFA + idTarefa,
+                response -> {
+                    List<Tarefa> restantes = new ArrayList<>();
+                    for (Tarefa t : AppDataCache.get().getTarefas(petId)) {
+                        if (t != null && t.getIdTarefa() != idTarefa) restantes.add(t);
+                    }
+                    AppDataCache.get().setTarefas(petId, restantes);
+                    AppDataCache.get().invalidarTarefasDoDia();
+                    Toast.makeText(this, "Tarefa excluída.", Toast.LENGTH_SHORT).show();
+                    setResult(RESULT_OK);
+                    finish();
+                },
+                error -> {
+                    setBotoesHabilitados(true);
+                    String msg = "Erro ao excluir.";
+                    if (error.networkResponse != null && error.networkResponse.statusCode == 403) {
+                        msg = "Apenas o tutor principal pode excluir.";
+                    }
+                    Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> h = new HashMap<>();
+                h.put("Authorization", "Bearer " + token);
+                return h;
+            }
+        };
+        VolleySingleton.getInstance(this).addToRequestQueue(req);
     }
 
     private void atualizarTextoData() {
@@ -196,7 +273,7 @@ public class CriarTarefaActivity extends AppCompatActivity {
             return;
         }
 
-        if (btnConfirmar != null) btnConfirmar.setEnabled(false);
+        setBotoesHabilitados(false);
 
         try {
             JSONObject body = new JSONObject();
@@ -228,7 +305,7 @@ public class CriarTarefaActivity extends AppCompatActivity {
                         finish();
                     },
                     error -> {
-                        if (btnConfirmar != null) btnConfirmar.setEnabled(true);
+                        setBotoesHabilitados(true);
                         String msg = modoEdicao ? "Erro ao atualizar tarefa." : "Erro ao criar tarefa.";
                         if (error.networkResponse != null) {
                             int s = error.networkResponse.statusCode;
@@ -254,7 +331,7 @@ public class CriarTarefaActivity extends AppCompatActivity {
 
             VolleySingleton.getInstance(this).addToRequestQueue(request);
         } catch (Exception e) {
-            if (btnConfirmar != null) btnConfirmar.setEnabled(true);
+            setBotoesHabilitados(true);
             Log.e(TAG, "montar body", e);
             Toast.makeText(this, "Erro ao montar dados", Toast.LENGTH_SHORT).show();
         }

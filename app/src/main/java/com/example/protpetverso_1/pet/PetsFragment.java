@@ -132,11 +132,7 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
             return;
         }
 
-        sessionManager.salvarPet(
-                pet.getIdPet(),
-                pet.getNome(),
-                "", "", "", "", "", ""
-        );
+        sessionManager.salvarPet(pet.getIdPet(), pet.getNome(), pet.getPapel());
 
         PerfilPetFragment fragment = new PerfilPetFragment();
         Bundle args = new Bundle();

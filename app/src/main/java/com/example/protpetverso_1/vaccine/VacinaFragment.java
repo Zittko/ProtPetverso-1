@@ -118,12 +118,16 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
     public void onResume() {
         super.onResume();
         if (sessionManager == null) return;
+
         long atual = sessionManager.obterPetId();
-        if (atual > 0) {
-            petId = atual;
-        }
+        if (atual > 0) petId = atual;
         isDono = sessionManager.isDonoDoPetSelecionado();
-        atualizarFab();
+
+        if (fabNovaVacina != null) {
+            fabNovaVacina.setVisibility(isDono ? View.VISIBLE : View.GONE);
+            fabNovaVacina.setOnClickListener(isDono ? v -> abrirCadastro(null) : null);
+        }
+
         if (petId > 0 && AppDataCache.get().temVacinas(petId)) {
             todasVacinas.clear();
             todasVacinas.addAll(AppDataCache.get().getVacinas(petId));

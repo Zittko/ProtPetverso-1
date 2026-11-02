@@ -96,6 +96,7 @@
                     android:id="@+id/edtNovaPersonalidade"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/bg_campo_branco"
                     android:inputType="textCapSentences"
                     android:maxLines="1"
                     android:imeOptions="actionDone"
@@ -111,8 +112,9 @@
                 android:text="Adicionar outra característica"
                 android:textAllCaps="false"
                 android:textColor="#000000"
+                android:textSize="16sp"
                 app:backgroundTint="#DF945D"
-                app:cornerRadius="10dp"
+                app:cornerRadius="8dp"
                 app:icon="@android:drawable/ic_input_add"
                 app:iconTint="#000000" />
 
@@ -145,6 +147,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="top|start"
+                    android:background="@drawable/bg_campo_branco"
                     android:inputType="textMultiLine|textCapSentences"
                     android:minLines="3"
                     android:textColor="#000000"
@@ -160,7 +163,7 @@
                 android:textColor="#000000"
                 android:textSize="16sp"
                 app:backgroundTint="#DF945D"
-                app:cornerRadius="12dp" />
+                app:cornerRadius="8dp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

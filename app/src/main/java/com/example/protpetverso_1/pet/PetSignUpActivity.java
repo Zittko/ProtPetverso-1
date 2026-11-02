@@ -228,14 +228,16 @@ public class PetSignUpActivity extends AppCompatActivity {
         String[] opcoesPorte = {"Selecione", "Pequeno", "Médio", "Grande"};
 
         ArrayAdapter<String> adapterSexo = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, opcoesSexo);
-        adapterSexo.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                this, R.layout.spinner_item_pet, opcoesSexo);
+        adapterSexo.setDropDownViewResource(R.layout.spinner_dropdown_vacina);
         PetSexoSpinner.setAdapter(adapterSexo);
+        PetSexoSpinner.setPopupBackgroundResource(android.R.color.white);
 
         ArrayAdapter<String> adapterPorte = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, opcoesPorte);
-        adapterPorte.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                this, R.layout.spinner_item_pet, opcoesPorte);
+        adapterPorte.setDropDownViewResource(R.layout.spinner_dropdown_vacina);
         PetPorteSpinner.setAdapter(adapterPorte);
+        PetPorteSpinner.setPopupBackgroundResource(android.R.color.white);
     }
 
     private void configurarDatePicker() {

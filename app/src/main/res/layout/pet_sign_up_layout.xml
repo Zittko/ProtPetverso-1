@@ -122,6 +122,7 @@
                 android:gravity="center_vertical"
                 android:hint="Digite o nome do seu pet"
                 android:inputType="textPersonName"
+                android:background="@drawable/bg_campo_branco"
                 android:maxLength="30"
                 android:paddingHorizontal="14dp"
                 android:textColor="#000000"
@@ -166,6 +167,7 @@
                 android:inputType="text"
                 android:maxLength="30"
                 android:paddingHorizontal="14dp"
+                android:background="@drawable/bg_campo_branco"
                 android:textColor="#000000"
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
@@ -207,6 +209,7 @@
                 android:hint="Ex: Labrador"
                 android:inputType="text"
                 android:maxLength="30"
+                android:background="@drawable/bg_campo_branco"
                 android:paddingHorizontal="14dp"
                 android:textColor="#000000"
                 android:textColorHint="#AAAAAA"
@@ -265,7 +268,7 @@
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusTopStart="8dp"
                     app:endIconMode="custom"
-                    app:endIconDrawable="@android:drawable/ic_menu_my_calendar"
+                    app:endIconDrawable="@drawable/ic_edit_calendar"
                     app:endIconTint="#FF9800"
                     app:hintEnabled="false">
 
@@ -275,6 +278,7 @@
                         android:layout_height="52dp"
                         android:gravity="center_vertical"
                         android:hint="dd/mm/aaaa"
+                        android:background="@drawable/bg_campo_branco"
                         android:focusable="false"
                         android:clickable="true"
                         android:paddingHorizontal="14dp"
@@ -319,7 +323,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
                     android:background="@drawable/bg_spinner"
-                    android:padding="12dp" />
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:popupBackground="#FFFFFF"
+                    android:spinnerMode="dropdown" />
             </LinearLayout>
         </LinearLayout>
 
@@ -370,6 +377,7 @@
                         android:layout_height="52dp"
                         android:gravity="center_vertical"
                         android:hint="Ex: 17"
+                        android:background="@drawable/bg_campo_branco"
                         android:inputType="numberDecimal"
                         android:maxLength="6"
                         android:paddingHorizontal="14dp"
@@ -414,7 +422,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
                     android:background="@drawable/bg_spinner"
-                    android:padding="12dp" />
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:popupBackground="#FFFFFF"
+                    android:spinnerMode="dropdown" />
             </LinearLayout>
         </LinearLayout>
 
