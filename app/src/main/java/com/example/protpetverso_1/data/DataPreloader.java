@@ -28,6 +28,14 @@ public final class DataPreloader {
     private DataPreloader() {}
 
     public static void preloadTudo(Context context) {
+        preloadTudo(context, null);
+    }
+
+    /**
+     * @param onSemPets chamado (na thread principal) se a API confirmar que o usuário
+     *                  não tem nenhum pet com vínculo aceito. Pode ser null.
+     */
+    public static void preloadTudo(Context context, Runnable onSemPets) {
         if (context == null) return;
         Context app = context.getApplicationContext();
         AppDataCache.get().init(app);
@@ -40,7 +48,7 @@ public final class DataPreloader {
         }
 
         preloadUsuario(app, token);
-        preloadMeusPets(app, token, sm);
+        preloadMeusPets(app, token, sm, onSemPets);
         preloadTarefasDoDia(app, token);
     }
 
@@ -72,7 +80,7 @@ public final class DataPreloader {
         VolleySingleton.getInstance(app).addToRequestQueue(request);
     }
 
-    private static void preloadMeusPets(Context app, String token, SessionManager sm) {
+    private static void preloadMeusPets(Context app, String token, SessionManager sm, Runnable onSemPets) {
         JsonArrayRequest request = new JsonArrayRequest(
                 Request.Method.GET, ApiConfig.URL_MEUS_PETS, null,
                 response -> {
@@ -91,6 +99,12 @@ public final class DataPreloader {
                         }
                     }
                     AppDataCache.get().setMeusPets(lista);
+
+                    if (lista.isEmpty()) {
+                        sm.limparPet();
+                        if (onSemPets != null) onSemPets.run();
+                        return;
+                    }
 
                     long sel = sm.obterPetId();
                     boolean ok = false;

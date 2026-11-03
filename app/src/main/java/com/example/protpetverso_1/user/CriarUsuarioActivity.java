@@ -172,7 +172,7 @@ public class CriarUsuarioActivity extends AppCompatActivity {
                     response -> {
                         sessionManager.salvarApelido(apelido);
                         Toast.makeText(this, "Perfil atualizado!", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(CriarUsuarioActivity.this, EscolhaPetActivity.class));
+                        startActivity(EscolhaPetActivity.criarIntent(CriarUsuarioActivity.this, true));
                         finish();
                     },
                     error -> {

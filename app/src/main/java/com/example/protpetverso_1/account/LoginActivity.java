@@ -26,6 +26,7 @@ import com.example.protpetverso_1.MenuActivity;
 import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.pet.EscolhaPetActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -251,6 +252,8 @@ public class LoginActivity extends AppCompatActivity {
                             }
                         } else {
                             Log.d(TAG, "Usuário sem pets");
+                            irParaEscolhaPet();
+                            return;
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -259,7 +262,9 @@ public class LoginActivity extends AppCompatActivity {
                 },
                 error -> {
                     Log.e(TAG, "Erro meusPets", error);
-                    irParaMenu();
+                    // Sem confirmação da API: só entra se já houver pet salvo neste aparelho
+                    if (sessionManager.temPetSalvo()) irParaMenu();
+                    else irParaEscolhaPet();
                 }
         ) {
             @Override
@@ -271,6 +276,15 @@ public class LoginActivity extends AppCompatActivity {
         };
 
         VolleySingleton.getInstance(this).addToRequestQueue(request);
+    }
+
+    /** Usuário sem pet: não entra na tela inicial até cadastrar um pet ou ter o vínculo aceito. */
+    private void irParaEscolhaPet() {
+        Intent intent = EscolhaPetActivity.criarIntent(LoginActivity.this, true);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        overridePendingTransition(0, 0);
+        finish();
     }
 
     /** Única entrada no app após login / sessão já existente. */

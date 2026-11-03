@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.protpetverso_1.account.LoginActivity;
 import com.example.protpetverso_1.data.AppDataCache;
+import com.example.protpetverso_1.pet.EscolhaPetActivity;
 
 /**
  * Splash: garante cache em disco na memória e encaminha
@@ -36,8 +37,13 @@ public class SplashActivity extends AppCompatActivity {
             Intent intent;
 
             if (session.isLogado()) {
-                // Home já pode usar pets/tarefas/fotos do disco enquanto a API sobe
-                intent = new Intent(SplashActivity.this, MenuActivity.class);
+                if (EscolhaPetActivity.precisaEscolherPet(session)) {
+                    // Sem pet: fica na escolha até cadastrar um pet ou o vínculo ser aceito
+                    intent = EscolhaPetActivity.criarIntent(SplashActivity.this, true);
+                } else {
+                    // Home já pode usar pets/tarefas/fotos do disco enquanto a API sobe
+                    intent = new Intent(SplashActivity.this, MenuActivity.class);
+                }
             } else {
                 intent = new Intent(SplashActivity.this, LoginActivity.class);
             }

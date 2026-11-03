@@ -59,6 +59,12 @@ public class MenuActivity extends AppCompatActivity {
             return;
         }
 
+        // Sem nenhum pet → não entra na tela inicial
+        if (EscolhaPetActivity.precisaEscolherPet(session)) {
+            irParaEscolhaObrigatoria();
+            return;
+        }
+
         toolbar = findViewById(R.id.toolbarMenu);
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavbar);
         drawerLayout = findViewById(R.id.drawerLayout);
@@ -188,7 +194,17 @@ public class MenuActivity extends AppCompatActivity {
         }
 
         // Atualiza cache pela API (rede); não bloqueia a UI
-        DataPreloader.preloadTudo(this);
+        // Se a API confirmar que não há pets (cache/sessão desatualizados), volta para a escolha
+        DataPreloader.preloadTudo(this, () -> {
+            if (!isFinishing()) irParaEscolhaObrigatoria();
+        });
+    }
+
+    private void irParaEscolhaObrigatoria() {
+        Intent intent = EscolhaPetActivity.criarIntent(this, true);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void abrirPerfilPetSelecionado() {

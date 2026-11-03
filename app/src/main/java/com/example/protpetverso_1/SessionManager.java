@@ -282,6 +282,21 @@ public class SessionManager {
         return obterPetId() > 0 || !obterPetNome().isEmpty();
     }
 
+    /** Esquece o pet selecionado (usado quando a API diz que o usuário não tem mais nenhum pet). */
+    public void limparPet() {
+        prefs.edit()
+                .remove(KEY_PET_ID)
+                .remove(KEY_PET_NOME)
+                .remove(KEY_PET_RACA)
+                .remove(KEY_PET_ESPECIE)
+                .remove(KEY_PET_PESO)
+                .remove(KEY_PET_SEXO)
+                .remove(KEY_PET_PORTE)
+                .remove(KEY_PET_DATA)
+                .remove(KEY_PET_PAPEL)
+                .apply();
+    }
+
     // ==================== SESSÃO ====================
 
     public void limparSessao() {
