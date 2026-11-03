@@ -86,10 +86,15 @@ public class EditarPetActivity extends AppCompatActivity {
         spSexo = findViewById(R.id.spSexo);
         btnSalvar = findViewById(R.id.btnSalvarPet);
 
-        ArrayAdapter<String> adPorte = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, PORTES_TELA);
+        ArrayAdapter<String> adPorte = new ArrayAdapter<>(this, R.layout.spinner_item_pet, PORTES_TELA);
+        adPorte.setDropDownViewResource(R.layout.spinner_dropdown_vacina);
         spPorte.setAdapter(adPorte);
-        ArrayAdapter<String> adSexo = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, SEXOS_TELA);
+        spPorte.setPopupBackgroundResource(android.R.color.white);
+
+        ArrayAdapter<String> adSexo = new ArrayAdapter<>(this, R.layout.spinner_item_pet, SEXOS_TELA);
+        adSexo.setDropDownViewResource(R.layout.spinner_dropdown_vacina);
         spSexo.setAdapter(adSexo);
+        spSexo.setPopupBackgroundResource(android.R.color.white);
 
         preencher();
         configurarScrollComTeclado();
@@ -144,8 +149,10 @@ public class EditarPetActivity extends AppCompatActivity {
         edtPersonalidade.setText(limparTraco(getIntent().getStringExtra("PERSONALIDADE")));
 
         String porte = getIntent().getStringExtra("PORTE");
-        if (porte != null && porte.toLowerCase(Locale.ROOT).startsWith("m")) spPorte.setSelection(1);
-        else if (porte != null && porte.toLowerCase(Locale.ROOT).startsWith("g")) spPorte.setSelection(2);
+        if (porte != null && porte.toLowerCase(Locale.ROOT).startsWith("m"))
+            spPorte.setSelection(1);
+        else if (porte != null && porte.toLowerCase(Locale.ROOT).startsWith("g"))
+            spPorte.setSelection(2);
         else spPorte.setSelection(0);
 
         String sexo = getIntent().getStringExtra("SEXO");
@@ -155,7 +162,8 @@ public class EditarPetActivity extends AppCompatActivity {
         if (nasc != null && nasc.contains("/")) {
             try {
                 nascimento = LocalDate.parse(nasc.substring(0, 10), BR);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         edtNascimento.setText(nascimento.format(BR));
     }
@@ -177,8 +185,9 @@ public class EditarPetActivity extends AppCompatActivity {
             return;
         }
         double peso;
-        try { peso = Double.parseDouble(pesoTxt); }
-        catch (NumberFormatException e) {
+        try {
+            peso = Double.parseDouble(pesoTxt);
+        } catch (NumberFormatException e) {
             Toast.makeText(this, "Peso inválido.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -199,7 +208,10 @@ public class EditarPetActivity extends AppCompatActivity {
                     response -> enviarClinico(nome, raca, especie, pesoTxt, sexo, porte),
                     error -> falha(error, "Não foi possível salvar os dados do pet.")
             ) {
-                @Override public Map<String, String> getHeaders() { return auth(); }
+                @Override
+                public Map<String, String> getHeaders() {
+                    return auth();
+                }
             };
             VolleySingleton.getInstance(this).addToRequestQueue(req);
         } catch (Exception e) {
@@ -228,7 +240,10 @@ public class EditarPetActivity extends AppCompatActivity {
                         concluir(nome, raca, especie, peso, sexo, porte);
                     }
             ) {
-                @Override public Map<String, String> getHeaders() { return auth(); }
+                @Override
+                public Map<String, String> getHeaders() {
+                    return auth();
+                }
             };
             VolleySingleton.getInstance(this).addToRequestQueue(req);
         } catch (Exception e) {
@@ -251,7 +266,8 @@ public class EditarPetActivity extends AppCompatActivity {
             cache.put("dataDeNascimento", nascimento.toString());
             cache.put("perfilDeSensibilidade", texto(edtSensibilidade));
             AppDataCache.get().setPerfilPet(petId, cache);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         Toast.makeText(this, "Pet atualizado.", Toast.LENGTH_SHORT).show();
         setResult(RESULT_OK);
         finish();
@@ -261,7 +277,8 @@ public class EditarPetActivity extends AppCompatActivity {
         btnSalvar.setEnabled(true);
         String msg = padrao;
         if (error != null && error.networkResponse != null) {
-            if (error.networkResponse.statusCode == 403) msg = "Sem permissão para alterar este pet.";
+            if (error.networkResponse.statusCode == 403)
+                msg = "Sem permissão para alterar este pet.";
             else if (error.networkResponse.data != null) {
                 String b = new String(error.networkResponse.data, StandardCharsets.UTF_8);
                 if (!b.isEmpty() && b.length() < 160) msg = b;

@@ -150,7 +150,7 @@ public class CriarTarefaActivity extends AppCompatActivity {
     }
 
     private void confirmarExclusaoTarefa() {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.DialogPetVerso)
                 .setTitle("Excluir tarefa")
                 .setMessage("Deseja excluir esta tarefa? Essa ação não pode ser desfeita.")
                 .setNegativeButton("Cancelar", null)

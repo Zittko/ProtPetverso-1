@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,20 +9,20 @@
         android:id="@+id/toolbarCadastrarVacina"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="?attr/actionBarSize"
         android:background="#F08C4B"
+        android:minHeight="?attr/actionBarSize"
+        app:contentInsetStartWithNavigation="0dp"
         app:navigationIcon="@drawable/baseline_arrow_back"
         app:navigationIconTint="#000000"
         app:title="Cadastrar Imunidade"
         app:titleCentered="true"
-        app:titleTextColor="#000000"
-        app:contentInsetStartWithNavigation="0dp" />
+        app:titleTextColor="#000000" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -68,11 +66,11 @@
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp"
-                android:minWidth="140dp"
                 android:background="@drawable/bg_campo_branco"
                 android:clickable="true"
                 android:focusable="false"
                 android:hint="dd/mm/aaaa"
+                android:minWidth="140dp"
                 android:paddingHorizontal="14dp"
                 android:textColor="#000000"
                 android:textColorHint="#AAAAAA"
@@ -91,17 +89,17 @@
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp"
-                android:minWidth="120dp"
                 android:background="@drawable/bg_spinner_vacina"
                 android:clipChildren="true"
+                android:minWidth="120dp"
                 android:padding="1dp">
 
                 <Spinner
                     android:id="@+id/spDosagemUnica"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:minWidth="120dp"
                     android:background="@android:color/transparent"
+                    android:minWidth="120dp"
                     android:paddingStart="8dp"
                     android:paddingEnd="28dp"
                     android:popupBackground="#FFFFFF"
@@ -253,13 +251,15 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnExcluirVacina"
-                    style="@style/Widget.MaterialComponents.Button"
+                    style="@style/Widget.Material3.Button"
                     android:layout_width="0dp"
                     android:layout_height="42dp"
                     android:layout_marginEnd="10dp"
                     android:layout_weight="1"
+                    android:elevation="0dp"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
+                    android:stateListAnimator="@null"
                     android:text="Excluir"
                     android:textAllCaps="false"
                     android:textColor="#000000"
@@ -270,13 +270,15 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSalvarVacina"
-                    style="@style/Widget.MaterialComponents.Button"
+                    style="@style/Widget.Material3.Button"
                     android:layout_width="0dp"
                     android:layout_height="42dp"
                     android:layout_marginStart="10dp"
                     android:layout_weight="1"
+                    android:elevation="0dp"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
+                    android:stateListAnimator="@null"
                     android:text="Salvar"
                     android:textAllCaps="false"
                     android:textColor="#000000"

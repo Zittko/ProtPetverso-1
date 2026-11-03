@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/signupScroll"
@@ -40,14 +38,13 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
             android:layout_marginTop="4dp"
+            android:layout_marginBottom="20dp"
             android:text="Lembre-se de preencher todos os campos antes de continuar!"
             android:textColor="#F44336"
             android:textSize="12sp"
             android:textStyle="bold" />
-
-        <!-- Nome -->
+        <!--  Nome  -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -62,15 +59,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            app:boxBackgroundMode="outline"
             app:boxBackgroundColor="#FFFFFF"
-            app:boxStrokeColor="#FF9800"
-            app:boxStrokeWidth="1.5dp"
-            app:boxStrokeWidthFocused="2dp"
+            app:boxBackgroundMode="outline"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#FF9800"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
             app:endIconMode="clear_text"
             app:endIconTint="#DF945D"
             app:hintEnabled="false">
@@ -79,6 +76,7 @@
                 android:id="@+id/edtNome"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/bg_campo_branco"
                 android:gravity="center_vertical"
                 android:hint="Digite seu nome"
                 android:inputType="textPersonName"
@@ -88,8 +86,7 @@
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- E-mail -->
+        <!--  E-mail  -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -104,15 +101,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            app:boxBackgroundMode="outline"
             app:boxBackgroundColor="#FFFFFF"
-            app:boxStrokeColor="#FF9800"
-            app:boxStrokeWidth="1.5dp"
-            app:boxStrokeWidthFocused="2dp"
+            app:boxBackgroundMode="outline"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#FF9800"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
             app:endIconMode="clear_text"
             app:endIconTint="#DF945D"
             app:hintEnabled="false">
@@ -121,6 +118,7 @@
                 android:id="@+id/edtCriarEmail"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/bg_campo_branco"
                 android:gravity="center_vertical"
                 android:hint="exemplo@email.com"
                 android:inputType="textEmailAddress"
@@ -130,8 +128,7 @@
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Telefone -->
+        <!--  Telefone  -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -146,15 +143,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            app:boxBackgroundMode="outline"
             app:boxBackgroundColor="#FFFFFF"
-            app:boxStrokeColor="#FF9800"
-            app:boxStrokeWidth="1.5dp"
-            app:boxStrokeWidthFocused="2dp"
+            app:boxBackgroundMode="outline"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#FF9800"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
             app:endIconMode="clear_text"
             app:endIconTint="#DF945D"
             app:hintEnabled="false">
@@ -163,6 +160,7 @@
                 android:id="@+id/edtTelefone"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/bg_campo_branco"
                 android:gravity="center_vertical"
                 android:hint="Exemplo: (11) 98743-2817"
                 android:inputType="phone"
@@ -172,8 +170,7 @@
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Senha -->
+        <!--  Senha  -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -188,15 +185,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            app:boxBackgroundMode="outline"
             app:boxBackgroundColor="#FFFFFF"
-            app:boxStrokeColor="#FF9800"
-            app:boxStrokeWidth="1.5dp"
-            app:boxStrokeWidthFocused="2dp"
+            app:boxBackgroundMode="outline"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#FF9800"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
             app:endIconMode="password_toggle"
             app:endIconTint="#DF945D"
             app:hintEnabled="false">
@@ -205,6 +202,7 @@
                 android:id="@+id/edtCriarSenha"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/bg_campo_branco"
                 android:gravity="center_vertical"
                 android:hint="Insira uma senha"
                 android:inputType="textPassword"
@@ -214,8 +212,7 @@
                 android:textColorHint="#AAAAAA"
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Confirmar senha -->
+        <!--  Confirmar senha  -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -230,15 +227,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:boxBackgroundMode="outline"
             app:boxBackgroundColor="#FFFFFF"
-            app:boxStrokeColor="#FF9800"
-            app:boxStrokeWidth="1.5dp"
-            app:boxStrokeWidthFocused="2dp"
+            app:boxBackgroundMode="outline"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
+            app:boxStrokeColor="#FF9800"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
             app:endIconMode="password_toggle"
             app:endIconTint="#DF945D"
             app:hintEnabled="false">
@@ -247,6 +244,7 @@
                 android:id="@+id/edtSenha"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/bg_campo_branco"
                 android:gravity="center_vertical"
                 android:hint="Confirme sua senha"
                 android:inputType="textPassword"
@@ -287,6 +285,5 @@
             android:textSize="16sp"
             app:backgroundTint="#DF945D"
             app:cornerRadius="8dp" />
-
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

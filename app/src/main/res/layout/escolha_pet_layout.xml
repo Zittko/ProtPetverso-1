@@ -1,10 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#FFE8CE"
+    android:orientation="vertical"
     android:paddingHorizontal="24dp"
     android:paddingTop="24dp"
     android:paddingBottom="24dp">
@@ -17,16 +16,16 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Seja bem-vindo!"
+            android:textColor="#000000"
             android:textSize="26sp"
-            android:textStyle="bold"
-            android:textColor="#000000" />
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -34,59 +33,58 @@
             android:layout_marginTop="6dp"
             android:layout_marginBottom="36dp"
             android:text="O que deseja fazer agora?"
-            android:textSize="16sp"
-            android:textColor="#666666" />
-
-        <!-- Cadastrar novo pet -->
+            android:textColor="#666666"
+            android:textSize="16sp" />
+        <!--  Cadastrar novo pet  -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardCadastrarPet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="#FFFFFF"
             app:cardCornerRadius="18dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="#FFFFFF"
-            app:strokeWidth="1.5dp"
-            app:strokeColor="#FF9800">
+            app:strokeColor="#FF9800"
+            app:strokeWidth="1.5dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="18dp"
-                android:gravity="center_vertical">
+                android:padding="18dp">
 
                 <ImageView
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:src="@android:drawable/ic_input_add"
-                    app:tint="#FF9800"
                     android:background="@drawable/bg_circulo_laranja"
+                    android:contentDescription="Cadastrar pet"
                     android:padding="10dp"
-                    android:contentDescription="Cadastrar pet" />
+                    android:src="@android:drawable/ic_input_add"
+                    app:tint="#FF9800" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="16dp">
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Cadastrar novo pet"
+                        android:textColor="#000000"
                         android:textSize="17sp"
-                        android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:text="(Você será o tutor principal)"
-                        android:textSize="13sp"
-                        android:textColor="#666666" />
+                        android:textColor="#666666"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -96,21 +94,20 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:text="Ou"
+            android:textColor="#000000"
             android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#000000" />
-
-        <!-- Entrar como suporte / vincular -->
+            android:textStyle="bold" />
+        <!--  Entrar como suporte / vincular  -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardVincularPet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#FFFFFF"
             app:cardCornerRadius="18dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="#FFFFFF"
-            app:strokeWidth="1.5dp"
-            app:strokeColor="#FF9800">
+            app:strokeColor="#FF9800"
+            app:strokeWidth="1.5dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -121,40 +118,40 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@android:drawable/ic_input_add"
-                        app:tint="#FF9800"
                         android:background="@drawable/bg_circulo_laranja"
+                        android:contentDescription="Vincular pet"
                         android:padding="10dp"
-                        android:contentDescription="Vincular pet" />
+                        android:src="@android:drawable/ic_input_add"
+                        app:tint="#FF9800" />
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
                         android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:layout_marginStart="16dp">
+                        android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Entrar como suporte"
+                            android:textColor="#000000"
                             android:textSize="17sp"
-                            android:textStyle="bold"
-                            android:textColor="#000000" />
+                            android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="(Insira o código de outro pet)"
-                            android:textSize="13sp"
-                            android:textColor="#666666" />
+                            android:textColor="#666666"
+                            android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -163,20 +160,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    app:boxBackgroundMode="outline"
                     app:boxBackgroundColor="#FFFFFF"
-                    app:boxStrokeColor="#FF9800"
-                    app:boxStrokeWidth="1.5dp"
+                    app:boxBackgroundMode="outline"
                     app:boxCornerRadiusBottomEnd="10dp"
                     app:boxCornerRadiusBottomStart="10dp"
                     app:boxCornerRadiusTopEnd="10dp"
                     app:boxCornerRadiusTopStart="10dp"
+                    app:boxStrokeColor="#FF9800"
+                    app:boxStrokeWidth="1.5dp"
                     app:hintEnabled="false">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtCodigoVinculo"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
+                        android:background="@drawable/bg_campo_branco"
                         android:gravity="center"
                         android:hint="Ex: QKZ-2813"
                         android:inputType="textCapCharacters"
@@ -193,14 +191,12 @@
                     android:layout_marginTop="12dp"
                     android:text="Vincular"
                     android:textAllCaps="false"
-                    android:textSize="15sp"
                     android:textColor="#000"
+                    android:textSize="15sp"
                     app:backgroundTint="#DF945D"
                     app:cornerRadius="10dp" />
-
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
     </LinearLayout>
 
     <View
@@ -214,9 +210,8 @@
         android:layout_height="52dp"
         android:text="Voltar"
         android:textAllCaps="false"
-        android:textSize="16sp"
         android:textColor="#000000"
+        android:textSize="16sp"
         app:backgroundTint="#F7D4A0"
         app:cornerRadius="12dp" />
-
 </LinearLayout>

@@ -89,4 +89,12 @@
         <item name="android:navigationBarColor">#f08c4b</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
+
+    <!-- Diálogos de confirmação (Excluir vacina/tarefa): fundo branco, textos pretos -->
+    <style name="DialogPetVerso" parent="android:Theme.Material.Light.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/bg_dialog_branco</item>
+        <item name="android:textColorPrimary">#000000</item>
+        <item name="android:textColorSecondary">#000000</item>
+        <item name="android:colorAccent">#000000</item>
+    </style>
 </resources>

@@ -184,7 +184,7 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
     }
 
     private void confirmarExclusaoVacina() {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.DialogPetVerso)
                 .setTitle("Excluir vacina")
                 .setMessage("Deseja excluir esta vacina? Essa ação não pode ser desfeita.")
                 .setNegativeButton("Cancelar", null)

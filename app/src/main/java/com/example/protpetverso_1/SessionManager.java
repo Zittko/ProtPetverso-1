@@ -7,15 +7,31 @@ import android.util.Log;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 
+import java.security.KeyStore;
+
 /**
  * Sessão do usuário + último pet selecionado.
- * Se o Keystore falhar (VERIFICATION_FAILED), usa prefs normais.
+ *
+ * As preferências são criptografadas (EncryptedSharedPreferences). Se o Keystore não
+ * conseguir abri-las (AEADBadTagException / VERIFICATION_FAILED — chave do Keystore não
+ * corresponde mais ao arquivo salvo), os dados antigos são irrecuperáveis: apagamos o
+ * arquivo e a chave corrompidos e recriamos. Só se isso também falhar usamos prefs normais.
+ *
+ * O SharedPreferences é criado uma única vez por processo (as Activities instanciam
+ * SessionManager várias vezes; antes, cada instância repetia a tentativa e o erro).
  */
 public class SessionManager {
 
     private static final String TAG = "SessionManager";
     private static final String PREF_NAME = "user_session";
     private static final String PREF_NAME_FALLBACK = "user_session_fallback";
+
+    // Nomes internos usados pela biblioteca androidx.security.crypto
+    private static final String KEYSET_PREF_FILE = "__androidx_security_crypto_encrypted_prefs__";
+    private static final String MASTER_KEY_ALIAS = MasterKey.DEFAULT_MASTER_KEY_ALIAS;
+
+    private static final Object LOCK = new Object();
+    private static volatile SharedPreferences cachedPrefs;
 
     private static final String KEY_TOKEN = "AUTH_TOKEN";
     private static final String KEY_USER_ID = "USER_ID";
@@ -37,25 +53,70 @@ public class SessionManager {
     private final SharedPreferences prefs;
 
     public SessionManager(Context context) {
-        SharedPreferences p;
-        try {
-            MasterKey masterKey = new MasterKey.Builder(context)
-                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                    .build();
+        this.prefs = obterPrefs(context.getApplicationContext());
+    }
 
-            p = EncryptedSharedPreferences.create(
-                    context,
-                    PREF_NAME,
-                    masterKey,
-                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-            );
-        } catch (Exception e) {
-            Log.e(TAG, "EncryptedSharedPreferences falhou — usando fallback.", e);
-            p = context.getApplicationContext()
-                    .getSharedPreferences(PREF_NAME_FALLBACK, Context.MODE_PRIVATE);
+    private static SharedPreferences obterPrefs(Context appContext) {
+        SharedPreferences local = cachedPrefs;
+        if (local != null) return local;
+
+        synchronized (LOCK) {
+            if (cachedPrefs != null) return cachedPrefs;
+
+            SharedPreferences p;
+            try {
+                p = criarPrefsCriptografadas(appContext);
+            } catch (Exception e) {
+                Log.w(TAG, "EncryptedSharedPreferences ilegível (chave do Keystore não confere com o "
+                        + "arquivo salvo). Limpando e recriando; será necessário fazer login novamente.", e);
+                try {
+                    limparDadosCriptografadosCorrompidos(appContext);
+                    p = criarPrefsCriptografadas(appContext);
+                } catch (Exception e2) {
+                    Log.e(TAG, "Não foi possível recriar as prefs criptografadas — usando fallback.", e2);
+                    p = appContext.getSharedPreferences(PREF_NAME_FALLBACK, Context.MODE_PRIVATE);
+                }
+            }
+            cachedPrefs = p;
+            return p;
         }
-        this.prefs = p;
+    }
+
+    private static SharedPreferences criarPrefsCriptografadas(Context appContext) throws Exception {
+        MasterKey masterKey = new MasterKey.Builder(appContext)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build();
+
+        return EncryptedSharedPreferences.create(
+                appContext,
+                PREF_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        );
+    }
+
+    /** Remove o arquivo de prefs, o keyset do Tink e a master key do Keystore. */
+    private static void limparDadosCriptografadosCorrompidos(Context appContext) {
+        try {
+            appContext.deleteSharedPreferences(PREF_NAME);
+        } catch (Exception e) {
+            Log.w(TAG, "Falha ao apagar " + PREF_NAME, e);
+        }
+        try {
+            appContext.deleteSharedPreferences(KEYSET_PREF_FILE);
+        } catch (Exception e) {
+            Log.w(TAG, "Falha ao apagar keyset", e);
+        }
+        try {
+            KeyStore ks = KeyStore.getInstance("AndroidKeyStore");
+            ks.load(null);
+            if (ks.containsAlias(MASTER_KEY_ALIAS)) {
+                ks.deleteEntry(MASTER_KEY_ALIAS);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Falha ao apagar a master key do Keystore", e);
+        }
     }
 
     // ==================== USUÁRIO ====================
