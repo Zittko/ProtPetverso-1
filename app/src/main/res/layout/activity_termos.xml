@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFE8CE">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarTermos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        android:background="#F08C4B"
+        app:navigationIcon="@drawable/baseline_arrow_back"
+        app:navigationIconTint="#000000"
+        app:titleCentered="true"
+        app:titleTextColor="#000000"
+        app:contentInsetStartWithNavigation="0dp" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollTermos"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false">
+
+        <TextView
+            android:id="@+id/tvConteudoTermos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:textColor="#000000"
+            android:textSize="15sp"
+            android:lineSpacingExtra="4dp"
+            android:textIsSelectable="false" />
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:id="@+id/barraAceite"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvAvisoRolagem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:text="Role até o final para poder aceitar"
+            android:textColor="#555555"
+            android:textSize="13sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAceitar"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:enabled="false"
+            android:stateListAnimator="@null"
+            android:elevation="0dp"
+            android:text="Li e aceito"
+            android:textColor="#000000"
+            app:backgroundTint="#DF945D"
+            app:cornerRadius="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRecusar"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="8dp"
+            android:stateListAnimator="@null"
+            android:elevation="0dp"
+            android:text="Voltar"
+            android:textColor="#000000"
+            app:backgroundTint="#F7D4A0"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
+</LinearLayout>

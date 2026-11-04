@@ -17,10 +17,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProtPetverso1">
         <activity
+            android:name=".TermosActivity"
+            android:exported="false" />
+        <activity
             android:name=".vaccine.CadastrarVacinaActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <!-- ===== LAUNCHER ===== -->
+            android:windowSoftInputMode="adjustResize" /> <!-- ===== LAUNCHER ===== -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"

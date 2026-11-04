@@ -4,7 +4,17 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.graphics.Color;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.TextView;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import android.widget.Button;
 import android.widget.ImageButton;
 import androidx.core.widget.NestedScrollView;
@@ -50,6 +60,11 @@ public class SignUpActivity extends AppCompatActivity {
     ImageButton btnVoltar;
     Button btnCadastrar;
 
+    private CheckBox cbTermos, cbPrivacidade;
+    private TextView tvTermos, tvPrivacidade, tvErroTermos;
+    private ActivityResultLauncher<Intent> termosLauncher;
+    private ActivityResultLauncher<Intent> privacidadeLauncher;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +89,8 @@ public class SignUpActivity extends AppCompatActivity {
         signupScroll = findViewById(R.id.signupScroll);
         btnVoltar = findViewById(R.id.btnVoltar);
         btnCadastrar = findViewById(R.id.btnCadastrar);
+
+        configurarTermos();
 
         ViewCompat.setOnApplyWindowInsetsListener(signupScroll, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -135,6 +152,13 @@ public class SignUpActivity extends AppCompatActivity {
                 valido = false;
             }
 
+            if (!cbTermos.isChecked() || !cbPrivacidade.isChecked()) {
+                tvErroTermos.setVisibility(View.VISIBLE);
+                valido = false;
+            } else {
+                tvErroTermos.setVisibility(View.GONE);
+            }
+
             // Só envia se tudo estiver válido
             if (valido) {
                 // A API recebe só os dígitos; a máscara é apenas visual
@@ -164,6 +188,77 @@ public class SignUpActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    /**
+     * Checkbox só fica marcado depois que o usuário abre o texto, rola até o fim e aceita.
+     * Tocar em um checkbox já marcado o desmarca.
+     */
+    private void configurarTermos() {
+        cbTermos = findViewById(R.id.cbTermos);
+        cbPrivacidade = findViewById(R.id.cbPrivacidade);
+        tvTermos = findViewById(R.id.tvTermos);
+        tvPrivacidade = findViewById(R.id.tvPrivacidade);
+        tvErroTermos = findViewById(R.id.tvErroTermos);
+
+        termosLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(), r -> {
+                    if (r.getResultCode() == RESULT_OK) {
+                        cbTermos.setChecked(true);
+                        atualizarErroTermos();
+                    }
+                });
+        privacidadeLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(), r -> {
+                    if (r.getResultCode() == RESULT_OK) {
+                        cbPrivacidade.setChecked(true);
+                        atualizarErroTermos();
+                    }
+                });
+
+        montarLink(tvTermos, "Li e aceito os ", "Termos de Uso", " do aplicativo.",
+                () -> termosLauncher.launch(
+                        TermosActivity.criarIntent(this, TermosActivity.TIPO_TERMOS)));
+        montarLink(tvPrivacidade, "Li e aceito a ", "Política de Privacidade e o Termo de Consentimento",
+                " para o tratamento dos meus dados.",
+                () -> privacidadeLauncher.launch(
+                        TermosActivity.criarIntent(this, TermosActivity.TIPO_PRIVACIDADE)));
+
+        cbTermos.setOnClickListener(v -> {
+            if (cbTermos.isChecked()) {          // tentou marcar: exige leitura
+                cbTermos.setChecked(false);
+                tvTermos.performClick();
+            }
+        });
+        cbPrivacidade.setOnClickListener(v -> {
+            if (cbPrivacidade.isChecked()) {
+                cbPrivacidade.setChecked(false);
+                tvPrivacidade.performClick();
+            }
+        });
+    }
+
+    private void montarLink(TextView tv, String antes, String link, String depois, Runnable acao) {
+        SpannableString ss = new SpannableString(antes + link + depois);
+        int ini = antes.length();
+        ss.setSpan(new ClickableSpan() {
+            @Override public void onClick(View widget) { acao.run(); }
+            @Override public void updateDrawState(TextPaint ds) {
+                ds.setColor(Color.parseColor("#B8651F"));
+                ds.setUnderlineText(true);
+                ds.setFakeBoldText(true);
+            }
+        }, ini, ini + link.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        tv.setText(ss);
+        tv.setMovementMethod(LinkMovementMethod.getInstance());
+        tv.setHighlightColor(Color.TRANSPARENT);
+        tv.setOnClickListener(v -> acao.run()); // tocar fora do link também abre
+    }
+
+    private void atualizarErroTermos() {
+        if (cbTermos.isChecked() && cbPrivacidade.isChecked()) {
+            tvErroTermos.setVisibility(View.GONE);
+        }
     }
 
     private void scrollToView(View target) {
