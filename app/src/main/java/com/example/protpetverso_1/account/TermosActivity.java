@@ -2,6 +2,7 @@ package com.example.protpetverso_1.account;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.core.widget.NestedScrollView;
 
 import com.example.protpetverso_1.R;
@@ -53,15 +55,27 @@ public class TermosActivity extends AppCompatActivity {
 
         int tipo = getIntent().getIntExtra(EXTRA_TIPO, TIPO_TERMOS);
 
-        View raiz = findViewById(R.id.toolbarTermos).getParent() instanceof View
-                ? (View) findViewById(R.id.toolbarTermos).getParent() : null;
-        if (raiz != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(raiz, (v, insets) -> {
-                Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-                return insets;
-            });
-        }
+        getWindow().setStatusBarColor(Color.parseColor("#F08C4B"));
+        new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView())
+                .setAppearanceLightStatusBars(true);
+
+        // Igual às outras telas: a própria toolbar ocupa a área da barra de status
+        View toolbarView = findViewById(R.id.toolbarTermos);
+        ViewCompat.setOnApplyWindowInsetsListener(toolbarView, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(bars.left, bars.top, bars.right, 0);
+            return insets;
+        });
+
+        // A barra de aceite respeita a barra de navegação do sistema
+        View barra = findViewById(R.id.barraAceite);
+        final int padBase = barra.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(barra, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(),
+                    padBase + bars.bottom);
+            return insets;
+        });
 
         MaterialToolbar toolbar = findViewById(R.id.toolbarTermos);
         scroll = findViewById(R.id.scrollTermos);

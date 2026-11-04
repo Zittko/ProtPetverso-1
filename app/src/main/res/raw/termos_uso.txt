@@ -5,34 +5,44 @@ TERMOS DE USO DO PETVERSO
 Leia com atenção. Ao criar sua conta no PetVerso você declara que leu, entendeu e concorda com estes Termos.
 
 1. O QUE É O PETVERSO
+
 O PetVerso é um aplicativo para auxiliar nos cuidados e na rotina do seu animal de estimação. Com ele você pode cadastrar pets, registrar vacinas, tarefas e informações de saúde e comportamento (como porte, peso, sensibilidades e personalidade), acompanhar quem executou cada tarefa e compartilhar o cuidado do pet com outras pessoas.
 
 2. QUEM PODE USAR
+
 Para criar uma conta você deve ter 18 anos ou mais e fornecer informações verdadeiras. Pessoas com idade entre 12 e 17 anos só podem usar o aplicativo com o consentimento e o acompanhamento de um responsável legal.
 
 3. SUA CONTA
+
 Para cadastrar-se, você informa nome, e-mail, telefone e senha. Você é responsável por manter sua senha em sigilo e por tudo o que for feito com a sua conta. Avise-nos imediatamente se suspeitar de uso indevido. A sessão fica salva no seu aparelho até que você use a opção "Sair".
 
 4. PETS, TUTOR PRINCIPAL E SUPORTE
+
 Cada pet possui um tutor principal (papel "Dono") e pode ter tutores de suporte (papel "Suporte"). O tutor principal recebe e aceita ou recusa as solicitações de vínculo, feitas por meio do código de vínculo do pet. Ao ser vinculada, a pessoa de suporte passa a ver os dados do pet e a registrar tarefas. Compartilhe o código de vínculo somente com quem você confia.
 Os tutores vinculados a um mesmo pet podem ver: o nome (ou apelido) de quem executou cada tarefa e os dados do pet. Seu e-mail, telefone e senha não são exibidos a eles.
 
 5. USO ADEQUADO
+
 Você concorda em não: usar o aplicativo para fins ilegais; inserir conteúdo ofensivo, ilícito ou que viole direitos de terceiros; tentar acessar contas, dados ou sistemas sem autorização; interferir no funcionamento do serviço ou realizar engenharia reversa para fins indevidos; fingir ser outra pessoa.
 
 6. FOTOS E CONTEÚDO QUE VOCÊ ENVIA
+
 Você mantém todos os direitos sobre as fotos e informações que cadastrar e nos autoriza apenas a armazená-las e exibi-las dentro do aplicativo para o funcionamento do serviço. Envie somente imagens de pets e evite fotos que mostrem pessoas, documentos ou outras informações pessoais.
 
 7. SAÚDE DO ANIMAL
+
 O PetVerso é uma ferramenta de organização e lembrete. Ele não substitui a avaliação, o diagnóstico ou a orientação de um médico-veterinário. Em caso de dúvida ou emergência, procure um profissional.
 
 8. DISPONIBILIDADE E ALTERAÇÕES
+
 O serviço é fornecido no estado em que se encontra e pode ficar temporariamente indisponível por manutenção, falhas de conexão ou de provedores de hospedagem. Podemos alterar funcionalidades e estes Termos; havendo mudança relevante, você será avisado e poderá precisar aceitar a nova versão para continuar usando o aplicativo.
 
 9. ENCERRAMENTO
+
 Você pode parar de usar o aplicativo a qualquer momento e pode solicitar a exclusão dos seus dados conforme a Política de Privacidade. Podemos suspender contas que violem estes Termos.
 
 10. CONSENTIMENTO
+
 Ao marcar a caixa de aceite, você confirma que leu estes Termos de Uso e concorda com eles. Sem esse aceite não é possível concluir o cadastro.
 
 Contato: projetopetverso@gmail.com
