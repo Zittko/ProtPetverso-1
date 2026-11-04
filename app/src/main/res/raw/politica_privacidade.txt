@@ -6,7 +6,7 @@ Esta Política explica, conforme a Lei Geral de Proteção de Dados (LGPD, Lei n
 
 1. QUEM É O RESPONSÁVEL
 Controlador dos dados: Equipe PetVerso (Carlos Eduardo, Daniel Yuji, Ingrid Brito, Gabriel Lincoln e Juan Lopes.
-Contato do encarregado (DPO): Carlos Eduardo, projetopetverso@gmail.com
+Contato do encarregado (DPO): Carlos Eduardo, carlosbuenow@gmail.com
 
 2. DADOS QUE COLETAMOS
 a) Dados da sua conta: nome, e-mail, telefone e senha (armazenada apenas de forma criptografada, com hash; nunca em texto legível). Opcionalmente, apelido.
