@@ -6,6 +6,7 @@ public class ApiConfig {
 
     public static final String URL_CADASTRAR = BASE_URL + "/api/usuarios/cadastrar";
     public static final String URL_LOGIN = BASE_URL + "/api/login";
+    public static final String URL_LOGOUT = BASE_URL + "/api/logout";
     public static final String URL_ATUALIZAR_PERFIL = BASE_URL + "/api/usuarios/atualizarPerfil";
     public static final String URL_USUARIO_PERFIL = BASE_URL + "/api/usuarios/perfil";
     public static final String URL_USUARIO_DADOS = BASE_URL + "/api/usuarios/dados";

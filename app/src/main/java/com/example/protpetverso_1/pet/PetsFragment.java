@@ -90,8 +90,9 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
                             long id = o.optLong("idPet", o.optLong("id", -1));
                             String nome = o.optString("nome", "Pet");
                             String papel = o.optString("papel", "");
-                            String foto = o.optString("fotoPetBase64", "");
-                            if (foto.isEmpty()) {
+                            // JSON null vira a string "null" em optString: trata como sem foto
+                            String foto = o.isNull("fotoPetBase64") ? "" : o.optString("fotoPetBase64", "");
+                            if (foto.isEmpty() && !o.isNull("fotoBase64")) {
                                 foto = o.optString("fotoBase64", "");
                             }
                             if (id > 0) {
@@ -101,10 +102,11 @@ public class PetsFragment extends Fragment implements PetListaAdapter.Listener {
                             Log.e(TAG, "parse pet", e);
                         }
                     }
+                    // Grava fotos em disco e persiste a lista (uma única vez)
                     AppDataCache.get().setMeusPets(lista);
-                    AppDataCache.get().setListaPets(lista);
                     if (adapter != null) {
-                        adapter.setItens(lista);
+                        // Versão do cache: já traz o caminho do arquivo da foto
+                        adapter.setItens(AppDataCache.get().getMeusPets());
                     }
                 },
                 error -> {

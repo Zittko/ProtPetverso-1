@@ -20,7 +20,7 @@ import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.SolicitarVinculoRequest;
 import com.example.protpetverso_1.VolleySingleton;
-import com.example.protpetverso_1.account.LoginActivity;
+import com.example.protpetverso_1.account.LogoutHelper;
 import com.example.protpetverso_1.data.AppDataCache;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -241,14 +241,8 @@ public class EscolhaPetActivity extends AppCompatActivity {
 
     private void sairDaConta() {
         handler.removeCallbacks(verificar);
-        AppDataCache.get().init(this);
-        AppDataCache.get().limparTudo(true);
-        sessionManager.limparSessao();
-
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+        // Invalida o token na API, limpa tudo local e volta ao Login
+        LogoutHelper.sair(this);
     }
 
     /**

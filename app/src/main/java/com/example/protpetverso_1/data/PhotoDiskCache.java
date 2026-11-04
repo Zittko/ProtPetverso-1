@@ -97,6 +97,32 @@ public final class PhotoDiskCache {
         }
     }
 
+    /**
+     * Carrega a foto do arquivo reduzindo a resolução (maior lado ≈ maxLado px).
+     * Evita decodificar a foto original inteira (vários MB) só para mostrar em um card.
+     */
+    public static Bitmap carregarBitmap(String path, int maxLado) {
+        if (path == null || path.trim().isEmpty()) return null;
+        File f = new File(path);
+        if (!f.exists() || f.length() == 0) return null;
+        try {
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(f.getAbsolutePath(), bounds);
+
+            int maior = Math.max(bounds.outWidth, bounds.outHeight);
+            int amostra = 1;
+            while (maxLado > 0 && maior / (amostra * 2) >= maxLado) amostra *= 2;
+
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = amostra;
+            return BitmapFactory.decodeFile(f.getAbsolutePath(), opts);
+        } catch (Exception e) {
+            Log.e(TAG, "carregarBitmap(reduzido)", e);
+            return null;
+        }
+    }
+
     public static boolean existe(String path) {
         return path != null && new File(path).isFile() && new File(path).length() > 0;
     }

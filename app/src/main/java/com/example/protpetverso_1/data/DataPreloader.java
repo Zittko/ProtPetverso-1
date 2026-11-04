@@ -91,8 +91,8 @@ public final class DataPreloader {
                             long id = o.optLong("idPet", o.optLong("id", -1));
                             String nome = o.optString("nome", "Pet");
                             String papel = o.optString("papel", "");
-                            String foto = o.optString("fotoPetBase64", "");
-                            if (foto.isEmpty()) foto = o.optString("fotoBase64", "");
+                            String foto = o.isNull("fotoPetBase64") ? "" : o.optString("fotoPetBase64", "");
+                            if (foto.isEmpty() && !o.isNull("fotoBase64")) foto = o.optString("fotoBase64", "");
                             if (id > 0) lista.add(new PetResumo(id, nome, papel, foto));
                         } catch (Exception e) {
                             Log.e(TAG, "parse pet", e);

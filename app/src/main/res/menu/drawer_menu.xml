@@ -4,12 +4,6 @@
         android:id="@+id/drawerPerfilUsuario"
         android:title="Perfil do Usuário" />
     <item
-        android:id="@+id/drawerPerfilPet"
-        android:title="Perfil do Pet" />
-    <item
-        android:id="@+id/drawerEscolhaPet"
-        android:title="Cadastrar / Vincular Pet" />
-    <item
         android:id="@+id/drawerSolicitacoes"
         android:title="Solicitações de vínculo" />
     <item

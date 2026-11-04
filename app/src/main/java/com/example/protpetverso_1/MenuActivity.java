@@ -17,10 +17,10 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
 import com.example.protpetverso_1.account.LoginActivity;
+import com.example.protpetverso_1.account.LogoutHelper;
 import com.example.protpetverso_1.data.AppDataCache;
 import com.example.protpetverso_1.data.DataPreloader;
 import com.example.protpetverso_1.pet.EscolhaPetActivity;
-import com.example.protpetverso_1.pet.PerfilPetFragment;
 import com.example.protpetverso_1.pet.PetsFragment;
 import com.example.protpetverso_1.pet.SolicitacoesVinculoFragment;
 import com.example.protpetverso_1.schedule.AgendaFragment;
@@ -123,18 +123,9 @@ public class MenuActivity extends AppCompatActivity {
                         || t.equalsIgnoreCase("Perfil do Usuário")) {
                     abrirFragment(new PerfilUsuarioFragment(), "Perfil do Usuário");
 
-                } else if (id == R.id.drawerPerfilPet
-                        || t.equalsIgnoreCase("Perfil do Pet")) {
-                    abrirPerfilPetSelecionado();
-
                 } else if (id == R.id.drawerSolicitacoes
                         || t.toLowerCase().contains("solicit")) {
                     abrirFragment(new SolicitacoesVinculoFragment(), "Solicitações de Vínculo");
-
-                } else if (id == R.id.drawerEscolhaPet
-                        || t.toLowerCase().contains("vincular")
-                        || t.toLowerCase().contains("cadastrar")) {
-                    startActivity(new Intent(MenuActivity.this, EscolhaPetActivity.class));
 
                 } else if (id == R.id.drawerLogout
                         || t.equalsIgnoreCase("Sair")) {
@@ -207,33 +198,9 @@ public class MenuActivity extends AppCompatActivity {
         finish();
     }
 
-    private void abrirPerfilPetSelecionado() {
-        SessionManager sm = new SessionManager(this);
-        long petId = sm.obterPetId();
-
-        if (petId > 0) {
-            DataPreloader.preloadPetSelecionado(this, petId);
-        }
-
-        PerfilPetFragment fragment = new PerfilPetFragment();
-        Bundle args = new Bundle();
-        args.putLong("PET_ID", petId);
-        fragment.setArguments(args);
-
-        abrirFragment(fragment, "Perfil do Pet");
-    }
-
     private void fazerLogout() {
-        // true = apaga também fotos em getCacheDir()/petverso_photos
-        AppDataCache.get().limparTudo(true);
-
-        SessionManager sm = new SessionManager(this);
-        sm.limparSessao();
-
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+        // Invalida o token na API, limpa tudo local e volta ao Login
+        LogoutHelper.sair(this);
     }
 
     private void abrirFragment(Fragment fragment, String tituloToolbar) {

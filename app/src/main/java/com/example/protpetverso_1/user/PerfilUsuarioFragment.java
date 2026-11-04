@@ -1,5 +1,6 @@
 package com.example.protpetverso_1.user;
 
+import com.example.protpetverso_1.util.Formatadores;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -302,7 +303,7 @@ public class PerfilUsuarioFragment extends Fragment {
         if (txtUsername != null) txtUsername.setText(username);
         if (txtNome != null) txtNome.setText(nome);
         if (txtEmail != null) txtEmail.setText(email);
-        if (txtTelefone != null) txtTelefone.setText(telefone);
+        if (txtTelefone != null) txtTelefone.setText(Formatadores.telefone(telefone));
     }
 
     private String valorOuPadrao(String valor, String padrao) {

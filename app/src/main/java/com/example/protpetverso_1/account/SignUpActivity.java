@@ -22,6 +22,8 @@ import com.example.protpetverso_1.ApiConfig;
 import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.util.Formatadores;
+import com.example.protpetverso_1.util.MascaraTelefone;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -59,6 +61,7 @@ public class SignUpActivity extends AppCompatActivity {
         edtNome = findViewById(R.id.edtNome);
         edtCriarEmail = findViewById(R.id.edtCriarEmail);
         edtTelefone = findViewById(R.id.edtTelefone);
+        MascaraTelefone.aplicar(edtTelefone);
         edtCriarSenha = findViewById(R.id.edtCriarSenha);
         edtSenha = findViewById(R.id.edtSenha);
 
@@ -111,6 +114,9 @@ public class SignUpActivity extends AppCompatActivity {
             if (telefone.isEmpty()) {
                 ipEdtTelefone.setError("Digite um telefone");
                 valido = false;
+            } else if (!Formatadores.telefoneValido(telefone)) {
+                ipEdtTelefone.setError("Telefone inválido. Use (DD) NNNNN-NNNN");
+                valido = false;
             }
 
             if (senha.isEmpty()) {
@@ -131,7 +137,8 @@ public class SignUpActivity extends AppCompatActivity {
 
             // Só envia se tudo estiver válido
             if (valido) {
-                executarCadastro(nome, email, telefone, senha);
+                // A API recebe só os dígitos; a máscara é apenas visual
+                executarCadastro(nome, email, Formatadores.telefoneParaApi(telefone), senha);
             }
         });
 

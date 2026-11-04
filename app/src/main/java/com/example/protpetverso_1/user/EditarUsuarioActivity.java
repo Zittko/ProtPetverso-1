@@ -1,5 +1,7 @@
 package com.example.protpetverso_1.user;
 
+import com.example.protpetverso_1.util.Formatadores;
+import com.example.protpetverso_1.util.MascaraTelefone;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -68,8 +70,9 @@ public class EditarUsuarioActivity extends AppCompatActivity {
 
         edtNome.setText(getIntent().getStringExtra("NOME"));
         edtEmail.setText(getIntent().getStringExtra("EMAIL"));
+        MascaraTelefone.aplicar(edtTelefone);
         String tel = getIntent().getStringExtra("TELEFONE");
-        edtTelefone.setText("—".equals(tel) ? "" : tel);
+        edtTelefone.setText("—".equals(tel) ? "" : Formatadores.telefone(tel));
         String apelido = getIntent().getStringExtra("APELIDO");
         if ("usuário".equalsIgnoreCase(apelido)) apelido = "";
         edtApelido.setText(apelido);
@@ -113,15 +116,21 @@ public class EditarUsuarioActivity extends AppCompatActivity {
     private void salvar() {
         String nome = texto(edtNome);
         String email = texto(edtEmail);
-        String telefone = texto(edtTelefone);
+        String telefoneDigitado = texto(edtTelefone);
         String apelido = texto(edtApelido);
         String senhaAtual = texto(edtSenhaAtual);
         String novaSenha = texto(edtNovaSenha);
 
-        if (nome.isEmpty() || email.isEmpty() || !email.contains("@") || telefone.length() < 6) {
+        if (nome.isEmpty() || email.isEmpty() || !email.contains("@") || telefoneDigitado.isEmpty()) {
             Toast.makeText(this, "Preencha nome, e-mail válido e telefone.", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (!Formatadores.telefoneValido(telefoneDigitado)) {
+            Toast.makeText(this, "Telefone inválido. Use (DD) NNNNN-NNNN.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // A API recebe só os dígitos; a máscara é apenas visual
+        String telefone = Formatadores.telefoneParaApi(telefoneDigitado);
         boolean trocarSenha = !senhaAtual.isEmpty() || !novaSenha.isEmpty();
         if (trocarSenha && (senhaAtual.isEmpty() || novaSenha.length() < 6)) {
             Toast.makeText(this, "Informe a senha atual e uma nova com pelo menos 6 caracteres.", Toast.LENGTH_LONG).show();
