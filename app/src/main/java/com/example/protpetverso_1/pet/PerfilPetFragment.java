@@ -1,6 +1,7 @@
 package com.example.protpetverso_1.pet;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -28,6 +29,8 @@ import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.example.protpetverso_1.MenuActivity;
 import com.example.protpetverso_1.pet.EditarPetActivity;
 import com.example.protpetverso_1.ApiConfig;
 import com.example.protpetverso_1.R;
@@ -71,7 +74,9 @@ public class PerfilPetFragment extends Fragment {
     private TextView txtCodigoPet, txtPersonalidade, txtSensibilidades, txtDataNascimento;
     private LinearLayout containerTutores;
     private ImageButton btnEditarTutores;
-    private MaterialButton btnCopiarCodigo, btnGerarQrCode;
+    private MaterialButton btnExcluirPet;
+    private boolean excluindoPet = false;
+    private MaterialButton btnCopiarCodigo;
 
     private final ActivityResultLauncher<String> selecionarFoto =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
@@ -171,11 +176,14 @@ public class PerfilPetFragment extends Fragment {
         txtSensibilidades = view.findViewById(R.id.txtSensibilidades);
         containerTutores = view.findViewById(R.id.containerTutores);
         btnEditarTutores = view.findViewById(R.id.btnEditarTutores);
+        btnExcluirPet = view.findViewById(R.id.btnExcluirPet);
         btnCopiarCodigo = view.findViewById(R.id.btnCopiarCodigo);
-        btnGerarQrCode = view.findViewById(R.id.btnGerarQrCode);
     }
 
     private void configurarBotoes() {
+        if (btnExcluirPet != null) {
+            btnExcluirPet.setOnClickListener(v -> confirmarExclusaoPet());
+        }
         if (btnEditarTutores != null) {
             btnEditarTutores.setOnClickListener(v -> {
                 Intent i = new Intent(requireContext(), EditarPetActivity.class);
@@ -207,10 +215,6 @@ public class PerfilPetFragment extends Fragment {
             });
         }
 
-        if (btnGerarQrCode != null) {
-            btnGerarQrCode.setOnClickListener(v ->
-                    Toast.makeText(requireContext(), "Gerar QR Code em desenvolvimento", Toast.LENGTH_SHORT).show());
-        }
     }
 
     private String textoDe(TextView tv) {
@@ -459,6 +463,12 @@ public class PerfilPetFragment extends Fragment {
                 ? "Código do Pet: —"
                 : "Código do Pet: " + codigoVinculoAtual;
 
+        // Só o tutor principal pode excluir (a API também valida)
+        if (btnExcluirPet != null && sessionManager != null) {
+            boolean dono = !codigoVinculoAtual.isEmpty() || sessionManager.obterPetEhDono();
+            btnExcluirPet.setVisibility(dono ? View.VISIBLE : View.GONE);
+        }
+
         if (txtNomePet != null) txtNomePet.setText(nome);
         if (txtRacaPeso != null) txtRacaPeso.setText(racaPeso);
         if (txtEspecie != null) txtEspecie.setText(especie);
@@ -489,6 +499,87 @@ public class PerfilPetFragment extends Fragment {
                 mostrarFotoBase64(fotoBase64, imgFotoPet);
             }
         }
+    }
+
+    private void confirmarExclusaoPet() {
+        if (petId <= 0 || excluindoPet || !podeAtualizarUi()) return;
+        String nome = textoDe(txtNomePet);
+        String alvo = (nome.isEmpty() || nome.equals("—")) ? "este pet" : nome;
+        new AlertDialog.Builder(requireContext(), R.style.DialogPetVerso)
+                .setTitle("Excluir pet")
+                .setMessage("Deseja excluir " + alvo + "? Todas as tarefas, vacinas e vínculos "
+                        + "com outros tutores também serão apagados. Essa ação não pode ser desfeita.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Excluir", (d, w) -> excluirPet())
+                .show();
+    }
+
+    private void excluirPet() {
+        final long idExcluir = petId;
+        final String token = sessionManager.obterToken();
+        if (idExcluir <= 0 || token == null || token.isEmpty()) {
+            Toast.makeText(requireContext(), "Sessão expirada.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final Context app = requireContext().getApplicationContext();
+        excluindoPet = true;
+        if (btnExcluirPet != null) btnExcluirPet.setEnabled(false);
+
+        StringRequest req = new StringRequest(
+                Request.Method.DELETE,
+                ApiConfig.URL_EXCLUIR_PET + idExcluir,
+                response -> {
+                    excluindoPet = false;
+                    aposPetExcluido(app, idExcluir);
+                },
+                error -> {
+                    excluindoPet = false;
+                    if (!podeAtualizarUi()) return;
+                    if (btnExcluirPet != null) btnExcluirPet.setEnabled(true);
+                    int code = error.networkResponse != null ? error.networkResponse.statusCode : 0;
+                    String msg;
+                    if (code == 403) msg = "Apenas o tutor principal pode excluir o pet.";
+                    else if (code == 404) msg = "Pet não encontrado ou sem permissão.";
+                    else if (code == 0) msg = "Sem conexão com o servidor.";
+                    else msg = "Erro ao excluir o pet (" + code + ").";
+                    Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> h = new HashMap<>();
+                h.put("Authorization", "Bearer " + token);
+                return h;
+            }
+        };
+        VolleySingleton.getInstance(app).addToRequestQueue(req);
+    }
+
+    /** Limpa o cache do pet, escolhe outro pet (ou a tela de escolha) e recomeça pelo menu. */
+    private void aposPetExcluido(Context app, long idExcluido) {
+        AppDataCache cache = AppDataCache.get();
+        cache.removerPet(idExcluido);
+
+        SessionManager sm = new SessionManager(app);
+        java.util.List<com.example.protpetverso_1.pet.PetResumo> restantes = cache.getMeusPets();
+        if (sm.obterPetId() == idExcluido || sm.obterPetId() <= 0) {
+            if (restantes.isEmpty()) {
+                sm.limparPet();
+            } else {
+                com.example.protpetverso_1.pet.PetResumo p = restantes.get(0);
+                sm.salvarPet(p.getIdPet(), p.getNome(), p.getPapel());
+            }
+        }
+
+        Toast.makeText(app, "Pet excluído.", Toast.LENGTH_SHORT).show();
+
+        Intent intent = restantes.isEmpty()
+                ? EscolhaPetActivity.criarIntent(app, true)
+                : new Intent(app, MenuActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        app.startActivity(intent);
+        Activity act = getActivity();
+        if (act != null) act.finish();
     }
 
     private void mostrarFotoBase64(String base64, ImageView imageView) {

@@ -17,6 +17,7 @@ public class ApiConfig {
     public static final String URL_ATUALIZAR_PERFIL_PET = BASE_URL + "/api/pets/";
     public static final String URL_FOTO_PET = BASE_URL + "/api/pets/";
     public static final String URL_PET_DADOS = BASE_URL + "/api/pets/";
+    public static final String URL_EXCLUIR_PET = BASE_URL + "/api/pets/";
     public static final String URL_MEUS_PETS = BASE_URL + "/api/pets/meusPets";
     public static final String URL_SOLICITAR_VINCULO = BASE_URL + "/api/pets/solicitarVinculo";
     public static final String URL_LISTAR_SOLICITACOES = BASE_URL + "/api/pets/listarSolicitacoes";

@@ -314,20 +314,7 @@
                             android:layout_width="0dp"
                             android:layout_height="46dp"
                             android:layout_weight="1"
-                            android:layout_marginEnd="8dp"
                             android:text="Copiar Código"
-                            android:textAllCaps="false"
-                            android:textSize="13sp"
-                            android:textColor="#000"
-                            app:cornerRadius="10dp"
-                            app:backgroundTint="#DF945D" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnGerarQrCode"
-                            android:layout_width="0dp"
-                            android:layout_height="46dp"
-                            android:layout_weight="1"
-                            android:text="Gerar QR Code"
                             android:textAllCaps="false"
                             android:textSize="13sp"
                             android:textColor="#000"
@@ -337,6 +324,24 @@
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExcluirPet"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="24dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:stateListAnimator="@null"
+                android:text="Excluir pet"
+                android:textAllCaps="false"
+                android:textColor="#000000"
+                android:textSize="15sp"
+                android:visibility="gone"
+                app:backgroundTint="#F7D4A0"
+                app:cornerRadius="10dp"
+                app:elevation="0dp" />
 
         </LinearLayout>
     </ScrollView>

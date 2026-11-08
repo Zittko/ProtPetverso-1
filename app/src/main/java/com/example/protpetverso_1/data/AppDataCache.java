@@ -478,6 +478,40 @@ public final class AppDataCache {
         return out;
     }
 
+    // ==================== REMOVER PET ====================
+
+    /**
+     * Remove do cache (memória e disco) tudo o que pertence ao pet excluído:
+     * item da lista, perfil, tarefas, vacinas, tarefas por dia e a foto.
+     */
+    public synchronized void removerPet(long petId) {
+        if (petId <= 0) return;
+        for (int i = meusPets.size() - 1; i >= 0; i--) {
+            if (meusPets.get(i).getIdPet() == petId) meusPets.remove(i);
+        }
+        perfilPetPorId.remove(petId);
+        tarefasPorPetId.remove(petId);
+        vacinasPorPetId.remove(petId);
+        tarefasPorDia.clear(); // as tarefas do dia somavam as do pet removido
+        if (ready()) {
+            SharedPreferences.Editor ed = disk.edit();
+            ed.remove(KEY_PERFIL_PET_PREFIX + petId);
+            ed.remove(KEY_TAREFAS_PREFIX + petId);
+            ed.remove(KEY_VACINAS_PREFIX + petId);
+            for (String key : new ArrayList<>(disk.getAll().keySet())) {
+                if (key.startsWith(KEY_TAREFAS_DIA_PREFIX)) ed.remove(key);
+            }
+            ed.apply();
+            persistirPets();
+            try {
+                java.io.File f = PhotoDiskCache.arquivoPet(appContext, petId);
+                if (f.isFile()) f.delete();
+            } catch (Exception e) {
+                Log.e(TAG, "remover foto do pet", e);
+            }
+        }
+    }
+
     // ==================== LIMPAR ====================
 
     public void limparTudo(boolean apagarFotos) {
