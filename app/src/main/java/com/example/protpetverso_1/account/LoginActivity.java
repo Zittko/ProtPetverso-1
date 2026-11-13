@@ -1,6 +1,9 @@
 package com.example.protpetverso_1.account;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -12,7 +15,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -26,6 +32,7 @@ import com.example.protpetverso_1.MenuActivity;
 import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.notification.NotificacaoPrefs;
 import com.example.protpetverso_1.pet.EscolhaPetActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -48,6 +55,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LOGIN";
 
     private SessionManager sessionManager;
+    private ActivityResultLauncher<String> permissaoNotificacoes;
 
     private TextInputEditText edtUser, edtSenha;
     private Button btnEntrar;
@@ -71,6 +79,19 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
 
         sessionManager = new SessionManager(this);
+
+        // Primeira abertura do app: pede a permissão de notificações (Android 13+), uma única vez.
+        // Se o usuário negar, o app continua funcionando e pode ativar depois em Preferências de notificação.
+        permissaoNotificacoes = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(), concedida -> { });
+        NotificacaoPrefs prefsNotif = new NotificacaoPrefs(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+                && !prefsNotif.permissaoJaPedida()) {
+            prefsNotif.permissaoPedida();
+            permissaoNotificacoes.launch(Manifest.permission.POST_NOTIFICATIONS);
+        }
 
         // Já logado → Menu uma vez
         if (sessionManager.isLogado()) {

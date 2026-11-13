@@ -35,6 +35,7 @@ import com.example.protpetverso_1.notification.NotificacaoStore;
 import com.example.protpetverso_1.notification.NotificacoesFragment;
 import com.example.protpetverso_1.notification.PreferenciasNotificacaoFragment;
 import com.example.protpetverso_1.pet.EscolhaPetActivity;
+import com.example.protpetverso_1.pet.PerfilPetFragment;
 import com.example.protpetverso_1.pet.PetsFragment;
 import com.example.protpetverso_1.pet.SolicitacoesVinculoFragment;
 import com.example.protpetverso_1.schedule.AgendaFragment;
@@ -56,6 +57,7 @@ public class MenuActivity extends AppCompatActivity {
     private MaterialToolbar toolbar;
     private ActivityResultLauncher<String> permissaoNotificacoes;
     private boolean abrirNotificacoesPendente = false;
+    private DrawerArrowDrawable setaMenu; // ícone do drawer (hambúrguer) da toolbar
     // Atualiza a bolinha do sino sempre que a lista de notificações muda
     private final SharedPreferences.OnSharedPreferenceChangeListener ouvinteNotificacoes =
             (sp, chave) -> runOnUiThread(this::atualizarBolinhaSino);
@@ -132,17 +134,12 @@ public class MenuActivity extends AppCompatActivity {
             drawerLayout.addDrawerListener(toggle);
             toggle.syncState();
 
-            DrawerArrowDrawable seta = toggle.getDrawerArrowDrawable();
-            seta.setColor(preto);
-            toolbar.setNavigationIcon(seta);
+            setaMenu = toggle.getDrawerArrowDrawable();
+            setaMenu.setColor(preto);
 
-            toolbar.setNavigationOnClickListener(v -> {
-                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    drawerLayout.closeDrawer(GravityCompat.START);
-                } else {
-                    drawerLayout.openDrawer(GravityCompat.START);
-                }
-            });
+            // Telas abertas a partir de outra (perfil do pet, notificações) mostram a seta de voltar
+            getSupportFragmentManager().addOnBackStackChangedListener(this::atualizarNavegacaoToolbar);
+            atualizarNavegacaoToolbar();
         }
 
         if (navigationView != null) {
@@ -209,6 +206,9 @@ public class MenuActivity extends AppCompatActivity {
                 }
 
                 if (selectedFragment != null) {
+                    // Trocar de aba descarta as telas empilhadas (perfil do pet, notificações...)
+                    getSupportFragmentManager().popBackStack(null,
+                            androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
                     getSupportFragmentManager()
                             .beginTransaction()
                             .replace(R.id.fragmentContainer, selectedFragment)
@@ -297,6 +297,51 @@ public class MenuActivity extends AppCompatActivity {
     private void fazerLogout() {
         // Invalida o token na API, limpa tudo local e volta ao Login
         LogoutHelper.sair(this);
+    }
+
+    /** Telas acessadas a partir de outra tela: mostram a seta de voltar no lugar do ícone do drawer. */
+    private boolean ehTelaFilha(Fragment f) {
+        return f instanceof PerfilPetFragment || f instanceof NotificacoesFragment;
+    }
+
+    /** Título conforme a tela atual (corrige o título ao voltar). */
+    private String tituloDe(Fragment f) {
+        if (f instanceof HomeFragment) return "Tela Inicial";
+        if (f instanceof AgendaFragment) return "Agenda";
+        if (f instanceof VacinaFragment) return "Vacinas e Imunização";
+        if (f instanceof PetsFragment) return "Pets";
+        if (f instanceof PerfilPetFragment) return "Perfil do Pet";
+        if (f instanceof NotificacoesFragment) return "Notificações";
+        if (f instanceof PerfilUsuarioFragment) return "Perfil do Usuário";
+        if (f instanceof SolicitacoesVinculoFragment) return "Solicitações de Vínculo";
+        if (f instanceof PreferenciasNotificacaoFragment) return "Preferências de notificação";
+        return null;
+    }
+
+    private void atualizarNavegacaoToolbar() {
+        if (toolbar == null || setaMenu == null) return;
+        Fragment atual = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+
+        String titulo = tituloDe(atual);
+        if (titulo != null) toolbar.setTitle(titulo);
+
+        if (atual != null && ehTelaFilha(atual)
+                && getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            toolbar.setNavigationIcon(R.drawable.baseline_arrow_back);
+            toolbar.setNavigationIconTint(Color.parseColor("#000000"));
+            toolbar.setNavigationContentDescription("Voltar");
+            toolbar.setNavigationOnClickListener(v -> getSupportFragmentManager().popBackStack());
+        } else {
+            toolbar.setNavigationIcon(setaMenu);
+            toolbar.setNavigationContentDescription("Menu");
+            toolbar.setNavigationOnClickListener(v -> {
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                } else {
+                    drawerLayout.openDrawer(GravityCompat.START);
+                }
+            });
+        }
     }
 
     private void abrirFragment(Fragment fragment, String tituloToolbar) {
