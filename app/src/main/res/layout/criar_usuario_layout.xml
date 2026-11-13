@@ -1,10 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#FFE8CE"
+    android:orientation="vertical"
     android:paddingHorizontal="24dp"
     android:paddingTop="32dp"
     android:paddingBottom="24dp">
@@ -13,16 +12,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Crie o seu usuário"
+        android:textColor="#000000"
         android:textSize="26sp"
-        android:textStyle="bold"
-        android:textColor="#000000" />
+        android:textStyle="bold" />
 
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.55" />
-
-    <!-- Avatar: círculo branco + borda laranja + "+" -->
+    <!--  Avatar: círculo branco + borda laranja + "+"  -->
     <FrameLayout
         android:layout_width="120dp"
         android:layout_height="120dp"
@@ -31,30 +29,29 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            app:cardBackgroundColor="#FFFFFF"
             app:cardCornerRadius="60dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="#FFFFFF"
-            app:strokeWidth="2.5dp"
-            app:strokeColor="#FF9800">
+            app:strokeColor="#FF9800"
+            app:strokeWidth="2.5dp">
 
             <ImageView
                 android:id="@+id/imgAvatar"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
+                android:background="#FFFFFF"
                 android:contentDescription="Foto do usuário"
-                android:background="#FFFFFF" />
+                android:scaleType="centerCrop" />
         </com.google.android.material.card.MaterialCardView>
-
-        <!-- Ícone + por cima (some quando houver foto, se quiser no Java) -->
+        <!--  Ícone + por cima (some quando houver foto, se quiser no Java)  -->
         <ImageView
             android:id="@+id/imgAddAvatar"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_gravity="center"
+            android:contentDescription="Adicionar foto"
             android:src="@android:drawable/ic_input_add"
-            app:tint="#FF9800"
-            android:contentDescription="Adicionar foto" />
+            app:tint="#FF9800" />
     </FrameLayout>
 
     <TextView
@@ -64,50 +61,50 @@
         android:layout_marginTop="12dp"
         android:layout_marginBottom="32dp"
         android:text="Escolha um Avatar"
-        android:textSize="16sp"
-        android:textColor="#000000" />
-
-    <!-- Label com asterisco -->
+        android:textColor="#000000"
+        android:textSize="16sp" />
+    <!--  Label com asterisco  -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Digite seu nome de usuário "
-            android:textSize="14sp"
-            android:textColor="#000000" />
+            android:textColor="#000000"
+            android:textSize="14sp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="*"
-            android:textSize="14sp"
-            android:textColor="#F44336" />
+            android:textColor="#F44336"
+            android:textSize="14sp" />
     </LinearLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/ipNomeUsuario"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:boxBackgroundMode="outline"
         app:boxBackgroundColor="#FFFFFF"
-        app:boxStrokeColor="#FF9800"
-        app:boxStrokeWidth="1.5dp"
-        app:boxStrokeWidthFocused="2dp"
+        app:boxBackgroundMode="outline"
         app:boxCornerRadiusBottomEnd="12dp"
         app:boxCornerRadiusBottomStart="12dp"
         app:boxCornerRadiusTopEnd="12dp"
         app:boxCornerRadiusTopStart="12dp"
+        app:boxStrokeColor="#FF9800"
+        app:boxStrokeWidth="1.5dp"
+        app:boxStrokeWidthFocused="2dp"
         app:hintEnabled="false">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edtNomeUsuario"
             android:layout_width="match_parent"
             android:layout_height="52dp"
+            android:background="@drawable/bg_campo_branco"
             android:gravity="center_vertical"
             android:hint="Usuario"
             android:inputType="text"
@@ -132,12 +129,12 @@
             android:id="@+id/btnVoltar"
             android:layout_width="0dp"
             android:layout_height="52dp"
-            android:layout_weight="1"
             android:layout_marginEnd="10dp"
+            android:layout_weight="1"
             android:text="Voltar"
             android:textAllCaps="false"
-            android:textSize="16sp"
             android:textColor="#000000"
+            android:textSize="16sp"
             app:backgroundTint="#F7D4A0"
             app:cornerRadius="12dp" />
 
@@ -145,12 +142,12 @@
             android:id="@+id/btnAvancar"
             android:layout_width="0dp"
             android:layout_height="52dp"
-            android:layout_weight="1"
             android:layout_marginStart="10dp"
+            android:layout_weight="1"
             android:text="Avançar"
             android:textAllCaps="false"
-            android:textSize="16sp"
             android:textColor="#FFFFFF"
+            android:textSize="16sp"
             app:backgroundTint="#DF945D"
             app:cornerRadius="12dp" />
     </LinearLayout>

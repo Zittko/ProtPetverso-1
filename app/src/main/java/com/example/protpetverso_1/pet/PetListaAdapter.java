@@ -1,5 +1,6 @@
 package com.example.protpetverso_1.pet;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
@@ -13,19 +14,17 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.protpetverso_1.R;
+import com.example.protpetverso_1.data.PhotoDiskCache;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Adapter da lista de pets (aba Pets).
- * - Itens de pet (foto + nome + papel)
- * - Último item: card "Adicionar pet"
- */
 public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final int TIPO_PET = 0;
     private static final int TIPO_ADD = 1;
+    private static final int MAX_LADO_FOTO_PX = 1200;
 
     public interface Listener {
         void onPetClick(PetResumo pet);
@@ -39,7 +38,6 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.listener = listener;
     }
 
-    /** Atualiza a lista e redesenha a RecyclerView. */
     public void setItens(List<PetResumo> pets) {
         lista.clear();
         if (pets != null) lista.addAll(pets);
@@ -48,13 +46,12 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public int getItemViewType(int position) {
-        // Última posição = card "Adicionar pet"
         return position < lista.size() ? TIPO_PET : TIPO_ADD;
     }
 
     @Override
     public int getItemCount() {
-        return lista.size() + 1; // +1 do card Adicionar
+        return lista.size() + 1;
     }
 
     @NonNull
@@ -69,33 +66,27 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        // Card "Adicionar pet"
-        if (holder instanceof AddVH) {
+        if (getItemViewType(position) == TIPO_ADD) {
             holder.itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onAdicionarClick();
             });
             return;
         }
 
-        // Card de pet
         PetResumo pet = lista.get(position);
         PetVH h = (PetVH) holder;
 
-        h.txtNome.setText(pet.getNome());
-        h.txtPapel.setText(pet.getPapelLabel());
+        if (h.txtNome != null) h.txtNome.setText(pet.getNome());
+        if (h.txtPapel != null) h.txtPapel.setText(pet.getPapelLabel());
 
-        // Enquadramento da foto (centerCrop)
-        h.imgFoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
-
-        if (pet.hasFoto()) {
-            Bitmap bmp = decodificarBase64(pet.getFotoPetBase64());
+        if (h.imgFoto != null) {
+            h.imgFoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            Bitmap bmp = carregarFoto(h.imgFoto.getContext(), pet);
             if (bmp != null) {
                 h.imgFoto.setImageBitmap(bmp);
             } else {
-                h.imgFoto.setImageResource(R.drawable.thor); // fallback
+                h.imgFoto.setImageResource(R.drawable.ic_tarefa_default);
             }
-        } else {
-            h.imgFoto.setImageResource(R.drawable.thor);
         }
 
         h.itemView.setOnClickListener(v -> {
@@ -104,9 +95,22 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     /**
-     * Converte Base64 em Bitmap.
-     * Remove o prefixo "data:image/...;base64," se existir.
+     * 1º arquivo em cache no disco (funciona offline) → 2º Base64 recém-chegado da API.
+     * Se o caminho salvo não existir, tenta o arquivo padrão do pet (o mesmo do perfil).
      */
+    private Bitmap carregarFoto(Context context, PetResumo pet) {
+        String path = pet.getFotoPath();
+        if (!PhotoDiskCache.existe(path)) {
+            File padrao = PhotoDiskCache.arquivoPet(context, pet.getIdPet());
+            path = padrao.isFile() && padrao.length() > 0 ? padrao.getAbsolutePath() : null;
+        }
+        Bitmap bmp = path != null ? PhotoDiskCache.carregarBitmap(path, MAX_LADO_FOTO_PX) : null;
+        if (bmp == null && pet.hasFoto()) {
+            bmp = decodificarBase64(pet.getFotoPetBase64());
+        }
+        return bmp;
+    }
+
     private Bitmap decodificarBase64(String base64) {
         try {
             if (base64 == null || base64.isEmpty()) return null;
@@ -120,7 +124,6 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    /** ViewHolder do card de pet */
     static class PetVH extends RecyclerView.ViewHolder {
         ImageView imgFoto;
         TextView txtNome, txtPapel;
@@ -133,7 +136,6 @@ public class PetListaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    /** ViewHolder do card "Adicionar pet" */
     static class AddVH extends RecyclerView.ViewHolder {
         AddVH(@NonNull View v) {
             super(v);

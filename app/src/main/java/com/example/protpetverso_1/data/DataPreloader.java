@@ -11,70 +11,111 @@ import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
 import com.example.protpetverso_1.pet.PetResumo;
 import com.example.protpetverso_1.schedule.Tarefa;
+import com.example.protpetverso_1.vaccine.Vacina;
 
 import org.json.JSONObject;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Dispara os GETs principais logo após o login / ao abrir MenuActivity.
- */
 public final class DataPreloader {
 
-    private static final String TAG = "DATA_PRELOAD";
+    private static final String TAG = "DATA_PRELOADER";
 
     private DataPreloader() {}
 
-    /** Chame uma vez na MenuActivity.onCreate (e após ações que mudam dados). */
     public static void preloadTudo(Context context) {
+        preloadTudo(context, null);
+    }
+
+    /**
+     * @param onSemPets chamado (na thread principal) se a API confirmar que o usuário
+     *                  não tem nenhum pet com vínculo aceito. Pode ser null.
+     */
+    public static void preloadTudo(Context context, Runnable onSemPets) {
+        if (context == null) return;
         Context app = context.getApplicationContext();
+        AppDataCache.get().init(app);
+
         SessionManager sm = new SessionManager(app);
         String token = sm.obterToken();
         if (token == null || token.isEmpty()) {
-            Log.w(TAG, "Sem token — preload cancelado");
+            Log.w(TAG, "Sem token");
             return;
         }
 
-        carregarUsuario(app, token);
-        carregarMeusPetsEDepoisPetEAgenda(app, token, sm);
-        // Depois: carregarSolicitacoes(app, token);
+        preloadUsuario(app, token);
+        preloadMeusPets(app, token, sm, onSemPets);
+        preloadTarefasDoDia(app, token);
     }
 
-    // ---------- Usuário ----------
-    private static void carregarUsuario(Context ctx, String token) {
-        JsonObjectRequest req = new JsonObjectRequest(
-                Request.Method.GET,
-                ApiConfig.URL_USUARIO_PERFIL,
-                null,
+    public static void preloadPetSelecionado(Context context, long petId) {
+        if (context == null || petId <= 0) return;
+        Context app = context.getApplicationContext();
+        String token = new SessionManager(app).obterToken();
+        if (token == null || token.isEmpty()) return;
+
+        preloadPerfilPet(app, token, petId);
+        preloadTarefasPet(app, token, petId);
+        preloadVacinasPet(app, token, petId);
+    }
+
+    /**
+     * O login não traz o id do usuário. Se ainda não temos, busca o perfil, guarda o id
+     * (e a foto do usuário) e só então chama onPronto. Em caso de erro, chama onPronto do mesmo jeito.
+     */
+    public static void garantirIdUsuario(Context context, Runnable onPronto) {
+        final Context app = context.getApplicationContext();
+        final SessionManager sm = new SessionManager(app);
+        final String token = sm.obterToken();
+        if (sm.obterUserId() > 0 || token == null || token.isEmpty()) {
+            if (onPronto != null) onPronto.run();
+            return;
+        }
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET, ApiConfig.URL_USUARIO_PERFIL, null,
                 response -> {
+                    sm.salvarUserId(response.optLong("idUsuario", 0));
                     AppDataCache.get().setUsuarioPerfil(response);
-                    // Espelha no SessionManager o que for útil offline
-                    SessionManager sm = new SessionManager(ctx);
-                    String apelido = response.optString("apelido", "");
-                    String tel = response.optString("telefone", "");
-                    if (!apelido.isEmpty()) sm.salvarApelido(apelido);
-                    if (!tel.isEmpty()) sm.salvarTelefone(tel);
-                    Log.d(TAG, "Usuário em cache");
+                    if (onPronto != null) onPronto.run();
                 },
-                error -> Log.e(TAG, "Erro usuário: " + status(error))
+                error -> {
+                    Log.e(TAG, "id do usuário", error);
+                    if (onPronto != null) onPronto.run();
+                }
         ) {
             @Override
             public Map<String, String> getHeaders() {
                 return auth(token);
             }
         };
-        VolleySingleton.getInstance(ctx).addToRequestQueue(req);
+        VolleySingleton.getInstance(app).addToRequestQueue(request);
     }
 
-    // ---------- Lista de pets → perfil + tarefas do selecionado ----------
-    private static void carregarMeusPetsEDepoisPetEAgenda(Context ctx, String token, SessionManager sm) {
-        JsonArrayRequest req = new JsonArrayRequest(
-                Request.Method.GET,
-                ApiConfig.URL_MEUS_PETS,
-                null,
+    private static void preloadUsuario(Context app, String token) {
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET, ApiConfig.URL_USUARIO_PERFIL, null,
+                response -> {
+                    new SessionManager(app).salvarUserId(response.optLong("idUsuario", 0));
+                    AppDataCache.get().setUsuarioPerfil(response);
+                    Log.d(TAG, "usuário ok");
+                },
+                error -> Log.e(TAG, "usuário", error)
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                return auth(token);
+            }
+        };
+        VolleySingleton.getInstance(app).addToRequestQueue(request);
+    }
+
+    private static void preloadMeusPets(Context app, String token, SessionManager sm, Runnable onSemPets) {
+        JsonArrayRequest request = new JsonArrayRequest(
+                Request.Method.GET, ApiConfig.URL_MEUS_PETS, null,
                 response -> {
                     List<PetResumo> lista = new ArrayList<>();
                     for (int i = 0; i < response.length(); i++) {
@@ -83,98 +124,150 @@ public final class DataPreloader {
                             long id = o.optLong("idPet", o.optLong("id", -1));
                             String nome = o.optString("nome", "Pet");
                             String papel = o.optString("papel", "");
-                            String foto = o.optString("fotoPetBase64", "");
-                            if (foto.isEmpty()) foto = o.optString("fotoBase64", "");
+                            String foto = o.isNull("fotoPetBase64") ? "" : o.optString("fotoPetBase64", "");
+                            if (foto.isEmpty() && !o.isNull("fotoBase64")) foto = o.optString("fotoBase64", "");
                             if (id > 0) lista.add(new PetResumo(id, nome, papel, foto));
-                        } catch (Exception ignored) {}
+                        } catch (Exception e) {
+                            Log.e(TAG, "parse pet", e);
+                        }
                     }
                     AppDataCache.get().setMeusPets(lista);
-                    Log.d(TAG, "Meus pets em cache: " + lista.size());
 
-                    long petId = sm.obterPetId();
-                    if (petId <= 0 && !lista.isEmpty()) {
+                    if (lista.isEmpty()) {
+                        sm.limparPet();
+                        if (onSemPets != null) onSemPets.run();
+                        return;
+                    }
+
+                    long sel = sm.obterPetId();
+                    boolean ok = false;
+                    for (PetResumo p : lista) {
+                        preloadPerfilPet(app, token, p.getIdPet());
+                        preloadTarefasPet(app, token, p.getIdPet());
+                        preloadVacinasPet(app, token, p.getIdPet());
+                        if (p.getIdPet() == sel) ok = true;
+                    }
+                    if (!ok && !lista.isEmpty()) {
                         PetResumo p = lista.get(0);
-                        petId = p.getIdPet();
-                        sm.salvarPet(petId, p.getNome(), "", "", "", "", "", "");
+                        sm.salvarPet(p.getIdPet(), p.getNome(), p.getPapel());
                     }
-
-                    if (petId > 0) {
-                        carregarPerfilPet(ctx, token, petId);
-                        carregarTarefasPet(ctx, token, petId);
-                    }
+                    Log.d(TAG, "meusPets=" + lista.size());
                 },
-                error -> Log.e(TAG, "Erro meusPets: " + status(error))
+                error -> Log.e(TAG, "meusPets", error)
         ) {
             @Override
             public Map<String, String> getHeaders() {
                 return auth(token);
             }
         };
-        VolleySingleton.getInstance(ctx).addToRequestQueue(req);
+        VolleySingleton.getInstance(app).addToRequestQueue(request);
     }
 
-    private static void carregarPerfilPet(Context ctx, String token, long petId) {
+    private static void preloadPerfilPet(Context app, String token, long petId) {
+        if (petId <= 0) return;
         String url = ApiConfig.URL_PET_PERFIL + petId + "/perfil";
-        JsonObjectRequest req = new JsonObjectRequest(
+        JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET, url, null,
                 response -> {
                     AppDataCache.get().setPerfilPet(petId, response);
-                    Log.d(TAG, "Perfil pet " + petId + " em cache");
+                    String foto = response.optString("fotoPetBase64", "");
+                    if (foto.isEmpty()) foto = response.optString("fotoBase64", "");
+                    if (!foto.isEmpty()) {
+                        PhotoDiskCache.salvarFotoPet(app, petId, foto);
+                    }
                 },
-                error -> Log.e(TAG, "Erro perfil pet: " + status(error))
+                error -> Log.e(TAG, "perfil pet " + petId, error)
         ) {
             @Override
             public Map<String, String> getHeaders() {
                 return auth(token);
             }
         };
-        VolleySingleton.getInstance(ctx).addToRequestQueue(req);
+        VolleySingleton.getInstance(app).addToRequestQueue(request);
     }
 
-    private static void carregarTarefasPet(Context ctx, String token, long petId) {
+    private static void preloadTarefasPet(Context app, String token, long petId) {
+        if (petId <= 0) return;
         String url = ApiConfig.URL_TAREFAS_DO_PET + petId + "/tarefas";
-        JsonArrayRequest req = new JsonArrayRequest(
+        JsonArrayRequest request = new JsonArrayRequest(
                 Request.Method.GET, url, null,
                 response -> {
-                    List<Tarefa> tarefas = new ArrayList<>();
+                    List<Tarefa> lista = new ArrayList<>();
                     for (int i = 0; i < response.length(); i++) {
                         try {
-                            tarefas.add(Tarefa.fromJson(response.getJSONObject(i)));
-                        } catch (Exception ignored) {}
+                            lista.add(Tarefa.fromJson(response.getJSONObject(i)));
+                        } catch (Exception e) {
+                            Log.e(TAG, "tarefa", e);
+                        }
                     }
-                    AppDataCache.get().setTarefas(petId, tarefas);
-                    Log.d(TAG, "Tarefas pet " + petId + ": " + tarefas.size());
+                    AppDataCache.get().setTarefas(petId, lista);
                 },
-                error -> Log.e(TAG, "Erro tarefas: " + status(error))
+                error -> Log.e(TAG, "tarefas " + petId, error)
         ) {
             @Override
             public Map<String, String> getHeaders() {
                 return auth(token);
             }
         };
-        VolleySingleton.getInstance(ctx).addToRequestQueue(req);
+        VolleySingleton.getInstance(app).addToRequestQueue(request);
     }
 
-    /** Chame quando o usuário trocar o pet selecionado. */
-    public static void preloadPetSelecionado(Context context, long petId) {
+    private static void preloadVacinasPet(Context app, String token, long petId) {
         if (petId <= 0) return;
-        SessionManager sm = new SessionManager(context);
-        String token = sm.obterToken();
-        if (token == null || token.isEmpty()) return;
-        Context app = context.getApplicationContext();
-        carregarPerfilPet(app, token, petId);
-        carregarTarefasPet(app, token, petId);
+        String url = ApiConfig.URL_VACINAS_DO_PET + petId + "/vacinas";
+        JsonArrayRequest request = new JsonArrayRequest(
+                Request.Method.GET, url, null,
+                response -> {
+                    List<Vacina> lista = new ArrayList<>();
+                    for (int i = 0; i < response.length(); i++) {
+                        try {
+                            lista.add(Vacina.fromJson(response.getJSONObject(i)));
+                        } catch (Exception e) {
+                            Log.e(TAG, "vacina", e);
+                        }
+                    }
+                    AppDataCache.get().setVacinas(petId, lista);
+                },
+                error -> Log.e(TAG, "vacinas " + petId, error)
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                return auth(token);
+            }
+        };
+        VolleySingleton.getInstance(app).addToRequestQueue(request);
+    }
+
+    private static void preloadTarefasDoDia(Context app, String token) {
+        LocalDate hoje = LocalDate.now();
+        String url = ApiConfig.URL_TAREFAS_POR_DIA + "?data=" + hoje;
+        JsonArrayRequest request = new JsonArrayRequest(
+                Request.Method.GET, url, null,
+                response -> {
+                    List<Tarefa> lista = new ArrayList<>();
+                    for (int i = 0; i < response.length(); i++) {
+                        try {
+                            lista.add(Tarefa.fromJson(response.getJSONObject(i)));
+                        } catch (Exception e) {
+                            Log.e(TAG, "tarefa dia", e);
+                        }
+                    }
+                    AppDataCache.get().setTarefasDoDia(hoje, lista);
+                    Log.d(TAG, "agenda dia=" + lista.size());
+                },
+                error -> Log.e(TAG, "agenda dia", error)
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                return auth(token);
+            }
+        };
+        VolleySingleton.getInstance(app).addToRequestQueue(request);
     }
 
     private static Map<String, String> auth(String token) {
         Map<String, String> h = new HashMap<>();
         h.put("Authorization", "Bearer " + token);
         return h;
-    }
-
-    private static String status(com.android.volley.VolleyError error) {
-        return error.networkResponse != null
-                ? String.valueOf(error.networkResponse.statusCode)
-                : "sem rede";
     }
 }

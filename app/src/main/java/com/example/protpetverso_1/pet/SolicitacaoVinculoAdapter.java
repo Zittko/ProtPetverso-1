@@ -1,5 +1,6 @@
 package com.example.protpetverso_1.pet;
 
+import com.example.protpetverso_1.util.Formatadores;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,7 +49,7 @@ public class SolicitacaoVinculoAdapter
         SolicitacaoVinculo item = lista.get(position);
         h.txtNomePet.setText("Pet: " + item.nomePet);
         h.txtSolicitante.setText("Quem pediu: " + item.nomeSolicitante);
-        h.txtData.setText(item.dataDeCriacao != null ? item.dataDeCriacao : "");
+        h.txtData.setText(Formatadores.dataHoraIsoParaBr(item.dataDeCriacao));
 
         h.btnAceitar.setOnClickListener(v -> listener.onAceitar(item));
         h.btnRecusar.setOnClickListener(v -> listener.onRecusar(item));

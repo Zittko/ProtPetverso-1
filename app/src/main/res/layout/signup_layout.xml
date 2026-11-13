@@ -79,6 +79,7 @@
                 android:id="@+id/edtNome"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/bg_campo_branco"
                 android:gravity="center_vertical"
                 android:hint="Digite seu nome"
                 android:inputType="textPersonName"
@@ -121,6 +122,7 @@
                 android:id="@+id/edtCriarEmail"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/bg_campo_branco"
                 android:gravity="center_vertical"
                 android:hint="exemplo@email.com"
                 android:inputType="textEmailAddress"
@@ -163,10 +165,11 @@
                 android:id="@+id/edtTelefone"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/bg_campo_branco"
                 android:gravity="center_vertical"
                 android:hint="Exemplo: (11) 98743-2817"
                 android:inputType="phone"
-                android:maxLength="20"
+                android:maxLength="15"
                 android:paddingHorizontal="14dp"
                 android:textColor="#000000"
                 android:textColorHint="#AAAAAA"
@@ -205,6 +208,7 @@
                 android:id="@+id/edtCriarSenha"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/bg_campo_branco"
                 android:gravity="center_vertical"
                 android:hint="Insira uma senha"
                 android:inputType="textPassword"
@@ -247,6 +251,7 @@
                 android:id="@+id/edtSenha"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/bg_campo_branco"
                 android:gravity="center_vertical"
                 android:hint="Confirme sua senha"
                 android:inputType="textPassword"
@@ -257,25 +262,63 @@
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/cbTermos"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
-            android:text="Termos de uso do aplicativo.\ntermos de consentimento."
-            android:textColor="#555555"
-            android:textSize="13sp"
-            app:buttonTint="#DF945D" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/cbPrivacidade"
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/cbTermos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:buttonTint="#DF945D" />
+
+            <TextView
+                android:id="@+id/tvTermos"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:gravity="center_vertical"
+                android:textColor="#555555"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:text="Políticas de Privacidade.\ntermos de consentimento."
-            android:textColor="#555555"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/cbPrivacidade"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:buttonTint="#DF945D" />
+
+            <TextView
+                android:id="@+id/tvPrivacidade"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:gravity="center_vertical"
+                android:textColor="#555555"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvErroTermos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="Para se cadastrar, leia e aceite os dois termos."
+            android:textColor="#B3261E"
             android:textSize="13sp"
-            app:buttonTint="#DF945D" />
+            android:visibility="gone" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCadastrar"

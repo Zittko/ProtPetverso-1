@@ -1,0 +1,66 @@
+POLÍTICA DE PRIVACIDADE E TERMO DE CONSENTIMENTO
+
+Última atualização: novembro de 2026
+
+Esta Política explica, conforme a Lei Geral de Proteção de Dados (LGPD, Lei nº 13.709/2018), quais dados o PetVerso trata, para quê e quais são os seus direitos.
+
+1. QUEM É O RESPONSÁVEL
+
+Controlador dos dados: Equipe PetVerso (Carlos Eduardo, Daniel Yuji, Ingrid Brito, Gabriel Lincoln e Juan Lopes.
+Contato do encarregado (DPO): Carlos Eduardo, carlosbuenow@gmail.com
+
+2. DADOS QUE COLETAMOS
+
+a) Dados da sua conta: nome, e-mail, telefone e senha (armazenada apenas de forma criptografada, com hash; nunca em texto legível). Opcionalmente, apelido.
+b) Dados dos seus pets: nome, espécie, raça, idade, porte, peso, sexo, foto, perfil de sensibilidades e personalidades.
+c) Dados de uso: vacinas e tarefas cadastradas, quem as executou e quando; vínculos e solicitações de vínculo entre tutores.
+d) Dados técnicos no aparelho: token de sessão e informações básicas da conta, guardados em armazenamento criptografado do Android, e uma cópia local (cache) dos seus pets e fotos para o app funcionar mais rápido e offline.
+
+3. DADOS SENSÍVEIS
+
+O PetVerso não solicita dados pessoais sensíveis sobre você (como saúde, biometria, origem racial, religião ou opinião política). As informações de saúde e comportamento tratadas são do ANIMAL (vacinas, sensibilidades, personalidade), mas ficam vinculadas à sua conta e, por isso, as tratamos com o mesmo cuidado. Pedimos que você não escreva em campos livres (como sensibilidades ou observações) dados sensíveis sobre pessoas. Fotos devem ser apenas dos pets: se uma foto mostrar pessoas, ela pode revelar dados pessoais e a responsabilidade pelo envio é sua.
+
+4. PARA QUE USAMOS SEUS DADOS
+
+- Criar e autenticar sua conta e manter você conectado.
+- Cadastrar e exibir seus pets, vacinas e tarefas.
+- Permitir o compartilhamento do cuidado com tutores vinculados e identificar quem realizou cada tarefa.
+- Permitir a recuperação de senha e o contato com você sobre o serviço.
+- Manter a segurança e o bom funcionamento do aplicativo.
+
+Base legal: execução do serviço que você solicitou (art. 7º, V) e o seu consentimento (art. 7º, I), que você dá ao aceitar este termo.
+
+5. COM QUEM COMPARTILHAMOS
+
+- Tutores vinculados ao mesmo pet: veem os dados do pet e o nome ou apelido de quem executou as tarefas. Seu e-mail, telefone e senha não são exibidos.
+- Provedores de hospedagem e banco de dados em nuvem que armazenam as informações do serviço, sob dever de segurança. Esses servidores podem estar fora do Brasil.
+Não vendemos seus dados e o aplicativo não usa publicidade nem ferramentas de rastreamento de terceiros.
+
+6. ARMAZENAMENTO E SEGURANÇA
+
+A comunicação com o servidor usa HTTPS. Senhas são guardadas com hash. O token de sessão é guardado de forma criptografada no aparelho e o cache local é apagado quando você usa "Sair". Nenhum sistema é 100% seguro; em caso de incidente relevante, comunicaremos você e a ANPD conforme a lei.
+
+7. PERMISSÕES DO APARELHO
+
+- Internet: para falar com o servidor.
+- Acesso a fotos/galeria: somente para você escolher a foto do pet.
+
+8. POR QUANTO TEMPO GUARDAMOS
+
+Mantemos seus dados enquanto sua conta estiver ativa. Ao pedir a exclusão, apagamos ou anonimizamos os dados, salvo os que precisarmos guardar para cumprir obrigação legal.
+
+9. SEUS DIREITOS (LGPD, ART. 18)
+
+Você pode, a qualquer momento: confirmar que tratamos seus dados; acessá-los; corrigi-los (o app permite editar seu perfil); pedir anonimização, bloqueio ou exclusão; pedir portabilidade; saber com quem compartilhamos; revogar o consentimento. Revogar o consentimento pode impedir o uso do aplicativo. Para exercer seus direitos, escreva para o contato indicado no item 1. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).
+
+10. CRIANÇAS E ADOLESCENTES
+
+O cadastro é destinado a maiores de 18 anos. Pessoas entre 12 e 17 anos só devem usar o app com consentimento de um responsável legal. Não coletamos intencionalmente dados de crianças.
+
+11. ALTERAÇÕES
+
+Podemos atualizar esta Política. Mudanças relevantes serão informadas no aplicativo e, se necessário, pediremos um novo consentimento.
+
+12. TERMO DE CONSENTIMENTO
+
+Ao marcar a caixa de aceite, eu declaro que li esta Política e, de forma livre, informada e inequívoca, CONSINTO que o PetVerso trate os meus dados pessoais e os dados dos meus pets para as finalidades descritas acima. Sei que posso revogar este consentimento a qualquer momento. Sem este aceite não é possível concluir o cadastro.

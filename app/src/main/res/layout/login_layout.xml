@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -50,7 +49,6 @@
             android:textColor="@color/text_orange"
             android:textSize="15sp" />
 
-
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/ipEdtUser"
             android:layout_width="match_parent"
@@ -73,6 +71,7 @@
                 android:id="@+id/edtUser"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/bg_campo_branco"
                 android:gravity="center_vertical"
                 android:hint="exemplo@email.com"
                 android:inputType="textEmailAddress"
@@ -114,6 +113,7 @@
                 android:id="@+id/edtSenha"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/bg_campo_branco"
                 android:gravity="center_vertical"
                 android:hint="••••••••"
                 android:inputType="textPassword"
@@ -148,7 +148,6 @@
                 android:textSize="15sp" />
         </LinearLayout>
 
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnEntrar"
             android:layout_width="match_parent"
@@ -161,7 +160,6 @@
             app:backgroundTint="@null"
             app:cornerRadius="6dp"
             app:elevation="4dp" />
-
 
         <TextView
             android:id="@+id/txtSignUp"
@@ -180,7 +178,5 @@
             android:text="@string/signup"
             android:textColor="#5f2e16"
             android:textSize="15sp" />
-
-
     </LinearLayout>
 </ScrollView>

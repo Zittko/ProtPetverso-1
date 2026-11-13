@@ -1,0 +1,294 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFE8CE"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarCadastrarVacina"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#F08C4B"
+        android:minHeight="?attr/actionBarSize"
+        app:contentInsetStartWithNavigation="0dp"
+        app:navigationIcon="@drawable/baseline_arrow_back"
+        app:navigationIconTint="#000000"
+        app:title="Cadastrar Imunidade"
+        app:titleCentered="true"
+        app:titleTextColor="#000000" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nome"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtNomeVacina"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_campo_branco"
+                android:hint="Nome do medicamento"
+                android:inputType="textCapSentences"
+                android:paddingHorizontal="14dp"
+                android:textColor="#000000"
+                android:textColorHint="#AAAAAA"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Data da aplicação"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtDataAplicacao"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:drawableTint="#FF9800"
+                android:drawableEnd="@drawable/ic_edit_calendar"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_campo_branco"
+                android:clickable="true"
+                android:focusable="false"
+                android:hint="dd/mm/aaaa"
+                android:minWidth="140dp"
+                android:paddingHorizontal="14dp"
+                android:textColor="#000000"
+                android:textColorHint="#AAAAAA"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dosagem única"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_spinner_vacina"
+                android:clipChildren="true"
+                android:minWidth="120dp"
+                android:padding="1dp">
+
+                <Spinner
+                    android:id="@+id/spDosagemUnica"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/transparent"
+                    android:minWidth="120dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="28dp"
+                    android:popupBackground="#FFFFFF"
+                    android:spinnerMode="dropdown" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/boxJaAplicada"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="15dp"
+                    android:text="Já foi aplicada?"
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <FrameLayout
+                    android:id="@+id/btnJaAplicada"
+                    android:layout_width="23dp"
+                    android:layout_height="23dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <View
+                        android:id="@+id/viewJaAplicadaBg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_status_pendente" />
+
+                    <ImageView
+                        android:id="@+id/imgJaAplicadaCheck"
+                        android:layout_width="13dp"
+                        android:layout_height="13dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="Aplicada"
+                        android:src="@drawable/ic_check_branco"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/boxIntervalo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aplicar novamente daqui"
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edtIntervaloQtd"
+                        android:layout_width="70dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@drawable/bg_campo_branco"
+                        android:gravity="center"
+                        android:hint="Qtd"
+                        android:inputType="number"
+                        android:paddingHorizontal="8dp"
+                        android:textColor="#000000"
+                        android:textColorHint="#AAAAAA"
+                        android:textSize="14sp" />
+
+                    <FrameLayout
+                        android:layout_width="120dp"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_spinner_vacina"
+                        android:clipChildren="true"
+                        android:padding="1dp">
+
+                        <Spinner
+                            android:id="@+id/spIntervaloUnidade"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_spinner"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="28dp"
+                            android:popupBackground="#FFFFFF"
+                            android:spinnerMode="dropdown" />
+                    </FrameLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Observações"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtObservacao"
+                android:layout_width="match_parent"
+                android:layout_height="130dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_campo_branco"
+                android:gravity="top|start"
+                android:hint="Digite suas observações"
+                android:inputType="textMultiLine"
+                android:padding="14dp"
+                android:textColor="#000000"
+                android:textColorHint="#AAAAAA"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnConfirmarVacina"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_gravity="end"
+                android:layout_marginTop="12dp"
+                android:minWidth="140dp"
+                android:paddingHorizontal="28dp"
+                android:text="Confirmar"
+                android:textAllCaps="false"
+                android:textColor="#000000"
+                android:textSize="15sp"
+                app:backgroundTint="#DF945D"
+                app:cornerRadius="8dp" />
+
+            <LinearLayout
+                android:id="@+id/boxAcoesEdicaoVacina"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnExcluirVacina"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
+                    android:elevation="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:stateListAnimator="@null"
+                    android:text="Excluir"
+                    android:textAllCaps="false"
+                    android:textColor="#000000"
+                    android:textSize="14sp"
+                    app:backgroundTint="#F7D4A0"
+                    app:cornerRadius="8dp"
+                    app:elevation="0dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSalvarVacina"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:elevation="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:stateListAnimator="@null"
+                    android:text="Salvar"
+                    android:textAllCaps="false"
+                    android:textColor="#000000"
+                    android:textSize="14sp"
+                    app:backgroundTint="#DF945D"
+                    app:cornerRadius="8dp"
+                    app:elevation="0dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

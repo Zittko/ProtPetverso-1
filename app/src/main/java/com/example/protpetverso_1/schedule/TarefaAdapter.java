@@ -1,114 +1,153 @@
 package com.example.protpetverso_1.schedule;
 
 import android.content.Context;
-import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.protpetverso_1.R;
 
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TarefaAdapter extends RecyclerView.Adapter<TarefaAdapter.TarefaViewHolder> {
+public class TarefaAdapter extends RecyclerView.Adapter<TarefaAdapter.VH> {
 
     public interface OnTarefaClickListener {
-        void onToggleConcluida(Tarefa tarefa, int position);
+        /** Clique no botão de status (concluir) */
+        void onTarefaClick(Tarefa tarefa, int position);
     }
 
-    private final List<Tarefa> listaTarefas = new ArrayList<>();
-    private final Context context;
-    private OnTarefaClickListener listener;
+    public interface OnEditarTarefaListener {
+        /** Clique no card inteiro (editar) */
+        void onEditarTarefa(Tarefa tarefa);
+    }
 
-    public TarefaAdapter(Context context, List<Tarefa> lista) {
+    private final Context context;
+    private final List<Tarefa> lista = new ArrayList<>();
+    private OnTarefaClickListener listener;
+    private OnEditarTarefaListener editarListener;
+
+    public TarefaAdapter(Context context, List<Tarefa> inicial) {
         this.context = context;
-        if (lista != null) listaTarefas.addAll(lista);
+        if (inicial != null) lista.addAll(inicial);
     }
 
     public void setOnTarefaClickListener(OnTarefaClickListener listener) {
         this.listener = listener;
     }
 
-    public void setItens(List<Tarefa> novas) {
-        listaTarefas.clear();
-        if (novas != null) listaTarefas.addAll(novas);
+    public void setOnEditarTarefaListener(OnEditarTarefaListener listener) {
+        this.editarListener = listener;
+    }
+
+    public void setItens(List<Tarefa> tarefas) {
+        lista.clear();
+        if (tarefas != null) lista.addAll(tarefas);
         notifyDataSetChanged();
+    }
+
+    public void atualizarItem(int position, Tarefa tarefa) {
+        if (position >= 0 && position < lista.size() && tarefa != null) {
+            lista.set(position, tarefa);
+            notifyItemChanged(position);
+        }
     }
 
     @NonNull
     @Override
-    public TarefaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
+    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_tarefa_card, parent, false);
-        return new TarefaViewHolder(view);
+        return new VH(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull TarefaViewHolder h, int position) {
-        Tarefa t = listaTarefas.get(position);
+    public void onBindViewHolder(@NonNull VH h, int position) {
+        Tarefa t = lista.get(position);
 
-        if (t.getHorario() != null) {
-            LocalTime hr = t.getHorario();
-            h.titleTarefa.setText(String.format("%02d:%02d - %s", hr.getHour(), hr.getMinute(), t.getTitulo()));
-        } else {
-            h.titleTarefa.setText(t.getTitulo());
+        if (h.titleTarefa != null) h.titleTarefa.setText(t.getTituloComHorario());
+        if (h.descTarefa != null) {
+            String d = t.getDesc();
+            h.descTarefa.setText(d);
+            h.descTarefa.setVisibility(d == null || d.isEmpty() ? View.GONE : View.VISIBLE);
         }
 
-        h.descTarefa.setText(t.getDesc());
-        h.imgTarefa.setImageResource(t.getImagemResId());
-
-        if (t.isConcluida()) {
-            h.imgStatus.setImageResource(android.R.drawable.checkbox_on_background);
-            h.titleTarefa.setPaintFlags(h.titleTarefa.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-        } else {
-            h.imgStatus.setImageResource(android.R.drawable.checkbox_off_background);
-            h.titleTarefa.setPaintFlags(h.titleTarefa.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
-        }
-
-        // Rodapé: Feito por / Pet
-        if (t.isConcluida() && t.getExecutadoPorNome() != null && !t.getExecutadoPorNome().isEmpty()) {
-            h.txtRodape.setText("Feito por: " + t.getExecutadoPorNome());
-        } else if (t.getNomePet() != null && !t.getNomePet().isEmpty()) {
-            h.txtRodape.setText("Pet: " + t.getNomePet());
-        } else {
-            h.txtRodape.setText("");
-        }
-
-        h.imgStatus.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onToggleConcluida(t, h.getBindingAdapterPosition());
+        if (h.txtRodape != null) {
+            String rodape = t.getRodapeTexto();
+            if (rodape == null || rodape.isEmpty()) {
+                h.txtRodape.setVisibility(View.GONE);
             } else {
-                Toast.makeText(context,
-                        "Marcar como concluída em breve (aguardando endpoint da API).",
-                        Toast.LENGTH_SHORT).show();
+                h.txtRodape.setVisibility(View.VISIBLE);
+                h.txtRodape.setText(rodape);
+            }
+        }
+
+        if (h.imgTarefa != null) {
+            int icon = t.getImagemResId() != 0
+                    ? t.getImagemResId()
+                    : TarefaIconHelper.resolverIcone(t.getTitulo(), t.getDesc());
+            h.imgTarefa.setImageResource(icon);
+        }
+
+        // Status (concluir)
+        if (t.isConcluida()) {
+            if (h.viewStatusBg != null) h.viewStatusBg.setBackgroundResource(R.drawable.bg_status_concluida);
+            if (h.imgStatusCheck != null) {
+                h.imgStatusCheck.setImageResource(R.drawable.ic_check_branco);
+                h.imgStatusCheck.setVisibility(View.VISIBLE);
+            }
+            if (h.btnStatus != null) {
+                h.btnStatus.setClickable(false);
+                h.btnStatus.setOnClickListener(null);
+            }
+        } else {
+            if (h.viewStatusBg != null) h.viewStatusBg.setBackgroundResource(R.drawable.bg_status_pendente);
+            if (h.imgStatusCheck != null) h.imgStatusCheck.setVisibility(View.GONE);
+            if (h.btnStatus != null) {
+                h.btnStatus.setClickable(true);
+                h.btnStatus.setOnClickListener(v -> {
+                    int pos = h.getBindingAdapterPosition();
+                    if (listener != null && pos != RecyclerView.NO_POSITION) {
+                        listener.onTarefaClick(lista.get(pos), pos);
+                    }
+                });
+            }
+        }
+
+        // Clique no card → editar (somente se não concluída)
+        h.itemView.setOnClickListener(v -> {
+            if (!t.isConcluida() && editarListener != null) {
+                editarListener.onEditarTarefa(t);
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return listaTarefas.size();
+        return lista.size();
     }
 
-    static class TarefaViewHolder extends RecyclerView.ViewHolder {
+    static class VH extends RecyclerView.ViewHolder {
+        FrameLayout btnStatus;
+        View viewStatusBg;
+        ImageView imgStatusCheck, imgTarefa;
         TextView titleTarefa, descTarefa, txtRodape;
-        ImageView imgTarefa, imgStatus;
 
-        TarefaViewHolder(@NonNull View itemView) {
+        VH(@NonNull View itemView) {
             super(itemView);
+            btnStatus = itemView.findViewById(R.id.btnStatus);
+            viewStatusBg = itemView.findViewById(R.id.viewStatusBg);
+            imgStatusCheck = itemView.findViewById(R.id.imgStatusCheck);
+            imgTarefa = itemView.findViewById(R.id.imgTarefa);
             titleTarefa = itemView.findViewById(R.id.titleTarefa);
             descTarefa = itemView.findViewById(R.id.descTarefa);
             txtRodape = itemView.findViewById(R.id.txtRodape);
-            imgTarefa = itemView.findViewById(R.id.imgTarefa);
-            imgStatus = itemView.findViewById(R.id.imgStatus);
         }
     }
 }

@@ -9,13 +9,15 @@
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbarCriarTarefa"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
         android:background="#F08C4B"
         app:navigationIcon="@drawable/baseline_arrow_back"
-        app:navigationIconTint="#000"
-        app:title="Criar Tarefa"
-        app:titleTextColor="#000"
-        app:titleCentered="true" />
+        app:navigationIconTint="#000000"
+        app:title="Nova Tarefa"
+        app:titleCentered="true"
+        app:titleTextColor="#000000"
+        app:contentInsetStartWithNavigation="0dp" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -44,17 +46,22 @@
                 android:layout_marginTop="6dp"
                 app:boxBackgroundMode="outline"
                 app:boxBackgroundColor="#FFFFFF"
-                app:boxStrokeColor="#FF9800"
                 app:boxCornerRadiusTopStart="10dp"
                 app:boxCornerRadiusTopEnd="10dp"
                 app:boxCornerRadiusBottomStart="10dp"
-                app:boxCornerRadiusBottomEnd="10dp">
+                app:boxCornerRadiusBottomEnd="10dp"
+                app:hintEnabled="false"
+                app:cursorColor="#000000"
+                app:boxStrokeColor="#FF9800"
+                app:boxStrokeWidth="1.5dp"
+                app:boxStrokeWidthFocused="2dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edtTituloTarefa"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Título da tarefa"
+                    android:background="@drawable/bg_campo_branco"
                     android:inputType="textCapSentences"
                     android:textColor="#000000"
                     android:textColorHint="#AAAAAA" />
@@ -88,18 +95,23 @@
                         app:boxBackgroundMode="outline"
                         app:boxBackgroundColor="#FFFFFF"
                         app:boxStrokeColor="#FF9800"
-                        app:endIconMode="custom"
-                        app:endIconDrawable="@android:drawable/ic_menu_my_calendar"
-                        app:endIconTint="#FF9800"
                         app:boxCornerRadiusTopStart="10dp"
                         app:boxCornerRadiusTopEnd="10dp"
                         app:boxCornerRadiusBottomStart="10dp"
-                        app:boxCornerRadiusBottomEnd="10dp">
+                        app:boxCornerRadiusBottomEnd="10dp"
+                        app:hintEnabled="false"
+                        app:cursorColor="#000000"
+                        app:boxStrokeWidth="1.5dp"
+                        app:boxStrokeWidthFocused="2dp">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/edtDataTarefa"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="56dp"
+                            android:gravity="center_vertical"
+                            android:background="@drawable/bg_campo_branco"
+                            android:drawableEnd="@drawable/ic_edit_calendar"
+                            android:drawableTint="#FF9800"
                             android:hint="dd/mm/aaaa"
                             android:focusable="false"
                             android:clickable="true"
@@ -128,18 +140,24 @@
                         android:layout_marginTop="6dp"
                         app:boxBackgroundMode="outline"
                         app:boxBackgroundColor="#FFFFFF"
-                        app:boxStrokeColor="#FF9800"
                         app:boxCornerRadiusTopStart="10dp"
                         app:boxCornerRadiusTopEnd="10dp"
                         app:boxCornerRadiusBottomStart="10dp"
-                        app:boxCornerRadiusBottomEnd="10dp">
+                        app:boxCornerRadiusBottomEnd="10dp"
+                        app:hintEnabled="false"
+                        app:cursorColor="#000000"
+                        app:boxStrokeColor="#FF9800"
+                        app:boxStrokeWidth="1.5dp"
+                        app:boxStrokeWidthFocused="2dp">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/edtHoraTarefa"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="56dp"
+                            android:gravity="center_vertical"
                             android:hint="08:00"
                             android:focusable="false"
+                            android:background="@drawable/bg_campo_branco"
                             android:clickable="true"
                             android:textColor="#000000" />
                     </com.google.android.material.textfield.TextInputLayout>
@@ -160,18 +178,22 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 app:boxBackgroundMode="outline"
-                app:boxBackgroundColor="#FFFFFF"
-                app:boxStrokeColor="#FF9800"
                 app:boxCornerRadiusTopStart="10dp"
                 app:boxCornerRadiusTopEnd="10dp"
                 app:boxCornerRadiusBottomStart="10dp"
-                app:boxCornerRadiusBottomEnd="10dp">
+                app:boxCornerRadiusBottomEnd="10dp"
+                app:hintEnabled="false"
+                app:cursorColor="#000000"
+                app:boxStrokeColor="#FF9800"
+                app:boxStrokeWidth="1.5dp"
+                app:boxStrokeWidthFocused="2dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edtDescTarefa"
                     android:layout_width="match_parent"
                     android:layout_height="120dp"
                     android:gravity="top|start"
+                    android:background="@drawable/bg_campo_branco"
                     android:hint="Digite aqui a descrição da tarefa..."
                     android:inputType="textMultiLine"
                     android:textColor="#000000"
@@ -185,10 +207,57 @@
                 android:layout_marginTop="28dp"
                 android:text="Confirmar"
                 android:textAllCaps="false"
-                android:textColor="#000"
+                android:textColor="#000000"
                 android:textSize="16sp"
                 app:backgroundTint="#DF945D"
-                app:cornerRadius="12dp" />
+                app:cornerRadius="8dp" />
+
+            <LinearLayout
+                android:id="@+id/boxAcoesEdicaoTarefa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnExcluirTarefa"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Excluir"
+                    android:textAllCaps="false"
+                    android:textColor="#000000"
+                    android:textSize="14sp"
+                    app:backgroundTint="#F7D4A0"
+                    app:cornerRadius="8dp"
+                    app:elevation="0dp"
+                    android:elevation="0dp"
+                    android:stateListAnimator="@null" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSalvarTarefa"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Salvar"
+                    android:textAllCaps="false"
+                    android:textColor="#000000"
+                    android:textSize="14sp"
+                    app:backgroundTint="#DF945D"
+                    app:cornerRadius="8dp"
+                    app:elevation="0dp"
+                    android:elevation="0dp"
+                    android:stateListAnimator="@null" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

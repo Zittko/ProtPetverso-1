@@ -49,6 +49,11 @@
         <item name="cornerSize">12dp</item>
     </style>
 
+    <style name="FabCorner8" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
     <style name="CantosArrendodados" parent="">
         <item name="cornerRadius">8dp</item>
         <item name="cornerFamily">rounded</item>
@@ -76,5 +81,20 @@
         <item name="android:windowLightStatusBar">false</item>
         <!-- API 28+: não desenhar por cima do furo da câmera -->
         <item name="android:windowLayoutInDisplayCutoutMode">never</item>
+    </style>
+    <style name="Theme.PetVerso.Splash" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:windowBackground">#f08c4b</item>
+        <item name="android:windowSplashScreenBackground">#f08c4b</item>
+        <item name="android:statusBarColor">#f08c4b</item>
+        <item name="android:navigationBarColor">#f08c4b</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <!-- Diálogos de confirmação (Excluir vacina/tarefa): fundo branco, textos pretos -->
+    <style name="DialogPetVerso" parent="android:Theme.Material.Light.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/bg_dialog_branco</item>
+        <item name="android:textColorPrimary">#000000</item>
+        <item name="android:textColorSecondary">#000000</item>
+        <item name="android:colorAccent">#000000</item>
     </style>
 </resources>

@@ -1,15 +1,13 @@
 package com.example.protpetverso_1;
-// Define o pacote do projeto.
 
-import android.content.Intent;
+import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import android.widget.ImageButton;
-// Imports básicos de View e botões.
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,153 +15,427 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
-// Imports do Fragment, RecyclerView e ViewPager2.
 
-import com.example.protpetverso_1.pet.Pet;
-import com.example.protpetverso_1.pet.PetAdapter;
-import com.example.protpetverso_1.pet.PetSelecionado;
-import com.example.protpetverso_1.pet.SolicitacoesVinculoFragment;
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.example.protpetverso_1.data.AppDataCache;
+import com.example.protpetverso_1.pet.PetResumo;
 import com.example.protpetverso_1.schedule.Tarefa;
 import com.example.protpetverso_1.schedule.TarefaAdapter;
+import com.example.protpetverso_1.schedule.TarefaIconHelper;
 import com.example.protpetverso_1.vaccine.AlertaSaude;
 import com.example.protpetverso_1.vaccine.AlertaSaudeAdapter;
+import com.example.protpetverso_1.vaccine.Vacina;
 
+import org.json.JSONObject;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-// Usados para criar as listas de Pets, Tarefas e Alertas.
+import java.util.Map;
+import java.util.stream.Collectors;
 
-// Classe de Fragmento Home (View para o menu)
+/**
+ * Home: pet selecionado (foto + setas), tarefas do dia DESSE pet, alertas DESSE pet.
+ * Agenda global continua em AgendaFragment.
+ */
 public class HomeFragment extends Fragment {
-// Fragment principal da aba "Início". Controla o carrossel de pets e as listas de tarefas/alertas.
 
-    LocalDate hoje = LocalDate.now();
-    LocalTime agora = LocalTime.now();
+    private static final String TAG = "HOME";
+    private static final int MAX_TAREFAS_HOME = 3;
+
+    private TextView txtSemTarefasHome;
     private ViewPager2 viewPagerPets;
-    // Componente que mostra um pet por vez (carrossel).
-
     private ImageButton btnAnterior, btnProximo;
-    // Botões de seta para navegar entre os pets.
+    private RecyclerView recyclerViewTarefas, recyclerViewAlertasSaude;
 
-    private RecyclerView recyclerViewTarefas, recyclerViewTarefasAlertasSaude;
-    // Lista de tarefas (Agenda do Dia) e lista de alertas de saúde.
+    private SessionManager sessionManager;
+    private boolean ressincronizandoPets = false;
+    private long petJaRessincronizado = -1; // evita laço se o erro não for falta de vínculo
+    private TextView txtSemAlertasSaude;
+    private final List<PetResumo> listaPets = new ArrayList<>();
+    private HomePetPagerAdapter petPagerAdapter;
 
-    private void atualizarAgenda(List<Tarefa> tarefasDoPet) {
-        // Atualiza a RecyclerView de tarefas com a lista do pet atual.
-        TarefaAdapter adapter = new TarefaAdapter(requireContext(), tarefasDoPet);
-        recyclerViewTarefas.setAdapter(adapter);
-        // Conectado com: TarefaAdapter + classe Tarefa + recyclerViewTarefas
-    }
+    private final List<Tarefa> tarefasHome = new ArrayList<>();
+    private TarefaAdapter tarefaAdapter;
 
-    private void atualizarSaude(List<AlertaSaude> saudeDoPet) {
-        // Atualiza a RecyclerView de alertas de saúde com a lista do pet atual.
-        AlertaSaudeAdapter adapter = new AlertaSaudeAdapter(requireContext(), saudeDoPet);
-        recyclerViewTarefasAlertasSaude.setAdapter(adapter);
-        // Conectado com: AlertaSaudeAdapter + classe AlertaSaude + recyclerViewTarefasAlertasSaude
+    private final List<AlertaSaude> alertasHome = new ArrayList<>();
+    private AlertaSaudeAdapter alertaAdapter;
+
+    public HomeFragment() {}
+
+    private boolean podeAtualizarUi() {
+        return isAdded() && getContext() != null && getView() != null;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Cria a interface visual do Fragment.
         return inflater.inflate(R.layout.fragment_home, container, false);
-        // Conectado com: fragment_home.xml
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // Chamado depois que o layout foi criado. Aqui se faz a lógica.
+        Context ctx = getContext();
+        if (ctx == null) return;
 
-        // Liga os componentes do XML com as variáveis Java
+        sessionManager = new SessionManager(ctx);
+
+        txtSemTarefasHome = view.findViewById(R.id.txtSemTarefasHome);
+        txtSemAlertasSaude = view.findViewById(R.id.txtSemAlertasSaude);
         viewPagerPets = view.findViewById(R.id.viewPagerPets);
         btnAnterior = view.findViewById(R.id.btnAnterior);
         btnProximo = view.findViewById(R.id.btnProximo);
         recyclerViewTarefas = view.findViewById(R.id.recyclerViewTarefas);
-        recyclerViewTarefasAlertasSaude = view.findViewById(R.id.recyclerViewAlertasSaude);
+        recyclerViewAlertasSaude = view.findViewById(R.id.recyclerViewAlertasSaude);
 
-        // Cria as tarefas do pet Thor
-        List<Tarefa> tarefasThor = new ArrayList<>();
-        tarefasThor.add(new Tarefa(
-                "PlanetaPet Pets - Banho & Tosa 10/05",
-                "O seu pet está com serviços agendados no dia 10/05, no PetShop PlanetaPet Pets.",
-                R.drawable.petversologo,
-                hoje,
-                LocalTime.of(8,0)
-        ));
-        tarefasThor.add(new Tarefa(
-                "Verifique se há água para beber",
-                "Não esqueça de hidratar o seu pet, é muito importante para a sáude dele!",
-                R.drawable.racao,
-                hoje.plusDays(1),
-                LocalTime.of(9,0)
-        ));
-        // Conectado com: classe Tarefa
+        petPagerAdapter = new HomePetPagerAdapter(listaPets);
+        if (viewPagerPets != null) {
+            viewPagerPets.setAdapter(petPagerAdapter);
+            viewPagerPets.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                @Override
+                public void onPageSelected(int position) {
+                    if (podeAtualizarUi()) onPetSelecionado(position);
+                }
+            });
+        }
 
-        // Cria os alertas de saúde do pet Thor
-        List<AlertaSaude> saudesThor = new ArrayList<>();
-        saudesThor.add(new AlertaSaude(
-                "Vacina Antirrábica",
-                "A data para a aplicação da próxima dose está próxima!",
-                R.drawable.petversologo
-        ));
+        if (btnProximo != null) {
+            btnProximo.setOnClickListener(v -> {
+                if (listaPets.isEmpty() || viewPagerPets == null) return;
+                int p = (viewPagerPets.getCurrentItem() + 1) % listaPets.size();
+                viewPagerPets.setCurrentItem(p, true);
+            });
+        }
+        if (btnAnterior != null) {
+            btnAnterior.setOnClickListener(v -> {
+                if (listaPets.isEmpty() || viewPagerPets == null) return;
+                int p = (viewPagerPets.getCurrentItem() - 1 + listaPets.size()) % listaPets.size();
+                viewPagerPets.setCurrentItem(p, true);
+            });
+        }
 
-        List<Tarefa> tarefasLuna = new ArrayList<>();
-        tarefasLuna.add(new Tarefa(
-                "MundoAnimal - Castração",
-                "O seu pet está com serviços agendados no dia 07/09, no PetShop MundoAnimal.",
-                R.drawable.petversologo, hoje, LocalTime.of(14, 0)
-        ));
-        tarefasLuna.add(new Tarefa(
-                "Verifique se há ração",
-                "Não esqueça de alimentar o seu pet, é muito importante para a saúde dele!",
-                R.drawable.racao, hoje, LocalTime.of(5,0)
-        ));
-        // Conectado com: classe Tarefa
+        tarefaAdapter = new TarefaAdapter(ctx, tarefasHome);
+        if (recyclerViewTarefas != null) {
+            recyclerViewTarefas.setLayoutManager(new LinearLayoutManager(ctx));
+            recyclerViewTarefas.setAdapter(tarefaAdapter);
+            recyclerViewTarefas.setNestedScrollingEnabled(false);
+        }
 
-        // Cria os alertas de saúde do pet Thor
-        List<AlertaSaude> saudesLuna = new ArrayList<>();
-        saudesLuna.add(new AlertaSaude(
-                "Vermífugo",
-                "A data para a aplicação da próxima dose está próxima!",
-                R.drawable.petversologo
-        ));
-        // Conectado com: classe AlertaSaude
+        alertaAdapter = new AlertaSaudeAdapter(ctx, alertasHome);
+        if (recyclerViewAlertasSaude != null) {
+            recyclerViewAlertasSaude.setLayoutManager(new LinearLayoutManager(ctx));
+            recyclerViewAlertasSaude.setAdapter(alertaAdapter);
+            recyclerViewAlertasSaude.setNestedScrollingEnabled(false);
+        }
 
-        // Cria a lista de pets. Cada pet já leva suas próprias tarefas e alertas.
-        List<Pet> listaPets = new ArrayList<>();
-        listaPets.add(new Pet("Thor", R.drawable.thor, tarefasThor, saudesThor));
-        listaPets.add(new Pet("Luna", R.drawable.luna, tarefasLuna, saudesLuna));
-        listaPets.add(new Pet("Mel", R.drawable.mel, new ArrayList<>(), new ArrayList<>()));
-        listaPets.add(new Pet("Bob", R.drawable.bob, new ArrayList<>(), new ArrayList<>()));
-        // Conectado com: classe Pet
+        if (AppDataCache.get().temMeusPets()) {
+            aplicarListaPets(AppDataCache.get().getMeusPets());
+            selecionarPetInicial();
+        }
+        carregarPetsDaApi();
+    }
 
-        // Configura o carrossel de pets
-        PetAdapter adapterPet = new PetAdapter(requireContext(), listaPets);
-        viewPagerPets.setAdapter(adapterPet);
-        // Conectado com: PetAdapter + ViewPager2
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!podeAtualizarUi() || sessionManager == null) return;
+        if (!listaPets.isEmpty()) {
+            long idSalvo = sessionManager.obterPetId();
+            for (int i = 0; i < listaPets.size(); i++) {
+                if (listaPets.get(i).getIdPet() == idSalvo) {
+                    if (viewPagerPets != null && viewPagerPets.getCurrentItem() != i) {
+                        viewPagerPets.setCurrentItem(i, false);
+                    }
+                    onPetSelecionado(i);
+                    return;
+                }
+            }
+            onPetSelecionado(viewPagerPets != null ? viewPagerPets.getCurrentItem() : 0);
+        } else {
+            carregarPetsDaApi();
+        }
+    }
 
-        // Define como as listas serão organizadas (vertical)
-        recyclerViewTarefas.setLayoutManager(new LinearLayoutManager(requireContext()));
-        recyclerViewTarefasAlertasSaude.setLayoutManager(new LinearLayoutManager(requireContext()));
+    private void aplicarListaPets(List<PetResumo> origem) {
+        listaPets.clear();
+        if (origem != null) listaPets.addAll(origem);
+        if (petPagerAdapter != null) {
+            // Preferir setItens se existir; senão notify
+            try {
+                petPagerAdapter.setItens(new ArrayList<>(listaPets));
+            } catch (Throwable t) {
+                petPagerAdapter.notifyDataSetChanged();
+            }
+        }
+    }
 
-        // Mostra os dados do primeiro pet (Thor) ao abrir a tela
-        Pet primeiroPet = listaPets.get(0);
-        PetSelecionado.setPet(primeiroPet);
-        atualizarAgenda(primeiroPet.getTarefas());
-        atualizarSaude(primeiroPet.getAlertasSaude());
+    private void selecionarPetInicial() {
+        if (listaPets.isEmpty() || viewPagerPets == null) return;
+        long idSalvo = sessionManager.obterPetId();
+        int idx = 0;
+        for (int i = 0; i < listaPets.size(); i++) {
+            if (listaPets.get(i).getIdPet() == idSalvo) {
+                idx = i;
+                break;
+            }
+        }
+        viewPagerPets.setCurrentItem(idx, false);
+        onPetSelecionado(idx);
+    }
 
-        // Botão de próximo pet
-        btnProximo.setOnClickListener(v -> {
-            int atual = viewPagerPets.getCurrentItem();
-            int proximo = (atual + 1) % listaPets.size();
-            viewPagerPets.setCurrentItem(proximo, true);
-        });
+    private void carregarPetsDaApi() {
+        if (sessionManager == null) return;
+        String token = sessionManager.obterToken();
+        if (token == null || token.isEmpty()) return;
+        Context ctx = getContext();
+        if (ctx == null) return;
 
-        // Botão de pet anterior
-        btnAnterior.setOnClickListener(v -> {
-            int atual = viewPagerPets.getCurrentItem();
-            int anterior = (atual - 1 + listaPets.size()) % listaPets.size();
-            viewPagerPets.setCurrentItem(anterior, true);
-        });
-        // Conectado com: ViewPager2 + métodos atualizarAgenda e atualizarSaude
+        JsonArrayRequest request = new JsonArrayRequest(
+                Request.Method.GET,
+                ApiConfig.URL_MEUS_PETS,
+                null,
+                response -> {
+                    List<PetResumo> parseados = new ArrayList<>();
+                    for (int i = 0; i < response.length(); i++) {
+                        try {
+                            JSONObject o = response.getJSONObject(i);
+                            long id = o.optLong("idPet", o.optLong("id", -1));
+                            String nome = o.optString("nome", "Pet");
+                            String papel = o.optString("papel", "");
+                            String foto = o.optString("fotoPetBase64", "");
+                            if (foto.isEmpty()) foto = o.optString("fotoBase64", "");
+                            if (foto.isEmpty()) foto = o.optString("foto", "");
+                            if (id > 0) parseados.add(new PetResumo(id, nome, papel, foto));
+                        } catch (Exception e) {
+                            Log.e(TAG, "parse pet", e);
+                        }
+                    }
+                    AppDataCache.get().setMeusPets(parseados);
+                    ressincronizandoPets = false;
+                    if (!podeAtualizarUi()) return;
+                    if (parseados.isEmpty() && sessionManager.obterPetId() > 0) {
+                        // Não restou nenhum vínculo: volta para a escolha obrigatória de pet
+                        sessionManager.limparPet();
+                        android.content.Intent i = com.example.protpetverso_1.pet.EscolhaPetActivity
+                                .criarIntent(requireContext(), true);
+                        i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                                | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(i);
+                        if (getActivity() != null) getActivity().finish();
+                        return;
+                    }
+                    aplicarListaPets(parseados);
+                    selecionarPetInicial();
+                },
+                error -> { ressincronizandoPets = false; Log.e(TAG, "meusPets", error); }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> h = new HashMap<>();
+                h.put("Authorization", "Bearer " + token);
+                return h;
+            }
+        };
+        VolleySingleton.getInstance(ctx.getApplicationContext()).addToRequestQueue(request);
+    }
+
+    /**
+     * 401/403/404 em tarefas ou vacinas do pet: o usuário já não tem vínculo com ele (foi desvinculado
+     * por outro aparelho/pelo dono) ou o pet foi excluído, mas o app ainda o tinha selecionado.
+     * Remove o pet do cache e ressincroniza a lista; a seleção cai para um pet válido.
+     */
+    private void aoFalharDoPet(long petId, String origem, VolleyError error) {
+        int code = (error != null && error.networkResponse != null) ? error.networkResponse.statusCode : 0;
+        String corpo = "";
+        try {
+            if (error != null && error.networkResponse != null && error.networkResponse.data != null) {
+                corpo = new String(error.networkResponse.data, java.nio.charset.StandardCharsets.UTF_8);
+            }
+        } catch (Exception ignored) { }
+        // Uma linha só (sem o stack trace): o que importa é o código e a mensagem da API
+        Log.w(TAG, origem + " falhou: HTTP " + code + " " + corpo);
+
+        // Sem dados para mostrar: exibe o estado vazio em vez de deixar a área em branco
+        if (podeAtualizarUi() && sessionManager != null && sessionManager.obterPetId() == petId) {
+            if (origem.startsWith("tarefas") && !AppDataCache.get().temTarefas(petId)) {
+                atualizarAgenda(new ArrayList<>());
+            } else if (origem.startsWith("vacinas") && AppDataCache.get().getVacinas(petId).isEmpty()) {
+                montarAlertas(new ArrayList<>());
+            }
+        }
+
+        boolean semAcesso = code == 401 || code == 403 || code == 404
+                || (error instanceof com.android.volley.AuthFailureError);
+        if (!semAcesso || ressincronizandoPets || sessionManager == null) return;
+        if (sessionManager.obterPetId() != petId) return;
+        if (petJaRessincronizado == petId) return; // já conferimos: o pet continua na lista, o erro é outro
+        petJaRessincronizado = petId;
+        ressincronizandoPets = true;
+        // Confere na lista de pets (API): se o pet sumiu, a seleção cai para um válido; se não, nada muda
+        carregarPetsDaApi();
+    }
+
+    private void onPetSelecionado(int position) {
+        if (position < 0 || position >= listaPets.size() || sessionManager == null) return;
+        PetResumo pet = listaPets.get(position);
+        // Mantém papel para DONO/SUPORTE
+        sessionManager.salvarPet(pet.getIdPet(), pet.getNome(), pet.getPapel());
+
+        carregarTarefasDoPet(pet.getIdPet());
+        carregarVacinasDoPet(pet.getIdPet());
+    }
+
+    /** Tarefas só do pet selecionado (Home). */
+    private void carregarTarefasDoPet(long petId) {
+        if (sessionManager == null || petId <= 0) return;
+        String token = sessionManager.obterToken();
+        if (token == null || token.isEmpty()) return;
+        Context ctx = getContext();
+        if (ctx == null) return;
+
+        if (AppDataCache.get().temTarefas(petId)) {
+            atualizarAgenda(AppDataCache.get().getTarefas(petId));
+        }
+
+        String url = ApiConfig.URL_TAREFAS_DO_PET + petId + "/tarefas";
+        JsonArrayRequest request = new JsonArrayRequest(
+                Request.Method.GET, url, null,
+                response -> {
+                    List<Tarefa> todas = new ArrayList<>();
+                    for (int i = 0; i < response.length(); i++) {
+                        try {
+                            todas.add(Tarefa.fromJson(response.getJSONObject(i)));
+                        } catch (Exception e) {
+                            Log.e(TAG, "parse tarefa", e);
+                        }
+                    }
+                    AppDataCache.get().setTarefas(petId, todas);
+                    if (podeAtualizarUi() && sessionManager.obterPetId() == petId) {
+                        atualizarAgenda(todas);
+                    }
+                },
+                error -> aoFalharDoPet(petId, "tarefas pet", error)
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> h = new HashMap<>();
+                h.put("Authorization", "Bearer " + token);
+                return h;
+            }
+        };
+        VolleySingleton.getInstance(ctx.getApplicationContext()).addToRequestQueue(request);
+    }
+
+    private void atualizarAgenda(List<Tarefa> tarefasDoPet) {
+        if (!podeAtualizarUi()) return;
+        LocalDate hoje = LocalDate.now();
+        List<Tarefa> doDia = new ArrayList<>();
+        if (tarefasDoPet != null) {
+            doDia = tarefasDoPet.stream()
+                    .filter(t -> t != null && !t.isConcluida())
+                    .filter(t -> t.getData() == null || t.getData().equals(hoje))
+                    .sorted(Comparator.comparing(
+                            Tarefa::getHorario, Comparator.nullsLast(Comparator.naturalOrder())))
+                    .limit(MAX_TAREFAS_HOME)
+                    .collect(Collectors.toList());
+        }
+        for (Tarefa t : doDia) {
+            if (t.getImagemResId() == 0) {
+                t.setImagemResId(TarefaIconHelper.resolverIcone(t.getTitulo(), t.getDesc()));
+            }
+        }
+        tarefasHome.clear();
+        tarefasHome.addAll(doDia);
+        if (tarefaAdapter != null) tarefaAdapter.setItens(tarefasHome);
+
+        boolean vazio = tarefasHome.isEmpty();
+        if (recyclerViewTarefas != null) {
+            recyclerViewTarefas.setVisibility(vazio ? View.GONE : View.VISIBLE);
+        }
+        if (txtSemTarefasHome != null) {
+            txtSemTarefasHome.setVisibility(vazio ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private void carregarVacinasDoPet(long petId) {
+        if (sessionManager == null || petId <= 0) return;
+        String token = sessionManager.obterToken();
+        if (token == null || token.isEmpty()) return;
+        Context ctx = getContext();
+        if (ctx == null) return;
+
+        if (AppDataCache.get().temVacinas(petId)) {
+            montarAlertas(AppDataCache.get().getVacinas(petId));
+        }
+
+        String url = ApiConfig.URL_VACINAS_DO_PET + petId + "/vacinas";
+        JsonArrayRequest request = new JsonArrayRequest(
+                Request.Method.GET, url, null,
+                response -> {
+                    List<Vacina> lista = new ArrayList<>();
+                    for (int i = 0; i < response.length(); i++) {
+                        try {
+                            lista.add(Vacina.fromJson(response.getJSONObject(i)));
+                        } catch (Exception e) {
+                            Log.e(TAG, "parse vacina", e);
+                        }
+                    }
+                    AppDataCache.get().setVacinas(petId, lista);
+                    if (podeAtualizarUi() && sessionManager.obterPetId() == petId) {
+                        montarAlertas(lista);
+                    }
+                },
+                error -> aoFalharDoPet(petId, "vacinas home", error)
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> h = new HashMap<>();
+                h.put("Authorization", "Bearer " + token);
+                return h;
+            }
+        };
+        VolleySingleton.getInstance(ctx.getApplicationContext()).addToRequestQueue(request);
+    }
+
+    private void montarAlertas(List<Vacina> vacinas) {
+        alertasHome.clear();
+        LocalDate hoje = LocalDate.now();
+        int icon = R.drawable.ic_vacina;
+
+        if (vacinas != null) {
+            for (Vacina v : vacinas) {
+                if (v == null) continue;
+                if (v.isPendenteOuAtrasada()) {
+                    alertasHome.add(new AlertaSaude(
+                            v.getNome(),
+                            "Vacina " + v.getStatusLabel().toLowerCase()
+                                    + " — prevista: " + v.getDataAplicacaoFormatada(),
+                            icon
+                    ));
+                } else if (v.getDataProximaDose() != null
+                        && !v.getDataProximaDose().isBefore(hoje)
+                        && !v.getDataProximaDose().isAfter(hoje.plusDays(30))) {
+                    alertasHome.add(new AlertaSaude(
+                            v.getNome(),
+                            "A data para renovar está próxima (" + v.getDataProximaDoseFormatada() + ").",
+                            icon
+                    ));
+                }
+            }
+        }
+        if (alertaAdapter != null) {
+            alertaAdapter.setItens(alertasHome);
+        }
+        boolean semAlertas = alertasHome.isEmpty();
+        if (recyclerViewAlertasSaude != null) {
+            recyclerViewAlertasSaude.setVisibility(semAlertas ? View.GONE : View.VISIBLE);
+        }
+        if (txtSemAlertasSaude != null) {
+            txtSemAlertasSaude.setVisibility(semAlertas ? View.VISIBLE : View.GONE);
+        }
     }
 }
