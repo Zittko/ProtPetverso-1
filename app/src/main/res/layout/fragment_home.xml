@@ -63,6 +63,7 @@
             android:textStyle="bold" />
 
         <TextView
+            android:layout_marginTop="8dp"
             android:id="@+id/txtSemTarefasHome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -94,6 +95,19 @@
             android:textColor="@color/text_orange"
             android:textSize="20sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:layout_marginTop="8dp"
+            android:id="@+id/txtSemAlertasSaude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:paddingHorizontal="8dp"
+            android:text="Não há nenhuma vacina pendente ou atrasada."
+            android:textColor="#8D6E63"
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewAlertasSaude"

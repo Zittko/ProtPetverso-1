@@ -1,0 +1,42 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#FFE8CE" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+        <TextView android:id="@+id/txtAvisoPermissao" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:background="@drawable/bg_icon_tarefa" android:padding="12dp" android:text="As notificações estão bloqueadas no aparelho. Toque aqui para permitir." android:textColor="#000000" android:textSize="13sp" android:visibility="gone"/>
+        <!--  Alimentação  -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" app:cardBackgroundColor="#FFFFFF" app:cardCornerRadius="16dp" app:cardElevation="0dp" app:strokeColor="#FF9800" app:strokeWidth="1.5dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Lembrete de alimentação" android:textColor="#000000" android:textSize="15sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="A cada 8 horas: verificar água e ração." android:textColor="#666666" android:textSize="12sp"/>
+                    </LinearLayout>
+                    <com.google.android.material.materialswitch.MaterialSwitch android:id="@+id/swAlimentacao" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <!--  Passeio  -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" app:cardBackgroundColor="#FFFFFF" app:cardCornerRadius="16dp" app:cardElevation="0dp" app:strokeColor="#FF9800" app:strokeWidth="1.5dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Lembrete de passeio" android:textColor="#000000" android:textSize="15sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="A cada 7 dias: levar o pet para passear." android:textColor="#666666" android:textSize="12sp"/>
+                    </LinearLayout>
+                    <com.google.android.material.materialswitch.MaterialSwitch android:id="@+id/swPasseio" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <!--  Vacinas  -->
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp" app:cardBackgroundColor="#FFFFFF" app:cardCornerRadius="16dp" app:cardElevation="0dp" app:strokeColor="#FF9800" app:strokeWidth="1.5dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Alerta de vacinas" android:textColor="#000000" android:textSize="15sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Avisa quando um pet tem mais de 3 vacinas pendentes ou atrasadas." android:textColor="#666666" android:textSize="12sp"/>
+                    </LinearLayout>
+                    <com.google.android.material.materialswitch.MaterialSwitch android:id="@+id/swVacinas" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnTestarNotificacao" style="@style/Widget.Material3.Button" android:layout_width="match_parent" android:layout_height="48dp" android:insetTop="0dp" android:insetBottom="0dp" android:stateListAnimator="@null" android:text="Enviar notificação de teste" android:textAllCaps="false" android:textColor="#000000" android:textSize="14sp" app:backgroundTint="#DF945D" app:cornerRadius="10dp" app:elevation="0dp"/>
+    </LinearLayout>
+</ScrollView>

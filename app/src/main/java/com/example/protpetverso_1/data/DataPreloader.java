@@ -63,10 +63,43 @@ public final class DataPreloader {
         preloadVacinasPet(app, token, petId);
     }
 
+    /**
+     * O login não traz o id do usuário. Se ainda não temos, busca o perfil, guarda o id
+     * (e a foto do usuário) e só então chama onPronto. Em caso de erro, chama onPronto do mesmo jeito.
+     */
+    public static void garantirIdUsuario(Context context, Runnable onPronto) {
+        final Context app = context.getApplicationContext();
+        final SessionManager sm = new SessionManager(app);
+        final String token = sm.obterToken();
+        if (sm.obterUserId() > 0 || token == null || token.isEmpty()) {
+            if (onPronto != null) onPronto.run();
+            return;
+        }
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET, ApiConfig.URL_USUARIO_PERFIL, null,
+                response -> {
+                    sm.salvarUserId(response.optLong("idUsuario", 0));
+                    AppDataCache.get().setUsuarioPerfil(response);
+                    if (onPronto != null) onPronto.run();
+                },
+                error -> {
+                    Log.e(TAG, "id do usuário", error);
+                    if (onPronto != null) onPronto.run();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                return auth(token);
+            }
+        };
+        VolleySingleton.getInstance(app).addToRequestQueue(request);
+    }
+
     private static void preloadUsuario(Context app, String token) {
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET, ApiConfig.URL_USUARIO_PERFIL, null,
                 response -> {
+                    new SessionManager(app).salvarUserId(response.optLong("idUsuario", 0));
                     AppDataCache.get().setUsuarioPerfil(response);
                     Log.d(TAG, "usuário ok");
                 },

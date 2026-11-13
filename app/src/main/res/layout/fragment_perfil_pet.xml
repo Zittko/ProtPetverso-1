@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,8 +8,8 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -23,35 +22,35 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="18dp">
+                android:layout_marginBottom="18dp"
+                android:orientation="horizontal">
 
                 <ImageView
                     android:id="@+id/imgFotoPet"
                     android:layout_width="110dp"
                     android:layout_height="110dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/bg_foto_pet"
                     android:background="@drawable/bg_foto_pet"
                     android:clipToOutline="true"
-                    android:contentDescription="Foto do pet" />
+                    android:contentDescription="Foto do pet"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/bg_foto_pet" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_gravity="center_vertical"
-                    android:orientation="vertical"
-                    android:layout_marginStart="16dp">
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/txtNomePet"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text=""
+                        android:textColor="#000000"
                         android:textSize="26sp"
-                        android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/txtRacaPeso"
@@ -59,8 +58,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text=""
-                        android:textSize="15sp"
-                        android:textColor="#555555" />
+                        android:textColor="#555555"
+                        android:textSize="15sp" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -68,11 +67,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="14dp"
+                app:cardBackgroundColor="#FFFFFF"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#FFFFFF"
-                app:strokeWidth="1.5dp"
-                app:strokeColor="#FF9800">
+                app:strokeColor="#FF9800"
+                app:strokeWidth="1.5dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -109,8 +108,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Espécie"
-                        android:textSize="13sp"
-                        android:textColor="#666666" />
+                        android:textColor="#666666"
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/txtEspecie"
@@ -119,16 +118,16 @@
                         android:layout_marginTop="3dp"
                         android:layout_marginBottom="14dp"
                         android:text="—"
-                        android:textSize="15sp"
                         android:textColor="#000000"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Porte"
-                        android:textSize="13sp"
-                        android:textColor="#666666" />
+                        android:textColor="#666666"
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/txtPorte"
@@ -137,16 +136,16 @@
                         android:layout_marginTop="3dp"
                         android:layout_marginBottom="14dp"
                         android:text="—"
-                        android:textSize="15sp"
                         android:textColor="#000000"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Sexo"
-                        android:textSize="13sp"
-                        android:textColor="#666666" />
+                        android:textColor="#666666"
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/txtSexo"
@@ -155,16 +154,16 @@
                         android:layout_marginTop="3dp"
                         android:layout_marginBottom="14dp"
                         android:text="—"
-                        android:textSize="15sp"
                         android:textColor="#000000"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Personalidade"
-                        android:textSize="13sp"
-                        android:textColor="#666666" />
+                        android:textColor="#666666"
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/txtPersonalidade"
@@ -173,16 +172,16 @@
                         android:layout_marginTop="3dp"
                         android:layout_marginBottom="14dp"
                         android:text="—"
-                        android:textSize="15sp"
                         android:textColor="#000000"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Sensibilidades"
-                        android:textSize="13sp"
-                        android:textColor="#666666" />
+                        android:textColor="#666666"
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/txtSensibilidades"
@@ -191,16 +190,16 @@
                         android:layout_marginTop="3dp"
                         android:layout_marginBottom="14dp"
                         android:text="—"
-                        android:textSize="15sp"
                         android:textColor="#000000"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Data de Nascimento"
-                        android:textSize="13sp"
-                        android:textColor="#666666" />
+                        android:textColor="#666666"
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/txtDataNascimento"
@@ -208,8 +207,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
                         android:text="—"
-                        android:textSize="15sp"
                         android:textColor="#000000"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
 
                 </LinearLayout>
@@ -219,11 +218,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="14dp"
+                app:cardBackgroundColor="#FFFFFF"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#FFFFFF"
-                app:strokeWidth="1.5dp"
-                app:strokeColor="#FF9800">
+                app:strokeColor="#FF9800"
+                app:strokeWidth="1.5dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -236,90 +235,76 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         android:text="Tutores"
+                        android:textColor="#000000"
                         android:textSize="17sp"
-                        android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textStyle="bold" />
 
                     <LinearLayout
                         android:id="@+id/containerTutores"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:orientation="vertical" />
+
+                    <!-- Código e compartilhamento: apenas para o tutor principal -->
+                    <LinearLayout
+                        android:id="@+id/blocoCompartilhar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="14dp"
+                            android:alpha="0.3"
+                            android:background="#FF9800" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Compartilhar Tutoria"
+                            android:textColor="#000000"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:text="Quer dividir os cuidados com alguém?"
+                            android:textColor="#666666"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/txtCodigoPet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="12dp"
+                            android:text="Código do Pet: —"
+                            android:textColor="#000000"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="8dp">
+                            android:orientation="horizontal">
 
-                            <ImageView
-                                android:layout_width="34dp"
-                                android:layout_height="34dp"
-                                android:src="@drawable/ic_tutor"
-                                app:tint="#DF945D"
-                                android:contentDescription="Tutor" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:text="Você (Principal)"
-                                android:textSize="15sp"
-                                android:textColor="#000000" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnCopiarCodigo"
+                                android:layout_width="0dp"
+                                android:layout_height="46dp"
+                                android:layout_weight="1"
+                                android:text="Copiar Código"
+                                android:textAllCaps="false"
+                                android:textColor="#000"
+                                android:textSize="13sp"
+                                app:backgroundTint="#DF945D"
+                                app:cornerRadius="10dp" />
                         </LinearLayout>
-                    </LinearLayout>
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginVertical="14dp"
-                        android:background="#FF9800"
-                        android:alpha="0.3" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Compartilhar Tutoria"
-                        android:textSize="15sp"
-                        android:textStyle="bold"
-                        android:textColor="#000000" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
-                        android:text="Quer dividir os cuidados com alguém?"
-                        android:textSize="13sp"
-                        android:textColor="#666666" />
-
-                    <TextView
-                        android:id="@+id/txtCodigoPet"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:layout_marginBottom="12dp"
-                        android:text="Código do Pet: —"
-                        android:textSize="14sp"
-                        android:textColor="#000000"
-                        android:textStyle="bold" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnCopiarCodigo"
-                            android:layout_width="0dp"
-                            android:layout_height="46dp"
-                            android:layout_weight="1"
-                            android:text="Copiar Código"
-                            android:textAllCaps="false"
-                            android:textSize="13sp"
-                            android:textColor="#000"
-                            app:cornerRadius="10dp"
-                            app:backgroundTint="#DF945D" />
                     </LinearLayout>
 
                 </LinearLayout>

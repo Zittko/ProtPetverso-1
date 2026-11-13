@@ -10,6 +10,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,6 +30,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.example.protpetverso_1.MenuActivity;
@@ -38,6 +41,7 @@ import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.UCropHelper;
 import com.example.protpetverso_1.VolleySingleton;
 import com.example.protpetverso_1.data.AppDataCache;
+import com.example.protpetverso_1.data.DataPreloader;
 import com.example.protpetverso_1.data.PhotoDiskCache;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
@@ -76,6 +80,19 @@ public class PerfilPetFragment extends Fragment {
     private ImageButton btnEditarTutores;
     private MaterialButton btnExcluirPet;
     private boolean excluindoPet = false;
+    private LinearLayout blocoCompartilhar;
+    private boolean tutorEmAcao = false;
+
+    /** Atualiza a lista de tutores enquanto o perfil está aberto (reflete desvinculações). */
+    private static final long INTERVALO_TUTORES_MS = 10_000L;
+    private final Handler handlerTutores = new Handler(Looper.getMainLooper());
+    private final Runnable pollTutores = new Runnable() {
+        @Override public void run() {
+            if (!isAdded()) return;
+            if (petId > 0) carregarTutores(petId);
+            handlerTutores.postDelayed(this, INTERVALO_TUTORES_MS);
+        }
+    };
     private MaterialButton btnCopiarCodigo;
 
     private final ActivityResultLauncher<String> selecionarFoto =
@@ -152,7 +169,23 @@ public class PerfilPetFragment extends Fragment {
         atualizarTituloToolbar("Perfil do Pet");
         if (petId > 0 && sessionManager != null) {
             carregarPerfil(petId);
+            atualizarPapelNaTela();
+            renderTutores();
+            // O login não devolve o id: sem ele não dá para escrever "Você" nem achar a própria foto
+            DataPreloader.garantirIdUsuario(requireContext(), () -> {
+                if (!isAdded()) return;
+                atualizarPapelNaTela();
+                renderTutores();
+            });
+            handlerTutores.removeCallbacks(pollTutores);
+            handlerTutores.post(pollTutores);
         }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        handlerTutores.removeCallbacks(pollTutores);
     }
 
     private void carregarPerfil(long idPet) {
@@ -177,6 +210,7 @@ public class PerfilPetFragment extends Fragment {
         containerTutores = view.findViewById(R.id.containerTutores);
         btnEditarTutores = view.findViewById(R.id.btnEditarTutores);
         btnExcluirPet = view.findViewById(R.id.btnExcluirPet);
+        blocoCompartilhar = view.findViewById(R.id.blocoCompartilhar);
         btnCopiarCodigo = view.findViewById(R.id.btnCopiarCodigo);
     }
 
@@ -463,11 +497,7 @@ public class PerfilPetFragment extends Fragment {
                 ? "Código do Pet: —"
                 : "Código do Pet: " + codigoVinculoAtual;
 
-        // Só o tutor principal pode excluir (a API também valida)
-        if (btnExcluirPet != null && sessionManager != null) {
-            boolean dono = !codigoVinculoAtual.isEmpty() || sessionManager.obterPetEhDono();
-            btnExcluirPet.setVisibility(dono ? View.VISIBLE : View.GONE);
-        }
+        atualizarPapelNaTela();
 
         if (txtNomePet != null) txtNomePet.setText(nome);
         if (txtRacaPeso != null) txtRacaPeso.setText(racaPeso);
@@ -503,6 +533,10 @@ public class PerfilPetFragment extends Fragment {
 
     private void confirmarExclusaoPet() {
         if (petId <= 0 || excluindoPet || !podeAtualizarUi()) return;
+        if (!souDono()) {
+            confirmarSaidaDoPet();
+            return;
+        }
         String nome = textoDe(txtNomePet);
         String alvo = (nome.isEmpty() || nome.equals("—")) ? "este pet" : nome;
         new AlertDialog.Builder(requireContext(), R.style.DialogPetVerso)
@@ -530,7 +564,7 @@ public class PerfilPetFragment extends Fragment {
                 ApiConfig.URL_EXCLUIR_PET + idExcluir,
                 response -> {
                     excluindoPet = false;
-                    aposPetExcluido(app, idExcluir);
+                    aposPetExcluido(app, idExcluir, "Pet excluído.");
                 },
                 error -> {
                     excluindoPet = false;
@@ -556,7 +590,7 @@ public class PerfilPetFragment extends Fragment {
     }
 
     /** Limpa o cache do pet, escolhe outro pet (ou a tela de escolha) e recomeça pelo menu. */
-    private void aposPetExcluido(Context app, long idExcluido) {
+    private void aposPetExcluido(Context app, long idExcluido, String mensagem) {
         AppDataCache cache = AppDataCache.get();
         cache.removerPet(idExcluido);
 
@@ -571,7 +605,7 @@ public class PerfilPetFragment extends Fragment {
             }
         }
 
-        Toast.makeText(app, "Pet excluído.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(app, mensagem, Toast.LENGTH_SHORT).show();
 
         Intent intent = restantes.isEmpty()
                 ? EscolhaPetActivity.criarIntent(app, true)
@@ -580,6 +614,283 @@ public class PerfilPetFragment extends Fragment {
         app.startActivity(intent);
         Activity act = getActivity();
         if (act != null) act.finish();
+    }
+
+    // ==================== PAPEL, TUTORES E DESVINCULAÇÃO ====================
+
+    /**
+     * Papel de quem está vendo. Ordem de confiança:
+     * 1) a lista de tutores da API; 2) o papel do pet em /meusPets; 3) ter recebido o código de vínculo
+     * (só o dono recebe). Se nada confirmar, trata como SUPORTE: é o lado seguro (esconde ações do dono).
+     */
+    private boolean souDono() {
+        long eu = sessionManager.obterUserId();
+        if (eu > 0) {
+            for (Tutor t : AppDataCache.get().getTutores(petId)) {
+                if (t.getIdUsuario() == eu) return t.isDono();
+            }
+        }
+        for (PetResumo p : AppDataCache.get().getMeusPets()) {
+            if (p.getIdPet() == petId) return "DONO".equalsIgnoreCase(p.getPapel());
+        }
+        return codigoVinculoAtual != null && !codigoVinculoAtual.isEmpty();
+    }
+
+    /** Dono: vê código e "Excluir pet". Suporte: sem código e com "Sair deste pet". */
+    private void atualizarPapelNaTela() {
+        if (!podeAtualizarUi()) return;
+        boolean dono = souDono();
+        if (blocoCompartilhar != null) blocoCompartilhar.setVisibility(dono ? View.VISIBLE : View.GONE);
+        if (btnExcluirPet != null) {
+            btnExcluirPet.setText(dono ? "Excluir pet" : "Desvincular desse pet");
+            btnExcluirPet.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void carregarTutores(long idPet) {
+        final String token = sessionManager != null ? sessionManager.obterToken() : null;
+        if (idPet <= 0 || token == null || token.isEmpty()) return;
+        Context ctx = getContext();
+        if (ctx == null) return;
+        final Context app = ctx.getApplicationContext();
+
+        JsonArrayRequest req = new JsonArrayRequest(
+                Request.Method.GET,
+                ApiConfig.URL_PETS + idPet + ApiConfig.SUFIXO_TUTORES,
+                null,
+                arr -> {
+                    java.util.List<Tutor> lista = Tutor.listaFromJson(arr);
+                    AppDataCache.get().setTutores(idPet, lista);
+                    salvarFotosTutores(app, lista);
+                    if (idPet != petId || !podeAtualizarUi()) return;
+
+                    // Se eu não estou mais na lista, fui desvinculado pelo tutor principal.
+                    // Só conclui isso se todos os ids vieram válidos (evita falso positivo).
+                    long eu = sessionManager.obterUserId();
+                    boolean idsValidos = !lista.isEmpty();
+                    boolean estouNaLista = false;
+                    for (Tutor t : lista) {
+                        if (t.getIdUsuario() <= 0) idsValidos = false;
+                        if (t.getIdUsuario() == eu) estouNaLista = true;
+                    }
+                    if (idsValidos && eu > 0 && !estouNaLista) {
+                        handlerTutores.removeCallbacks(pollTutores);
+                        aposPetExcluido(app, idPet, "Você foi desvinculado deste pet.");
+                        return;
+                    }
+
+                    atualizarPapelNaTela();
+                    renderTutores();
+                },
+                error -> {
+                    Log.w(TAG, "GET tutores falhou: " + error);
+                    int code = error.networkResponse != null ? error.networkResponse.statusCode : 0;
+                    // 404 = sem vínculo aceito com este pet (fui desvinculado) ou pet excluído
+                    if (code == 404 && idPet == petId && isAdded()) {
+                        handlerTutores.removeCallbacks(pollTutores);
+                        aposPetExcluido(app, idPet, "Este pet não está mais disponível para você.");
+                    }
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> h = new HashMap<>();
+                h.put("Authorization", "Bearer " + token);
+                return h;
+            }
+        };
+        VolleySingleton.getInstance(app).addToRequestQueue(req);
+    }
+
+    /** Monta a lista: "Você (Tutor Principal)", "Fulano (Suporte)"... com Desvincular para o dono. */
+    private void renderTutores() {
+        if (containerTutores == null || !podeAtualizarUi()) return;
+        containerTutores.removeAllViews();
+
+        java.util.List<Tutor> lista = AppDataCache.get().getTutores(petId);
+        final long eu = sessionManager.obterUserId();
+        final boolean euDono = souDono();
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+
+        if (lista.isEmpty()) {
+            // Sem lista ainda (primeira abertura offline): mostra pelo menos o próprio usuário
+            View row = inflater.inflate(R.layout.item_tutor, containerTutores, false);
+            aplicarFotoTutor((ImageView) row.findViewById(R.id.imgTutorFoto), eu);
+            ((TextView) row.findViewById(R.id.txtTutorNome))
+                    .setText("Você (" + Tutor.rotuloPapel(euDono) + ")");
+            containerTutores.addView(row);
+            return;
+        }
+
+        java.util.List<Tutor> ordenada = new java.util.ArrayList<>();
+        for (Tutor t : lista) if (t.isDono()) ordenada.add(t);
+        for (Tutor t : lista) if (!t.isDono()) ordenada.add(t);
+
+        for (Tutor t : ordenada) {
+            View row = inflater.inflate(R.layout.item_tutor, containerTutores, false);
+            boolean ehEu = eu > 0 && t.getIdUsuario() == eu;
+            String rotulo = Tutor.rotuloPapel(t.isDono());
+            ((TextView) row.findViewById(R.id.txtTutorNome))
+                    .setText((ehEu ? "Você" : t.getNomeExibicao()) + " (" + rotulo + ")");
+
+            aplicarFotoTutor((ImageView) row.findViewById(R.id.imgTutorFoto), t.getIdUsuario());
+
+            MaterialButton btn = row.findViewById(R.id.btnDesvincularTutor);
+            if (euDono && t.isSuporte() && !ehEu) {
+                btn.setVisibility(View.VISIBLE);
+                btn.setOnClickListener(v -> confirmarDesvincularTutor(t));
+            }
+            containerTutores.addView(row);
+        }
+    }
+
+    /** Foto do tutor (cache em disco); sem foto, mantém o ícone padrão. */
+    private void aplicarFotoTutor(ImageView img, long idUsuario) {
+        if (img == null || idUsuario <= 0 || getContext() == null) return;
+        java.io.File f = PhotoDiskCache.arquivoUsuario(requireContext(), idUsuario);
+        if (!f.isFile() || f.length() == 0) return;
+        Bitmap bmp = PhotoDiskCache.carregarBitmap(f.getAbsolutePath(), 160);
+        if (bmp == null) return;
+        androidx.core.widget.ImageViewCompat.setImageTintList(img, null); // senão o AppCompat tinge a foto
+        // Mesmo tamanho do item sem foto (36dp). O padding de 2dp evita cortar a borda (o traço é
+        // desenhado metade para dentro e metade para fora do círculo) e o fundo bege some.
+        int pad = Math.round(2 * getResources().getDisplayMetrics().density);
+        img.setBackground(null);
+        img.setPadding(pad, pad, pad, pad);
+        img.setImageBitmap(bmp);
+    }
+
+    /** Grava as fotos que a API enviar junto da lista (fora da thread principal) e redesenha. */
+    private void salvarFotosTutores(Context app, java.util.List<Tutor> lista) {
+        final long eu = sessionManager.obterUserId();
+        final java.util.List<Tutor> comFoto = new java.util.ArrayList<>();
+        for (Tutor t : lista) {
+            if (t.getIdUsuario() > 0 && t.getIdUsuario() != eu && !t.getFotoBase64().isEmpty()) comFoto.add(t);
+        }
+        if (comFoto.isEmpty()) return;
+        new Thread(() -> {
+            for (Tutor t : comFoto) {
+                PhotoDiskCache.salvarFotoUsuario(app, t.getIdUsuario(), t.getFotoBase64());
+            }
+            handlerTutores.post(() -> { if (isAdded()) renderTutores(); });
+        }).start();
+    }
+
+    private void confirmarDesvincularTutor(Tutor t) {
+        if (tutorEmAcao || !podeAtualizarUi()) return;
+        new AlertDialog.Builder(requireContext(), R.style.DialogPetVerso)
+                .setTitle("Desvincular tutor")
+                .setMessage("Desvincular " + t.getNomeExibicao() + "? Essa pessoa deixará de ver este pet, "
+                        + "a agenda e as vacinas. As tarefas que ela fez continuam no histórico.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Desvincular", (d, w) -> desvincularTutor(t))
+                .show();
+    }
+
+    /** Dono: DELETE /api/pets/{id}/tutores/{idUsuario}. */
+    private void desvincularTutor(Tutor t) {
+        final long idPet = petId;
+        final String token = sessionManager.obterToken();
+        if (idPet <= 0 || token == null || token.isEmpty()) {
+            Toast.makeText(requireContext(), "Sessão expirada.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final Context app = requireContext().getApplicationContext();
+        tutorEmAcao = true;
+
+        StringRequest req = new StringRequest(
+                Request.Method.DELETE,
+                ApiConfig.URL_PETS + idPet + ApiConfig.SUFIXO_TUTORES + "/" + t.getIdUsuario(),
+                response -> {
+                    tutorEmAcao = false;
+                    // Tira da lista na hora (atualização automática) e confirma com a API em seguida
+                    java.util.List<Tutor> atual = AppDataCache.get().getTutores(idPet);
+                    java.util.List<Tutor> nova = new java.util.ArrayList<>();
+                    for (Tutor x : atual) if (x.getIdUsuario() != t.getIdUsuario()) nova.add(x);
+                    AppDataCache.get().setTutores(idPet, nova);
+                    Toast.makeText(app, t.getNomeExibicao() + " foi desvinculado.", Toast.LENGTH_SHORT).show();
+                    if (idPet == petId && podeAtualizarUi()) {
+                        renderTutores();
+                        carregarTutores(idPet);
+                    }
+                },
+                error -> {
+                    tutorEmAcao = false;
+                    if (!podeAtualizarUi()) return;
+                    int code = error.networkResponse != null ? error.networkResponse.statusCode : 0;
+                    String msg;
+                    if (code == 403) msg = "Apenas o tutor principal pode desvincular.";
+                    else if (code == 404) msg = "Essa pessoa já não está vinculada.";
+                    else if (code == 0) msg = "Sem conexão com o servidor.";
+                    else msg = "Erro ao desvincular (" + code + ").";
+                    Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show();
+                    if (code == 404) carregarTutores(idPet);
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> h = new HashMap<>();
+                h.put("Authorization", "Bearer " + token);
+                return h;
+            }
+        };
+        VolleySingleton.getInstance(app).addToRequestQueue(req);
+    }
+
+    private void confirmarSaidaDoPet() {
+        String nome = textoDe(txtNomePet);
+        String alvo = (nome.isEmpty() || nome.equals("—")) ? "este pet" : nome;
+        new AlertDialog.Builder(requireContext(), R.style.DialogPetVerso)
+                .setTitle("Desvincular desse pet")
+                .setMessage("Desvincular-se de " + alvo + "? Você deixará de ver este pet, a agenda e as vacinas. "
+                        + "Os dados continuam com os outros tutores.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Desvincular", (d, w) -> sairDoPet())
+                .show();
+    }
+
+    /** Suporte: DELETE /api/pets/{id}/vinculo (desvincula o próprio usuário). */
+    private void sairDoPet() {
+        final long idPet = petId;
+        final String token = sessionManager.obterToken();
+        if (idPet <= 0 || token == null || token.isEmpty()) {
+            Toast.makeText(requireContext(), "Sessão expirada.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final Context app = requireContext().getApplicationContext();
+        excluindoPet = true;
+        if (btnExcluirPet != null) btnExcluirPet.setEnabled(false);
+        handlerTutores.removeCallbacks(pollTutores);
+
+        StringRequest req = new StringRequest(
+                Request.Method.DELETE,
+                ApiConfig.URL_PETS + idPet + ApiConfig.SUFIXO_VINCULO,
+                response -> {
+                    excluindoPet = false;
+                    aposPetExcluido(app, idPet, "Você foi desvinculado do pet.");
+                },
+                error -> {
+                    excluindoPet = false;
+                    if (!podeAtualizarUi()) return;
+                    if (btnExcluirPet != null) btnExcluirPet.setEnabled(true);
+                    handlerTutores.postDelayed(pollTutores, INTERVALO_TUTORES_MS);
+                    int code = error.networkResponse != null ? error.networkResponse.statusCode : 0;
+                    String msg;
+                    if (code == 403 || code == 409 || code == 400) msg = "O tutor principal não pode sair do pet; ele pode excluí-lo.";
+                    else if (code == 404) msg = "Você já não está vinculado a este pet.";
+                    else if (code == 0) msg = "Sem conexão com o servidor.";
+                    else msg = "Erro ao desvincular (" + code + ").";
+                    Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> h = new HashMap<>();
+                h.put("Authorization", "Bearer " + token);
+                return h;
+            }
+        };
+        VolleySingleton.getInstance(app).addToRequestQueue(req);
     }
 
     private void mostrarFotoBase64(String base64, ImageView imageView) {
@@ -671,6 +982,7 @@ public class PerfilPetFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        handlerTutores.removeCallbacks(pollTutores);
         atualizarTituloToolbar("Tela Inicial");
     }
 }

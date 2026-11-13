@@ -1,14 +1,22 @@
 package com.example.protpetverso_1;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.view.MenuItem;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.graphics.drawable.DrawerArrowDrawable;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
@@ -20,6 +28,12 @@ import com.example.protpetverso_1.account.LoginActivity;
 import com.example.protpetverso_1.account.LogoutHelper;
 import com.example.protpetverso_1.data.AppDataCache;
 import com.example.protpetverso_1.data.DataPreloader;
+import com.example.protpetverso_1.notification.NotificacaoHelper;
+import com.example.protpetverso_1.notification.NotificacaoPrefs;
+import com.example.protpetverso_1.notification.NotificacaoScheduler;
+import com.example.protpetverso_1.notification.NotificacaoStore;
+import com.example.protpetverso_1.notification.NotificacoesFragment;
+import com.example.protpetverso_1.notification.PreferenciasNotificacaoFragment;
 import com.example.protpetverso_1.pet.EscolhaPetActivity;
 import com.example.protpetverso_1.pet.PetsFragment;
 import com.example.protpetverso_1.pet.SolicitacoesVinculoFragment;
@@ -40,6 +54,11 @@ public class MenuActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
     private MaterialToolbar toolbar;
+    private ActivityResultLauncher<String> permissaoNotificacoes;
+    private boolean abrirNotificacoesPendente = false;
+    // Atualiza a bolinha do sino sempre que a lista de notificações muda
+    private final SharedPreferences.OnSharedPreferenceChangeListener ouvinteNotificacoes =
+            (sp, chave) -> runOnUiThread(this::atualizarBolinhaSino);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +85,22 @@ public class MenuActivity extends AppCompatActivity {
         }
 
         toolbar = findViewById(R.id.toolbarMenu);
+
+        // Notificações locais: canais, permissão (Android 13+) e agendamento dos lembretes
+        permissaoNotificacoes = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(), concedida -> { });
+        prepararNotificacoes();
+
+        // Sino do menu superior: abre a lista de notificações
+        if (toolbar != null) {
+            toolbar.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.menuNotificacoes) {
+                    abrirFragment(new NotificacoesFragment(), "Notificações");
+                    return true;
+                }
+                return false;
+            });
+        }
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavbar);
         drawerLayout = findViewById(R.id.drawerLayout);
         NavigationView navigationView = findViewById(R.id.navigationView);
@@ -127,6 +162,9 @@ public class MenuActivity extends AppCompatActivity {
                         || t.toLowerCase().contains("solicit")) {
                     abrirFragment(new SolicitacoesVinculoFragment(), "Solicitações de Vínculo");
 
+                } else if (id == R.id.drawerPrefNotificacoes) {
+                    abrirFragment(new PreferenciasNotificacaoFragment(), "Preferências de notificação");
+
                 } else if (id == R.id.drawerLogout
                         || t.equalsIgnoreCase("Sair")) {
                     fazerLogout();
@@ -184,11 +222,69 @@ public class MenuActivity extends AppCompatActivity {
             });
         }
 
+        // Veio de toque em uma notificação do aparelho: abre a lista do sino
+        tratarIntent(getIntent());
+
         // Atualiza cache pela API (rede); não bloqueia a UI
         // Se a API confirmar que não há pets (cache/sessão desatualizados), volta para a escolha
         DataPreloader.preloadTudo(this, () -> {
             if (!isFinishing()) irParaEscolhaObrigatoria();
         });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        tratarIntent(intent);
+    }
+
+    /** Marca para abrir a lista no onResume (trocar fragment com a tela parada daria erro de estado). */
+    private void tratarIntent(Intent intent) {
+        if (intent != null && intent.getBooleanExtra(NotificacaoHelper.EXTRA_ABRIR_NOTIFICACOES, false)) {
+            intent.removeExtra(NotificacaoHelper.EXTRA_ABRIR_NOTIFICACOES);
+            abrirNotificacoesPendente = true;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        NotificacaoStore.registrarOuvinte(this, ouvinteNotificacoes);
+        atualizarBolinhaSino();
+        if (abrirNotificacoesPendente) {
+            abrirNotificacoesPendente = false;
+            abrirFragment(new NotificacoesFragment(), "Notificações");
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        NotificacaoStore.removerOuvinte(this, ouvinteNotificacoes);
+    }
+
+    /** Sino com bolinha vermelha quando há notificações não lidas. */
+    private void atualizarBolinhaSino() {
+        if (toolbar == null) return;
+        MenuItem sino = toolbar.getMenu().findItem(R.id.menuNotificacoes);
+        if (sino == null) return;
+        boolean naoLidas = NotificacaoStore.naoLidas(this) > 0;
+        sino.setIcon(naoLidas ? R.drawable.ic_sino_nao_lida : R.drawable.ic_sino);
+    }
+
+    /** Cria os canais, pede a permissão uma vez (Android 13+) e agenda os lembretes. */
+    private void prepararNotificacoes() {
+        NotificacaoHelper.criarCanais(this);
+        NotificacaoPrefs prefs = new NotificacaoPrefs(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+                && !prefs.permissaoJaPedida()) {
+            prefs.permissaoPedida();
+            permissaoNotificacoes.launch(Manifest.permission.POST_NOTIFICATIONS);
+        }
+        NotificacaoScheduler.agendarTodos(this, false);
     }
 
     private void irParaEscolhaObrigatoria() {

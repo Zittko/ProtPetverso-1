@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.android.volley.Request;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.example.protpetverso_1.data.AppDataCache;
 import com.example.protpetverso_1.pet.PetResumo;
@@ -52,6 +53,9 @@ public class HomeFragment extends Fragment {
     private RecyclerView recyclerViewTarefas, recyclerViewAlertasSaude;
 
     private SessionManager sessionManager;
+    private boolean ressincronizandoPets = false;
+    private long petJaRessincronizado = -1; // evita laço se o erro não for falta de vínculo
+    private TextView txtSemAlertasSaude;
     private final List<PetResumo> listaPets = new ArrayList<>();
     private HomePetPagerAdapter petPagerAdapter;
 
@@ -81,6 +85,7 @@ public class HomeFragment extends Fragment {
         sessionManager = new SessionManager(ctx);
 
         txtSemTarefasHome = view.findViewById(R.id.txtSemTarefasHome);
+        txtSemAlertasSaude = view.findViewById(R.id.txtSemAlertasSaude);
         viewPagerPets = view.findViewById(R.id.viewPagerPets);
         btnAnterior = view.findViewById(R.id.btnAnterior);
         btnProximo = view.findViewById(R.id.btnProximo);
@@ -210,11 +215,23 @@ public class HomeFragment extends Fragment {
                         }
                     }
                     AppDataCache.get().setMeusPets(parseados);
+                    ressincronizandoPets = false;
                     if (!podeAtualizarUi()) return;
+                    if (parseados.isEmpty() && sessionManager.obterPetId() > 0) {
+                        // Não restou nenhum vínculo: volta para a escolha obrigatória de pet
+                        sessionManager.limparPet();
+                        android.content.Intent i = com.example.protpetverso_1.pet.EscolhaPetActivity
+                                .criarIntent(requireContext(), true);
+                        i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                                | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(i);
+                        if (getActivity() != null) getActivity().finish();
+                        return;
+                    }
                     aplicarListaPets(parseados);
                     selecionarPetInicial();
                 },
-                error -> Log.e(TAG, "meusPets", error)
+                error -> { ressincronizandoPets = false; Log.e(TAG, "meusPets", error); }
         ) {
             @Override
             public Map<String, String> getHeaders() {
@@ -224,6 +241,42 @@ public class HomeFragment extends Fragment {
             }
         };
         VolleySingleton.getInstance(ctx.getApplicationContext()).addToRequestQueue(request);
+    }
+
+    /**
+     * 401/403/404 em tarefas ou vacinas do pet: o usuário já não tem vínculo com ele (foi desvinculado
+     * por outro aparelho/pelo dono) ou o pet foi excluído, mas o app ainda o tinha selecionado.
+     * Remove o pet do cache e ressincroniza a lista; a seleção cai para um pet válido.
+     */
+    private void aoFalharDoPet(long petId, String origem, VolleyError error) {
+        int code = (error != null && error.networkResponse != null) ? error.networkResponse.statusCode : 0;
+        String corpo = "";
+        try {
+            if (error != null && error.networkResponse != null && error.networkResponse.data != null) {
+                corpo = new String(error.networkResponse.data, java.nio.charset.StandardCharsets.UTF_8);
+            }
+        } catch (Exception ignored) { }
+        // Uma linha só (sem o stack trace): o que importa é o código e a mensagem da API
+        Log.w(TAG, origem + " falhou: HTTP " + code + " " + corpo);
+
+        // Sem dados para mostrar: exibe o estado vazio em vez de deixar a área em branco
+        if (podeAtualizarUi() && sessionManager != null && sessionManager.obterPetId() == petId) {
+            if (origem.startsWith("tarefas") && !AppDataCache.get().temTarefas(petId)) {
+                atualizarAgenda(new ArrayList<>());
+            } else if (origem.startsWith("vacinas") && AppDataCache.get().getVacinas(petId).isEmpty()) {
+                montarAlertas(new ArrayList<>());
+            }
+        }
+
+        boolean semAcesso = code == 401 || code == 403 || code == 404
+                || (error instanceof com.android.volley.AuthFailureError);
+        if (!semAcesso || ressincronizandoPets || sessionManager == null) return;
+        if (sessionManager.obterPetId() != petId) return;
+        if (petJaRessincronizado == petId) return; // já conferimos: o pet continua na lista, o erro é outro
+        petJaRessincronizado = petId;
+        ressincronizandoPets = true;
+        // Confere na lista de pets (API): se o pet sumiu, a seleção cai para um válido; se não, nada muda
+        carregarPetsDaApi();
     }
 
     private void onPetSelecionado(int position) {
@@ -265,7 +318,7 @@ public class HomeFragment extends Fragment {
                         atualizarAgenda(todas);
                     }
                 },
-                error -> Log.e(TAG, "tarefas pet", error)
+                error -> aoFalharDoPet(petId, "tarefas pet", error)
         ) {
             @Override
             public Map<String, String> getHeaders() {
@@ -336,7 +389,7 @@ public class HomeFragment extends Fragment {
                         montarAlertas(lista);
                     }
                 },
-                error -> Log.e(TAG, "vacinas home", error)
+                error -> aoFalharDoPet(petId, "vacinas home", error)
         ) {
             @Override
             public Map<String, String> getHeaders() {
@@ -376,6 +429,13 @@ public class HomeFragment extends Fragment {
         }
         if (alertaAdapter != null) {
             alertaAdapter.setItens(alertasHome);
+        }
+        boolean semAlertas = alertasHome.isEmpty();
+        if (recyclerViewAlertasSaude != null) {
+            recyclerViewAlertasSaude.setVisibility(semAlertas ? View.GONE : View.VISIBLE);
+        }
+        if (txtSemAlertasSaude != null) {
+            txtSemAlertasSaude.setVisibility(semAlertas ? View.VISIBLE : View.GONE);
         }
     }
 }

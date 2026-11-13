@@ -113,9 +113,9 @@ Classe simples com atributos privados, getters e, quando vem da API, um método 
 
 ```java
 public static Tarefa fromJson(JSONObject o) {
-    Tarefa t = new Tarefa(o.optString("titulo", ""), o.optString("descricao", ""), 0, null, null);
-    // ... lê os demais campos com optString/optLong/optBoolean (nunca quebra se faltar campo)
-    return t;
+  Tarefa t = new Tarefa(o.optString("titulo", ""), o.optString("descricao", ""), 0, null, null);
+  // ... lê os demais campos com optString/optLong/optBoolean (nunca quebra se faltar campo)
+  return t;
 }
 ```
 
@@ -136,11 +136,11 @@ JsonObjectRequest request = new JsonObjectRequest(
         response -> { /* sucesso: atualizar tela e cache */ },
         error -> { /* tratar por statusCode: 400, 403, 404, 409; sem resposta = sem conexão */ }
 ) {
-    @Override public Map<String, String> getHeaders() {
-        Map<String, String> h = new HashMap<>();
-        h.put("Authorization", "Bearer " + sessionManager.getToken());
-        return h;
-    }
+  @Override public Map<String, String> getHeaders() {
+    Map<String, String> h = new HashMap<>();
+    h.put("Authorization", "Bearer " + sessionManager.getToken());
+    return h;
+  }
 };
 VolleySingleton.getInstance(this).addToRequestQueue(request);
 ```
@@ -200,6 +200,7 @@ Todas as URLs ficam em `ApiConfig`. Fora login e cadastro, toda chamada envia `A
 | Conta | `POST /api/usuarios/cadastrar`, `POST /api/login`, `POST /api/logout` |
 | Usuário | `GET /api/usuarios/perfil`, `PUT /api/usuarios/atualizarPerfil`, `PUT /api/usuarios/dados`, `PUT /api/usuarios/senha` |
 | Pets | `POST /api/pets/cadastrar`, `GET /api/pets/meusPets`, `GET /api/pets/{id}/perfil`, `PUT /api/pets/{id}/dados`, `PUT /api/pets/{id}/atualizarPetPerfil`, `PUT /api/pets/{id}/foto` |
+| Tutores | `GET /api/pets/{id}/tutores`, `DELETE /api/pets/{id}/tutores/{idUsuario}` (dono desvincula), `DELETE /api/pets/{id}/vinculo` (suporte sai do pet) |
 | Vínculo | `POST /api/pets/solicitarVinculo`, `GET /api/pets/listarSolicitacoes`, `POST /api/pets/processarSolicitacao` |
 | Agenda | `GET` e `POST /api/pets/{id}/tarefas`, `GET /api/tarefas?data=`, `PUT` e `DELETE /api/tarefas/{id}`, `PATCH /api/tarefas/{id}/concluir` |
 | Vacinas | `GET` e `POST /api/pets/{id}/vacinas`, `PUT` e `DELETE /api/vacinas/{id}`, `PATCH /api/vacinas/{id}/aplicar` |

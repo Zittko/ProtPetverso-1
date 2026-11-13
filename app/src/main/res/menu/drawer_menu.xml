@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/drawerPerfilUsuario"
@@ -6,6 +5,9 @@
     <item
         android:id="@+id/drawerSolicitacoes"
         android:title="Solicitações de vínculo" />
+    <item
+        android:id="@+id/drawerPrefNotificacoes"
+        android:title="Preferências de notificação" />
     <item
         android:id="@+id/drawerLogout"
         android:title="Sair" />

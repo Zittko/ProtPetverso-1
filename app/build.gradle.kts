@@ -42,6 +42,8 @@ dependencies {
     // EncryptedSharedPreferences para armazenamento seguro do Token
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("com.github.yalantis:ucrop:2.2.8")
+    // Lembretes locais agendados (notificações)
+    implementation("androidx.work:work-runtime:2.9.1")
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)

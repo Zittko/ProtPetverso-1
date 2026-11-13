@@ -131,6 +131,11 @@ public class SessionManager {
                 .apply();
     }
 
+    /** O login da API não devolve o id; ele chega depois, em GET /api/usuarios/perfil. */
+    public void salvarUserId(long userId) {
+        if (userId > 0) prefs.edit().putLong(KEY_USER_ID, userId).apply();
+    }
+
     /** Alias de salvarSessao. */
     public void salvarLogin(String token, long userId, String nome, String email) {
         salvarSessao(token, userId, nome, email);

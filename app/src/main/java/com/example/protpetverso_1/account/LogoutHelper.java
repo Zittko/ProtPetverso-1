@@ -12,6 +12,8 @@ import com.example.protpetverso_1.ApiConfig;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
 import com.example.protpetverso_1.data.AppDataCache;
+import com.example.protpetverso_1.notification.NotificacaoScheduler;
+import com.example.protpetverso_1.notification.NotificacaoStore;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,6 +48,10 @@ public final class LogoutHelper {
         AppDataCache.get().init(app);
         AppDataCache.get().limparTudo(true);
         session.limparSessao();
+
+        // Notificações locais: cancela os lembretes e apaga a lista do sino
+        NotificacaoScheduler.cancelarTodos(app);
+        NotificacaoStore.limpar(app);
 
         invalidarTokenNaApi(app, token);
 

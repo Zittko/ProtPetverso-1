@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.example.protpetverso_1.pet.PetResumo;
+import com.example.protpetverso_1.pet.Tutor;
 import com.example.protpetverso_1.schedule.Tarefa;
 import com.example.protpetverso_1.vaccine.Vacina;
 
@@ -27,6 +28,7 @@ public final class AppDataCache {
     private static final String KEY_VACINAS_PREFIX = "vacinas_pet_";
     private static final String KEY_PERFIL_PET_PREFIX = "perfil_pet_";
     private static final String KEY_TAREFAS_DIA_PREFIX = "tarefas_dia_";
+    private static final String KEY_TUTORES_PREFIX = "tutores_pet_";
 
     private static final AppDataCache INSTANCE = new AppDataCache();
 
@@ -52,6 +54,7 @@ public final class AppDataCache {
     private final Map<Long, List<Tarefa>> tarefasPorPetId = new HashMap<>();
     private final Map<Long, List<Vacina>> vacinasPorPetId = new HashMap<>();
     private final Map<String, List<Tarefa>> tarefasPorDia = new HashMap<>();
+    private final Map<Long, List<Tutor>> tutoresPorPetId = new HashMap<>();
 
     public synchronized void init(Context context) {
         if (context == null) return;
@@ -136,6 +139,9 @@ public final class AppDataCache {
                 } else if (key.startsWith(KEY_PERFIL_PET_PREFIX)) {
                     long id = parseId(key, KEY_PERFIL_PET_PREFIX);
                     if (id > 0) perfilPetPorId.put(id, new JSONObject(raw));
+                } else if (key.startsWith(KEY_TUTORES_PREFIX)) {
+                    long id = parseId(key, KEY_TUTORES_PREFIX);
+                    if (id > 0) tutoresPorPetId.put(id, Tutor.listaFromJson(new JSONArray(raw)));
                 } else if (key.startsWith(KEY_TAREFAS_DIA_PREFIX)) {
                     String dia = key.substring(KEY_TAREFAS_DIA_PREFIX.length());
                     tarefasPorDia.put(dia, lerTarefasJson(raw));
@@ -478,6 +484,30 @@ public final class AppDataCache {
         return out;
     }
 
+    // ==================== TUTORES ====================
+
+    public synchronized void setTutores(long petId, List<Tutor> lista) {
+        if (petId <= 0 || lista == null) return;
+        tutoresPorPetId.put(petId, new ArrayList<>(lista));
+        if (!ready()) return;
+        try {
+            JSONArray arr = new JSONArray();
+            for (Tutor t : lista) arr.put(t.toJson());
+            disk.edit().putString(KEY_TUTORES_PREFIX + petId, arr.toString()).apply();
+        } catch (Exception e) {
+            Log.e(TAG, "persist tutores", e);
+        }
+    }
+
+    public synchronized List<Tutor> getTutores(long petId) {
+        List<Tutor> l = tutoresPorPetId.get(petId);
+        return l != null ? new ArrayList<>(l) : new ArrayList<>();
+    }
+
+    public synchronized boolean temTutores(long petId) {
+        return tutoresPorPetId.containsKey(petId);
+    }
+
     // ==================== REMOVER PET ====================
 
     /**
@@ -492,12 +522,14 @@ public final class AppDataCache {
         perfilPetPorId.remove(petId);
         tarefasPorPetId.remove(petId);
         vacinasPorPetId.remove(petId);
+        tutoresPorPetId.remove(petId);
         tarefasPorDia.clear(); // as tarefas do dia somavam as do pet removido
         if (ready()) {
             SharedPreferences.Editor ed = disk.edit();
             ed.remove(KEY_PERFIL_PET_PREFIX + petId);
             ed.remove(KEY_TAREFAS_PREFIX + petId);
             ed.remove(KEY_VACINAS_PREFIX + petId);
+            ed.remove(KEY_TUTORES_PREFIX + petId);
             for (String key : new ArrayList<>(disk.getAll().keySet())) {
                 if (key.startsWith(KEY_TAREFAS_DIA_PREFIX)) ed.remove(key);
             }
@@ -527,6 +559,7 @@ public final class AppDataCache {
         tarefasPorPetId.clear();
         vacinasPorPetId.clear();
         tarefasPorDia.clear();
+        tutoresPorPetId.clear();
         if (ready()) {
             disk.edit().clear().apply();
             if (apagarFotos) PhotoDiskCache.limparTudo(appContext);
