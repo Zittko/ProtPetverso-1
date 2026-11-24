@@ -19,10 +19,10 @@ import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.example.protpetverso_1.ApiConfig;
+import com.example.protpetverso_1.api.ApiConfig;
 import com.example.protpetverso_1.R;
-import com.example.protpetverso_1.SessionManager;
-import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.conta.SessionManager;
+import com.example.protpetverso_1.api.VolleySingleton;
 import com.example.protpetverso_1.data.AppDataCache;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;

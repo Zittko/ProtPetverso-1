@@ -33,13 +33,13 @@ import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
-import com.example.protpetverso_1.MenuActivity;
+import com.example.protpetverso_1.telas.MenuActivity;
 import com.example.protpetverso_1.pet.EditarPetActivity;
-import com.example.protpetverso_1.ApiConfig;
+import com.example.protpetverso_1.api.ApiConfig;
 import com.example.protpetverso_1.R;
-import com.example.protpetverso_1.SessionManager;
-import com.example.protpetverso_1.UCropHelper;
-import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.conta.SessionManager;
+import com.example.protpetverso_1.util.UCropHelper;
+import com.example.protpetverso_1.api.VolleySingleton;
 import com.example.protpetverso_1.data.AppDataCache;
 import com.example.protpetverso_1.data.DataPreloader;
 import com.example.protpetverso_1.data.PhotoDiskCache;
@@ -55,15 +55,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Perfil do Pet — GET /api/pets/{id}/perfil
- *
- * 1) Cache (AppDataCache / disco) → UI
- * 2) GET em background → atualiza cache + UI
- *
- * Foto: galeria → uCrop 1:1 → PUT /api/pets/{id}/foto
- * Lápis de tutores: abre EditarPetActivity
- */
 public class PerfilPetFragment extends Fragment {
 
     private static final String TAG = "PET_PERFIL";
@@ -527,6 +518,8 @@ public class PerfilPetFragment extends Fragment {
             }
             if (!fotoBase64.isEmpty() && imgFotoPet != null) {
                 mostrarFotoBase64(fotoBase64, imgFotoPet);
+            } else {
+                mostrarSemFoto();
             }
         }
     }
@@ -945,19 +938,17 @@ public class PerfilPetFragment extends Fragment {
                     sessionManager.obterPetNome(),
                     racaPeso,
                     "—", "—", "—", "—",
-                    "Código do Pet: —", "—", "—",
-                    R.drawable.thor
+                    "Código do Pet: —", "—", "—"
             );
         } else {
             preencherCampos("Pet", "—", "—", "—", "—", "—",
-                    "Código do Pet: —", "—", "—", R.drawable.thor);
+                    "Código do Pet: —", "—", "—");
         }
     }
 
     private void preencherCampos(String nome, String racaPeso,
                                  String especie, String sexo, String porte, String dataNasc,
-                                 String codigo, String personalidade, String sensibilidades,
-                                 int fotoResId) {
+                                 String codigo, String personalidade, String sensibilidades) {
         if (txtNomePet != null) txtNomePet.setText(nome);
         if (txtRacaPeso != null) txtRacaPeso.setText(racaPeso);
         if (txtEspecie != null) txtEspecie.setText(especie);
@@ -967,9 +958,13 @@ public class PerfilPetFragment extends Fragment {
         if (txtCodigoPet != null) txtCodigoPet.setText(codigo);
         if (txtPersonalidade != null) txtPersonalidade.setText(personalidade);
         if (txtSensibilidades != null) txtSensibilidades.setText(sensibilidades);
-        if (imgFotoPet != null && fotoResId != 0) {
-            imgFotoPet.setImageResource(fotoResId);
-        }
+        // Sem foto: mostra só a cor padrão do fundo (bg_foto_pet).
+        mostrarSemFoto();
+    }
+
+    /** Remove qualquer imagem e deixa apenas a cor de fundo do campo da foto. */
+    private void mostrarSemFoto() {
+        if (imgFotoPet != null) imgFotoPet.setImageDrawable(null);
     }
 
     private void atualizarTituloToolbar(String titulo) {

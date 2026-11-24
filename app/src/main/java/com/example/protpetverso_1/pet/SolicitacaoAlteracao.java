@@ -1,9 +1,9 @@
 package com.example.protpetverso_1.pet;
 
 import com.example.protpetverso_1.data.AppDataCache;
-import com.example.protpetverso_1.schedule.Tarefa;
+import com.example.protpetverso_1.agenda.Tarefa;
 import com.example.protpetverso_1.util.Formatadores;
-import com.example.protpetverso_1.vaccine.Vacina;
+import com.example.protpetverso_1.vacina.Vacina;
 
 import org.json.JSONObject;
 

@@ -64,12 +64,12 @@
                 android:id="@+id/edtDataAplicacao"
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:drawableTint="#FF9800"
-                android:drawableEnd="@drawable/ic_edit_calendar"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp"
                 android:background="@drawable/bg_campo_branco"
                 android:clickable="true"
+                android:drawableEnd="@drawable/ic_edit_calendar"
+                android:drawableTint="#FF9800"
                 android:focusable="false"
                 android:hint="dd/mm/aaaa"
                 android:minWidth="140dp"
@@ -86,27 +86,17 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <FrameLayout
-                android:layout_width="wrap_content"
+            <Spinner
+                android:id="@+id/spDosagemUnica"
+                android:layout_width="140dp"
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp"
-                android:background="@drawable/bg_spinner_vacina"
-                android:clipChildren="true"
-                android:minWidth="120dp"
-                android:padding="1dp">
-
-                <Spinner
-                    android:id="@+id/spDosagemUnica"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/transparent"
-                    android:minWidth="120dp"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="28dp"
-                    android:popupBackground="#FFFFFF"
-                    android:spinnerMode="dropdown" />
-            </FrameLayout>
+                android:background="@drawable/bg_spinner"
+                android:paddingStart="8dp"
+                android:paddingEnd="40dp"
+                android:popupBackground="#FFFFFF"
+                android:spinnerMode="dropdown" />
 
             <LinearLayout
                 android:id="@+id/boxJaAplicada"
@@ -185,24 +175,16 @@
                         android:textColorHint="#AAAAAA"
                         android:textSize="14sp" />
 
-                    <FrameLayout
-                        android:layout_width="120dp"
+                    <Spinner
+                        android:id="@+id/spIntervaloUnidade"
+                        android:layout_width="140dp"
                         android:layout_height="48dp"
                         android:layout_marginStart="10dp"
-                        android:background="@drawable/bg_spinner_vacina"
-                        android:clipChildren="true"
-                        android:padding="1dp">
-
-                        <Spinner
-                            android:id="@+id/spIntervaloUnidade"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:background="@drawable/bg_spinner"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="28dp"
-                            android:popupBackground="#FFFFFF"
-                            android:spinnerMode="dropdown" />
-                    </FrameLayout>
+                        android:background="@drawable/bg_spinner"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="40dp"
+                        android:popupBackground="#FFFFFF"
+                        android:spinnerMode="dropdown" />
                 </LinearLayout>
             </LinearLayout>
 

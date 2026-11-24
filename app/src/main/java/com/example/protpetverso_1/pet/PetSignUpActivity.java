@@ -19,13 +19,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.example.protpetverso_1.ApiConfig;
-import com.example.protpetverso_1.MenuActivity;
+import com.example.protpetverso_1.api.ApiConfig;
+import com.example.protpetverso_1.telas.MenuActivity;
 import com.example.protpetverso_1.R;
-import com.example.protpetverso_1.SessionManager;
-import com.example.protpetverso_1.UCropHelper;
-import com.example.protpetverso_1.VolleySingleton;
-import com.example.protpetverso_1.account.LoginActivity;
+import com.example.protpetverso_1.conta.SessionManager;
+import com.example.protpetverso_1.util.UCropHelper;
+import com.example.protpetverso_1.api.VolleySingleton;
+import com.example.protpetverso_1.conta.LoginActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.yalantis.ucrop.UCrop;
@@ -34,7 +34,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.text.Normalizer;
 import java.util.ArrayList;

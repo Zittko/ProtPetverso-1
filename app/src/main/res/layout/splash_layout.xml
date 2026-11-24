@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/primary_orange"
-    tools:context=".SplashActivity">
+    tools:context=".telas.SplashActivity">
 
     <TextView
         android:id="@+id/txtTitle"

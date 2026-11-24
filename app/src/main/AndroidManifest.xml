@@ -17,12 +17,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProtPetverso1">
         <activity
-            android:name=".vaccine.CadastrarVacinaActivity"
+            android:name=".vacina.CadastrarVacinaActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <!--  ===== LAUNCHER =====  -->
         <activity
-            android:name=".SplashActivity"
+            android:name=".telas.SplashActivity"
             android:exported="true"
             android:noHistory="true"
             android:theme="@style/Theme.PetVerso.Splash">
@@ -33,22 +33,22 @@
         </activity>
         <!--  ===== ACCOUNT =====  -->
         <activity
-            android:name=".account.LoginActivity"
+            android:name=".conta.LoginActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".account.SignUpActivity"
+            android:name=".conta.SignUpActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".account.TermosActivity"
+            android:name=".conta.TermosActivity"
             android:exported="false" />
         <activity
             android:name=".user.EditarUsuarioActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".account.RecuperarSenhaActivity"
+            android:name=".conta.RecuperarSenhaActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
@@ -57,7 +57,7 @@
             android:windowSoftInputMode="adjustResize" />
         <!--  ===== MENU PRINCIPAL =====  -->
         <activity
-            android:name=".MenuActivity"
+            android:name=".telas.MenuActivity"
             android:exported="false" />
         <!--  ===== PET =====  -->
         <activity
@@ -74,7 +74,7 @@
             android:windowSoftInputMode="adjustResize" />
         <!--  ===== AGENDA =====  -->
         <activity
-            android:name=".schedule.CriarTarefaActivity"
+            android:name=".agenda.CriarTarefaActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <!--  ===== UCROP (recorte de foto) =====  -->
@@ -84,13 +84,13 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.PetVerso.UCrop" />
         <activity
-            android:name=".CenterTitleUCropActivity"
+            android:name=".util.CenterTitleUCropActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.PetVerso.UCrop" />
         <!--  ===== LEGADO (não usada no fluxo) =====  -->
         <activity
-            android:name=".MainActivity"
+            android:name=".telas.MainActivity"
             android:exported="false" />
         <activity
             android:name=".pet.EditarPetActivity"

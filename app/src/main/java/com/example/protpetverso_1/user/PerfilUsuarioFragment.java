@@ -24,11 +24,11 @@ import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.example.protpetverso_1.ApiConfig;
+import com.example.protpetverso_1.api.ApiConfig;
 import com.example.protpetverso_1.R;
-import com.example.protpetverso_1.SessionManager;
-import com.example.protpetverso_1.UCropHelper;
-import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.conta.SessionManager;
+import com.example.protpetverso_1.util.UCropHelper;
+import com.example.protpetverso_1.api.VolleySingleton;
 import com.example.protpetverso_1.data.AppDataCache;
 import com.example.protpetverso_1.data.PhotoDiskCache;
 import com.google.android.material.appbar.MaterialToolbar;

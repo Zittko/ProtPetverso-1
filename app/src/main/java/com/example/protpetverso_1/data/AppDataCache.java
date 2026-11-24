@@ -6,8 +6,8 @@ import android.util.Log;
 
 import com.example.protpetverso_1.pet.PetResumo;
 import com.example.protpetverso_1.pet.Tutor;
-import com.example.protpetverso_1.schedule.Tarefa;
-import com.example.protpetverso_1.vaccine.Vacina;
+import com.example.protpetverso_1.agenda.Tarefa;
+import com.example.protpetverso_1.vacina.Vacina;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

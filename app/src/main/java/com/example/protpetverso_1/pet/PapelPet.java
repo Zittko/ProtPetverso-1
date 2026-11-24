@@ -2,7 +2,7 @@ package com.example.protpetverso_1.pet;
 
 import android.content.Context;
 
-import com.example.protpetverso_1.SessionManager;
+import com.example.protpetverso_1.conta.SessionManager;
 import com.example.protpetverso_1.data.AppDataCache;
 public final class PapelPet {
 

@@ -18,16 +18,32 @@ Projeto desenvolvido como TCC. O app consome a [API REST do PetVerso](https://gi
 - Cadastro de pet com foto, e informações adicionais (sensibilidades e personalidades)
 - Código de vínculo para compartilhar o pet; outro usuário solicita ser tutor de suporte
 - O tutor principal (DONO) aceita ou recusa as solicitações
+- Lista de tutores do pet, com o papel de cada um; o dono desvincula um tutor e o suporte pode sair do pet
+- Exclusão do pet pelo dono
 - Usuário sem pet fica **bloqueado na tela de escolha** até cadastrar um pet ou ter um vínculo aceito; o acesso é liberado automaticamente quando o tutor aceita
 
 **Agenda**
 - Calendário mensal e lista de tarefas do dia, somando os pets vinculados
 - Criar, editar, concluir e excluir tarefas (registra quem executou)
+- **Tutor de suporte**: pode criar tarefas direto, mas, ao tocar numa tarefa para alterá-la, envia uma **solicitação de alteração** que o tutor principal aprova ou recusa
 
 **Vacinas**
 - Carteira de vacinas por pet, com status `PENDENTE`, `APLICADA` e `ATRASADA`
-- Cadastro, edição, exclusão e "marcar como aplicada"
+- Cadastro, edição, exclusão e "marcar como aplicada" (dono)
+- **Tutor de suporte**: o cadastro de vacina e qualquer alteração viram **solicitações** ao tutor principal; a vacina só entra ou muda depois da aprovação
 - Alertas de saúde na Home
+
+**Solicitações (tela do tutor principal)**
+- Uma única tela, "Solicitações", no menu lateral, com duas seções: *Alterações solicitadas* (tarefa e vacina) e *Pedidos de vínculo*
+- Cada pedido de alteração mostra o tipo, o pet, quem pediu, os dados propostos e, quando o app os tem guardados, os dados atuais para comparar
+- **Aprovar** aplica a mudança no servidor; **Recusar** aceita um motivo opcional
+- Os pedidos são buscados ao abrir a tela (não há notificação push)
+
+**Notificações locais**
+- Aba de notificações (sino, com marcador de não lidas) e tela de preferências com três opções: alimentação, passeio e vacinas
+- Alimentação a cada 8 horas, passeio a cada 7 dias e vacinas apenas quando um pet tem mais de 3 imunidades pendentes ou atrasadas; sem escolha de horário
+- Geradas por `WorkManager` (funcionam com o app fechado); a lista é limpa automaticamente a cada 15 dias
+- A permissão de notificações é pedida na primeira abertura, na tela de login
 
 **Funciona com cache local**: pets, tarefas, vacinas e fotos são salvos no aparelho e aparecem imediatamente enquanto a API responde (útil porque a API gratuita no Render pode demorar a "acordar").
 
@@ -67,6 +83,7 @@ app/src/main/java/com/example/protpetverso_1/
 ├── pet/                      # cadastro, escolha/vínculo, perfil, lista e solicitações
 ├── schedule/                 # agenda: calendário, tarefas e criação de tarefa
 ├── vaccine/                  # carteira de vacinas e alertas de saúde
+├── notification/             # notificações locais, lista, preferências e WorkManager
 ├── data/                     # AppDataCache, PhotoDiskCache e DataPreloader
 └── util/                     # Formatadores e MascaraTelefone
 ```
@@ -86,7 +103,7 @@ Splash ──┬─ sem sessão ──────────────► Lo
 ```
 
 - `SplashActivity` lê o cache do disco e decide: Login, escolha de pet obrigatória ou Menu.
-- `MenuActivity` troca fragments com `FragmentManager.replace` (bottom nav para Home, Agenda, Vacinas e Pets; drawer para Perfil do Usuário, Solicitações de vínculo e Sair).
+- `MenuActivity` troca fragments com `FragmentManager.replace` (bottom nav para Home, Agenda, Vacinas e Pets; drawer para Perfil do Usuário, Solicitações, Preferências de notificação e Sair).
 - O vínculo é verificado **no servidor** (`GET /api/pets/meusPets` devolve só vínculos aceitos), então fechar o app ou limpar os dados não burla o bloqueio.
 
 ### Principais decisões
@@ -100,7 +117,7 @@ Splash ──┬─ sem sessão ──────────────► Lo
 - **Logout central**: `LogoutHelper` cancela requisições, limpa cache, fotos e sessão, avisa a API e volta ao Login. A saída local nunca depende da rede.
 - **Fotos em Base64** no JSON (sem multipart), como a API.
 - **Máscaras e formatos**: telefone `(DD) NNNNN-NNNN` e datas `DD/MM/AAAA` na tela; a API recebe só os dígitos do telefone e datas ISO (`yyyy-MM-dd`). `Formatadores` e `MascaraTelefone` concentram isso.
-- **Papéis**: DONO pode editar pet, tarefas e vacinas e processar solicitações; SUPORTE vê e conclui tarefas e aplica vacinas. O app esconde ou bloqueia o que o papel não permite, mas **a regra de verdade é da API**.
+- **Papéis**: DONO edita pet, tarefas e vacinas direto e responde às solicitações; SUPORTE vê e conclui tarefas, cria tarefas e **solicita** alterações de tarefa e de vacina. `PapelPet.ehDono()` decide qual fluxo a tela usa. O app esconde ou adapta o que o papel não permite, mas **a regra de verdade é da API**.
 
 ---
 
@@ -187,7 +204,7 @@ Toda Activity nova precisa ser declarada no `AndroidManifest.xml`. Textos longos
 - Senha nunca é guardada no aparelho; só o token e os dados básicos, em armazenamento criptografado.
 - As regras de backup excluem os arquivos de sessão (`res/xml/backup_rules.xml` e `data_extraction_rules.xml`).
 - O cadastro exige aceite dos Termos de Uso e da Política de Privacidade (`res/raw/termos_uso.txt` e `politica_privacidade.txt`, exibidos por `TermosActivity`). Preencha os campos `[PREENCHER]` com o responsável e o contato antes de publicar.
-- Permissões: `INTERNET` e leitura de mídia (só para escolher a foto do pet).
+- Permissões: `INTERNET`, notificações (Android 13+) e leitura de mídia (só para escolher a foto do pet).
 
 ---
 
@@ -201,7 +218,8 @@ Todas as URLs ficam em `ApiConfig`. Fora login e cadastro, toda chamada envia `A
 | Usuário | `GET /api/usuarios/perfil`, `PUT /api/usuarios/atualizarPerfil`, `PUT /api/usuarios/dados`, `PUT /api/usuarios/senha` |
 | Pets | `POST /api/pets/cadastrar`, `GET /api/pets/meusPets`, `GET /api/pets/{id}/perfil`, `PUT /api/pets/{id}/dados`, `PUT /api/pets/{id}/atualizarPetPerfil`, `PUT /api/pets/{id}/foto` |
 | Tutores | `GET /api/pets/{id}/tutores`, `DELETE /api/pets/{id}/tutores/{idUsuario}` (dono desvincula), `DELETE /api/pets/{id}/vinculo` (suporte sai do pet) |
-| Vínculo | `POST /api/pets/solicitarVinculo`, `GET /api/pets/listarSolicitacoes`, `POST /api/pets/processarSolicitacao` |
+| Vínculo | `POST /api/pets/solicitarVinculo`, `POST /api/pets/processarSolicitacao` (a lista vem de `/api/solicitacoes/pendentes`) |
+| Solicitações | `GET /api/solicitacoes/pendentes` (vínculos + alterações do dono), `POST /api/solicitacoes/tarefas/{idTarefa}`, `POST /api/solicitacoes/vacinas/{idVacina}`, `POST /api/solicitacoes/pets/{idPet}/vacinas` (suporte), `PATCH /api/solicitacoes/{id}/aprovar` e `PATCH /api/solicitacoes/{id}/recusar` (dono, corpo opcional `{"motivo": "..."}`) |
 | Agenda | `GET` e `POST /api/pets/{id}/tarefas`, `GET /api/tarefas?data=`, `PUT` e `DELETE /api/tarefas/{id}`, `PATCH /api/tarefas/{id}/concluir` |
 | Vacinas | `GET` e `POST /api/pets/{id}/vacinas`, `PUT` e `DELETE /api/vacinas/{id}`, `PATCH /api/vacinas/{id}/aplicar` |
 
@@ -233,7 +251,9 @@ git checkout Cadu
 ## 📝 Notas de desenvolvimento
 
 - O app foi testado manualmente em dispositivo; ainda não há testes automatizados.
-- O `nav_graph.xml` é um resquício do template do Android Studio (`FirstFragment` e `SecondFragment`) e não é usado pela navegação real, que é feita pelo `MenuActivity`.
+- Recursos do template do Android Studio que não eram usados (`nav_graph.xml`, `activity_main.xml`, imagens de teste) foram removidos; a navegação real é feita pelo `MenuActivity`.
+- O suporte não consegue listar os próprios pedidos nem saber se foram aprovados ou recusados, porque a API não tem essa rota; ele só recebe a confirmação de envio.
+- Pedidos de alteração pendentes são cancelados pela API quando o tutor deixa o pet.
 - Ainda não existe exclusão de conta pela API; a Política de Privacidade orienta a pedir por e-mail.
 - A API não registra o aceite dos termos; ele é exigido apenas no app, no cadastro.
 
@@ -248,8 +268,10 @@ git checkout Cadu
 - [x] Agenda de tarefas e carteira de vacinas
 - [x] Cache local de dados e fotos
 - [x] Termos de Uso e Política de Privacidade no cadastro
-- [ ] Solicitação de alteração: o suporte propõe a mudança e o dono aprova
-- [ ] Notificações de vacinas e tarefas
+- [x] Solicitação de alteração: o suporte propõe a mudança e o dono aprova
+- [x] Notificações locais de alimentação, passeio e vacinas
+- [ ] Notificação (push) para o dono quando chega uma solicitação
+- [ ] Tela para o suporte acompanhar o status dos próprios pedidos
 - [ ] Verificação de e-mail no cadastro
 - [ ] Testes automatizados
 

@@ -6,12 +6,12 @@ import android.util.Log;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.example.protpetverso_1.ApiConfig;
-import com.example.protpetverso_1.SessionManager;
-import com.example.protpetverso_1.VolleySingleton;
+import com.example.protpetverso_1.api.ApiConfig;
+import com.example.protpetverso_1.conta.SessionManager;
+import com.example.protpetverso_1.api.VolleySingleton;
 import com.example.protpetverso_1.pet.PetResumo;
-import com.example.protpetverso_1.schedule.Tarefa;
-import com.example.protpetverso_1.vaccine.Vacina;
+import com.example.protpetverso_1.agenda.Tarefa;
+import com.example.protpetverso_1.vacina.Vacina;
 
 import org.json.JSONObject;
 

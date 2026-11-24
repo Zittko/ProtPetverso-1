@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -32,8 +31,7 @@
                     android:background="@drawable/bg_foto_pet"
                     android:clipToOutline="true"
                     android:contentDescription="Foto do pet"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/bg_foto_pet" />
+                    android:scaleType="centerCrop" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -210,7 +208,6 @@
                         android:textColor="#000000"
                         android:textSize="15sp"
                         android:textStyle="bold" />
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -244,8 +241,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical" />
-
-                    <!-- Código e compartilhamento: apenas para o tutor principal -->
+                    <!--  Código e compartilhamento: apenas para o tutor principal  -->
                     <LinearLayout
                         android:id="@+id/blocoCompartilhar"
                         android:layout_width="match_parent"
@@ -304,9 +300,7 @@
                                 app:backgroundTint="#DF945D"
                                 app:cornerRadius="10dp" />
                         </LinearLayout>
-
                     </LinearLayout>
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -327,8 +321,6 @@
                 app:backgroundTint="#F7D4A0"
                 app:cornerRadius="10dp"
                 app:elevation="0dp" />
-
         </LinearLayout>
     </ScrollView>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

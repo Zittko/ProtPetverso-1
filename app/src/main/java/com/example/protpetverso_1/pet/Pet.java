@@ -1,7 +1,7 @@
 package com.example.protpetverso_1.pet;
 
-import com.example.protpetverso_1.vaccine.AlertaSaude;
-import com.example.protpetverso_1.schedule.Tarefa;
+import com.example.protpetverso_1.vacina.AlertaSaude;
+import com.example.protpetverso_1.agenda.Tarefa;
 
 import java.util.List;
 
