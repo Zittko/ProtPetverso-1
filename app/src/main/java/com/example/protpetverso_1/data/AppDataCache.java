@@ -334,6 +334,12 @@ public final class AppDataCache {
                 .apply();
     }
 
+    /** Descarta as tarefas guardadas do pet (a próxima leitura busca de novo na API). */
+    public void invalidarTarefas(long petId) {
+        tarefasPorPetId.remove(petId);
+        if (ready()) disk.edit().remove(KEY_TAREFAS_PREFIX + petId).apply();
+    }
+
     public List<Tarefa> getTarefas(long petId) {
         List<Tarefa> list = tarefasPorPetId.get(petId);
         return list != null ? new ArrayList<>(list) : new ArrayList<>();

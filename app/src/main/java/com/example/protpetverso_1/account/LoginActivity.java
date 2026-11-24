@@ -43,13 +43,6 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Tela de Login (após a Splash).
- * Fluxo de sucesso:
- * 1) POST login → salva sessão
- * 2) GET meusPets → grava 1º pet no SessionManager (se houver)
- * 3) irParaMenu() uma única vez
- */
 public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LOGIN";

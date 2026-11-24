@@ -40,4 +40,16 @@ public class ApiConfig {
     public static final String URL_VACINA = BASE_URL + "/api/vacinas/";
     public static final String URL_APLICAR_VACINA = BASE_URL + "/api/vacinas/";
     public static final String URL_EXCLUIR_VACINA = BASE_URL + "/api/vacinas/";
+
+    // Solicitações de alteração (suporte pede, tutor principal aprova ou recusa)
+    // Pendentes do dono: GET  -> { "vinculos": [...], "alteracoes": [...] }
+    public static final String URL_SOLICITACOES_PENDENTES = BASE_URL + "/api/solicitacoes/pendentes";
+    // Suporte pede alterar tarefa:   POST URL_SOLICITAR_TAREFA + {idTarefa}
+    public static final String URL_SOLICITAR_TAREFA = BASE_URL + "/api/solicitacoes/tarefas/";
+    // Suporte pede alterar vacina:   POST URL_SOLICITAR_VACINA + {idVacina}
+    public static final String URL_SOLICITAR_VACINA = BASE_URL + "/api/solicitacoes/vacinas/";
+    // Suporte pede adicionar vacina: POST URL_SOLICITAR_VACINA_NOVA + {idPet} + "/vacinas"
+    public static final String URL_SOLICITAR_VACINA_NOVA = BASE_URL + "/api/solicitacoes/pets/";
+    // Dono responde: PATCH URL_SOLICITACOES + {idSolicitacao} + "/aprovar" | "/recusar" (body opcional {"motivo": "..."})
+    public static final String URL_SOLICITACOES = BASE_URL + "/api/solicitacoes/";
 }

@@ -157,7 +157,7 @@ public class MenuActivity extends AppCompatActivity {
 
                 } else if (id == R.id.drawerSolicitacoes
                         || t.toLowerCase().contains("solicit")) {
-                    abrirFragment(new SolicitacoesVinculoFragment(), "Solicitações de Vínculo");
+                    abrirFragment(new SolicitacoesVinculoFragment(), "Solicitações");
 
                 } else if (id == R.id.drawerPrefNotificacoes) {
                     abrirFragment(new PreferenciasNotificacaoFragment(), "Preferências de notificação");
@@ -313,7 +313,7 @@ public class MenuActivity extends AppCompatActivity {
         if (f instanceof PerfilPetFragment) return "Perfil do Pet";
         if (f instanceof NotificacoesFragment) return "Notificações";
         if (f instanceof PerfilUsuarioFragment) return "Perfil do Usuário";
-        if (f instanceof SolicitacoesVinculoFragment) return "Solicitações de Vínculo";
+        if (f instanceof SolicitacoesVinculoFragment) return "Solicitações";
         if (f instanceof PreferenciasNotificacaoFragment) return "Preferências de notificação";
         return null;
     }

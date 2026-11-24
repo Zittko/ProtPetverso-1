@@ -123,9 +123,10 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
         if (atual > 0) petId = atual;
         isDono = sessionManager.isDonoDoPetSelecionado();
 
+        // O + aparece para todos: o suporte cria uma solicitação e o tutor principal aprova
         if (fabNovaVacina != null) {
-            fabNovaVacina.setVisibility(isDono ? View.VISIBLE : View.GONE);
-            fabNovaVacina.setOnClickListener(isDono ? v -> abrirCadastro(null) : null);
+            fabNovaVacina.setVisibility(View.VISIBLE);
+            fabNovaVacina.setOnClickListener(v -> abrirCadastro(null));
         }
 
         if (petId > 0 && AppDataCache.get().temVacinas(petId)) {
@@ -136,10 +137,10 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
         carregarVacinasDaApi();
     }
 
-    /** O + só existe nesta tela, e só para o tutor principal. */
+    /** O + existe nesta tela para todos (suporte: pede o cadastro ao tutor principal). */
     private void atualizarFab() {
         if (fabNovaVacina == null) return;
-        fabNovaVacina.setVisibility(isDono ? View.VISIBLE : View.GONE);
+        fabNovaVacina.setVisibility(View.VISIBLE);
     }
 
     private void atualizarEstiloAbas() {
@@ -220,11 +221,6 @@ public class VacinaFragment extends Fragment implements VacinaAdapter.Listener {
 
     @Override
     public void onVacinaClick(Vacina vacina) {
-        if (!isDono) {
-            Toast.makeText(requireContext(),
-                    "Apenas o tutor principal pode editar vacinas.", Toast.LENGTH_SHORT).show();
-            return;
-        }
         if (vacina == null || vacina.getIdVacina() <= 0) {
             Toast.makeText(requireContext(),
                     "Não foi possível identificar a vacina para edição.", Toast.LENGTH_SHORT).show();

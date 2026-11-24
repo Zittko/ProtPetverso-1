@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,9 +14,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.app.AlertDialog;
 
 import com.android.volley.Request;
-import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.VolleyError;
+import com.example.protpetverso_1.data.AppDataCache;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.protpetverso_1.ApiConfig;
 import com.example.protpetverso_1.R;
@@ -23,6 +26,7 @@ import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
 import com.google.android.material.appbar.MaterialToolbar;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -31,9 +35,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Solicitações de vínculo (Conta A — tutor principal).
- * GET  /api/pets/listarSolicitacoes
- * POST /api/pets/processarSolicitacao  (ACEITO / RECUSADO)
+ * Solicitações (tutor principal): pedidos de vínculo + pedidos de alteração do suporte.
+ * GET   /api/solicitacoes/pendentes  → { vinculos: [...], alteracoes: [...] }
+ * POST  /api/pets/processarSolicitacao  (vínculo: ACEITO / RECUSADO)
+ * PATCH /api/solicitacoes/{id}/aprovar | /recusar  (alterações de tarefa/vacina)
  *
  * Aberta pela MenuActivity (drawer) — usa toolbar e bottom nav do Menu.
  */
@@ -46,6 +51,10 @@ public class SolicitacoesVinculoFragment extends Fragment
     private SolicitacaoVinculoAdapter adapter;
     private TextView txtVazio;
     private RecyclerView recycler;
+    private RecyclerView recyclerAlteracoes;
+    private SolicitacaoAlteracaoAdapter adapterAlteracoes;
+    private TextView txtTituloAlteracoes;
+    private TextView txtTituloVinculos;
 
     public SolicitacoesVinculoFragment() {
     }
@@ -61,7 +70,7 @@ public class SolicitacoesVinculoFragment extends Fragment
         super.onViewCreated(view, savedInstanceState);
 
         sessionManager = new SessionManager(requireContext());
-        atualizarTituloToolbar("Solicitações de Vínculo");
+        atualizarTituloToolbar("Solicitações");
 
         txtVazio = view.findViewById(R.id.txtVazio);
         recycler = view.findViewById(R.id.recyclerSolicitacoes);
@@ -73,19 +82,37 @@ public class SolicitacoesVinculoFragment extends Fragment
         adapter = new SolicitacaoVinculoAdapter(this);
         recycler.setAdapter(adapter);
 
+        txtTituloAlteracoes = view.findViewById(R.id.txtTituloAlteracoes);
+        txtTituloVinculos = view.findViewById(R.id.txtTituloVinculos);
+        recyclerAlteracoes = view.findViewById(R.id.recyclerAlteracoes);
+        recyclerAlteracoes.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerAlteracoes.setNestedScrollingEnabled(false);
+        adapterAlteracoes = new SolicitacaoAlteracaoAdapter(new SolicitacaoAlteracaoAdapter.Listener() {
+            @Override
+            public void onAprovar(SolicitacaoAlteracao item) {
+                confirmarAprovacao(item);
+            }
+
+            @Override
+            public void onRecusar(SolicitacaoAlteracao item) {
+                pedirMotivoERecusar(item);
+            }
+        });
+        recyclerAlteracoes.setAdapter(adapterAlteracoes);
+
         carregarSolicitacoes();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        atualizarTituloToolbar("Solicitações de Vínculo");
+        atualizarTituloToolbar("Solicitações");
         if (sessionManager != null) {
             carregarSolicitacoes();
         }
     }
 
-    /** GET lista de pendentes do usuário logado (dono dos pets). */
+    /** GET pendentes do usuário logado (dono): vínculos + alterações, numa única chamada. */
     private void carregarSolicitacoes() {
         String token = sessionManager.obterToken();
         if (token == null || token.isEmpty()) {
@@ -93,36 +120,47 @@ public class SolicitacoesVinculoFragment extends Fragment
             return;
         }
 
-        JsonArrayRequest request = new JsonArrayRequest(
+        JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
-                ApiConfig.URL_LISTAR_SOLICITACOES,
+                ApiConfig.URL_SOLICITACOES_PENDENTES,
                 null,
                 response -> {
-                    List<SolicitacaoVinculo> lista = new ArrayList<>();
-                    for (int i = 0; i < response.length(); i++) {
-                        try {
-                            JSONObject o = response.getJSONObject(i);
-                            long id = o.optLong("idSolicitacao", -1);
-                            String solicitante = o.optString("nomeSolicitante", "—");
-                            String pet = o.optString("nomePet", "—");
-                            String data = o.optString("dataDeCriacao", "");
-                            if (id > 0) {
-                                lista.add(new SolicitacaoVinculo(id, solicitante, pet, data));
+                    if (!isAdded()) return;
+                    List<SolicitacaoVinculo> vinculos = new ArrayList<>();
+                    JSONArray arrV = response.optJSONArray("vinculos");
+                    if (arrV != null) {
+                        for (int i = 0; i < arrV.length(); i++) {
+                            try {
+                                JSONObject o = arrV.getJSONObject(i);
+                                long id = o.optLong("idSolicitacao", -1);
+                                if (id > 0) {
+                                    vinculos.add(new SolicitacaoVinculo(id,
+                                            o.optString("nomeSolicitante", "—"),
+                                            o.optString("nomePet", "—"),
+                                            o.optString("dataDeCriacao", "")));
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Erro vínculo " + i, e);
                             }
-                        } catch (Exception e) {
-                            Log.e(TAG, "Erro item " + i, e);
                         }
                     }
-                    adapter.setItens(lista);
-                    boolean vazio = lista.isEmpty();
-                    if (txtVazio != null) {
-                        txtVazio.setVisibility(vazio ? View.VISIBLE : View.GONE);
+
+                    List<SolicitacaoAlteracao> alteracoes = new ArrayList<>();
+                    JSONArray arrA = response.optJSONArray("alteracoes");
+                    if (arrA != null) {
+                        for (int i = 0; i < arrA.length(); i++) {
+                            try {
+                                SolicitacaoAlteracao a = SolicitacaoAlteracao.fromJson(arrA.getJSONObject(i));
+                                if (a != null) alteracoes.add(a);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Erro alteração " + i, e);
+                            }
+                        }
                     }
-                    if (recycler != null) {
-                        recycler.setVisibility(vazio ? View.GONE : View.VISIBLE);
-                    }
+                    mostrar(vinculos, alteracoes);
                 },
                 error -> {
+                    if (!isAdded()) return;
                     String msg = "Erro ao carregar solicitações.";
                     if (error.networkResponse != null) {
                         msg += " (" + error.networkResponse.statusCode + ")";
@@ -140,6 +178,115 @@ public class SolicitacoesVinculoFragment extends Fragment
 
         VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
     }
+
+    private void mostrar(List<SolicitacaoVinculo> vinculos, List<SolicitacaoAlteracao> alteracoes) {
+        adapter.setItens(vinculos);
+        adapterAlteracoes.setItens(alteracoes);
+
+        boolean temV = !vinculos.isEmpty();
+        boolean temA = !alteracoes.isEmpty();
+        recycler.setVisibility(temV ? View.VISIBLE : View.GONE);
+        txtTituloVinculos.setVisibility(temV && temA ? View.VISIBLE : View.GONE);
+        recyclerAlteracoes.setVisibility(temA ? View.VISIBLE : View.GONE);
+        txtTituloAlteracoes.setVisibility(temA ? View.VISIBLE : View.GONE);
+        txtVazio.setVisibility(!temV && !temA ? View.VISIBLE : View.GONE);
+    }
+
+    // ---------------------------------------------------------------- alterações
+
+    private void confirmarAprovacao(SolicitacaoAlteracao item) {
+        new AlertDialog.Builder(requireContext(), R.style.DialogPetVerso)
+                .setTitle("Aprovar alteração?")
+                .setMessage("Os dados serão atualizados com o que " + item.nomeSolicitante
+                        + " propôs.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Aprovar", (d, w) -> responderAlteracao(item, true, null))
+                .show();
+    }
+
+    private void pedirMotivoERecusar(SolicitacaoAlteracao item) {
+        EditText campo = new EditText(requireContext());
+        campo.setHint("Motivo (opcional)");
+        campo.setMaxLines(3);
+        int pad = (int) (20 * getResources().getDisplayMetrics().density);
+        android.widget.FrameLayout box = new android.widget.FrameLayout(requireContext());
+        box.setPadding(pad, pad / 2, pad, 0);
+        box.addView(campo);
+
+        new AlertDialog.Builder(requireContext(), R.style.DialogPetVerso)
+                .setTitle("Recusar alteração?")
+                .setView(box)
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Recusar", (d, w) -> {
+                    String motivo = campo.getText().toString().trim();
+                    if (motivo.length() > 255) motivo = motivo.substring(0, 255);
+                    responderAlteracao(item, false, motivo);
+                })
+                .show();
+    }
+
+    /** PATCH /api/solicitacoes/{id}/aprovar | /recusar */
+    private void responderAlteracao(SolicitacaoAlteracao item, boolean aprovar, String motivo) {
+        String token = sessionManager.obterToken();
+        if (token == null || token.isEmpty()) return;
+
+        JSONObject body = new JSONObject();
+        try {
+            if (!aprovar && motivo != null && !motivo.isEmpty()) body.put("motivo", motivo);
+        } catch (Exception ignored) {
+        }
+
+        String url = ApiConfig.URL_SOLICITACOES + item.idSolicitacao
+                + (aprovar ? "/aprovar" : "/recusar");
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.PATCH, url, body,
+                response -> {
+                    if (!isAdded()) return;
+                    if (aprovar) {
+                        // Os dados mudaram no servidor: descarta o que está guardado no app.
+                        AppDataCache cache = AppDataCache.get();
+                        if (item.ehTarefa()) {
+                            cache.invalidarTarefas(item.idPet);
+                            cache.invalidarTarefasDoDia();
+                        } else {
+                            cache.invalidarVacinas(item.idPet);
+                        }
+                    }
+                    Toast.makeText(requireContext(),
+                            aprovar ? "Alteração aprovada e aplicada." : "Alteração recusada.",
+                            Toast.LENGTH_SHORT).show();
+                    carregarSolicitacoes();
+                },
+                error -> {
+                    if (!isAdded()) return;
+                    Toast.makeText(requireContext(), mensagemErro(error), Toast.LENGTH_LONG).show();
+                    // 404/409: a lista está desatualizada; recarrega.
+                    carregarSolicitacoes();
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> h = new HashMap<>();
+                h.put("Authorization", "Bearer " + token);
+                h.put("Content-Type", "application/json");
+                return h;
+            }
+        };
+        VolleySingleton.getInstance(requireContext()).addToRequestQueue(request);
+    }
+
+    private String mensagemErro(VolleyError error) {
+        int code = error.networkResponse != null ? error.networkResponse.statusCode : -1;
+        switch (code) {
+            case 404: return "Esta solicitação não existe mais (talvez o suporte tenha sido removido).";
+            case 409: return "Esta solicitação já foi respondida.";
+            case 403: return "Só o tutor principal pode responder.";
+            case 400: return "Os dados do pedido não são mais válidos. Recuse e peça um novo.";
+            default: return "Não foi possível responder agora. Tente novamente.";
+        }
+    }
+
+    // ------------------------------------------------------------------ vínculos
 
     @Override
     public void onAceitar(SolicitacaoVinculo item) {

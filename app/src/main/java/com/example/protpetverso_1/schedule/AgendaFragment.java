@@ -49,7 +49,7 @@ import java.util.Map;
  * Conclusão:
  *   PATCH /api/tarefas/{idTarefa}/concluir
  *
- * Edição (clique no card, só se não concluída — API exige DONO):
+ * Edição (clique no card, só se não concluída — o suporte envia um pedido de alteração ao tutor principal):
  *   abre CriarTarefaActivity em modo edição → PUT /api/tarefas/{idTarefa}
  *
  * Criação (FAB):

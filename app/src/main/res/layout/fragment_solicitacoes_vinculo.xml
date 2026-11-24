@@ -1,7 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/scrollSolicitacoes"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -17,9 +14,9 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
             android:layout_marginBottom="12dp"
-            android:text="Pedidos de outros usuários para se vincular aos seus pets."
+            android:gravity="center"
+            android:text="Pedidos de vínculo e de alteração dos seus pets."
             android:textColor="#000000"
             android:textSize="14sp" />
 
@@ -32,14 +29,44 @@
             android:text="Nenhuma solicitação pendente."
             android:textColor="#666666"
             android:visibility="gone" />
+        <!--  Alterações pedidas por tutores de suporte  -->
+        <TextView
+            android:id="@+id/txtTituloAlteracoes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Alterações solicitadas"
+            android:textColor="#5F2E16"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerAlteracoes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"
+            android:visibility="gone" />
+        <!--  Vínculos  -->
+        <TextView
+            android:id="@+id/txtTituloVinculos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Pedidos de vínculo"
+            android:textColor="#5F2E16"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerSolicitacoes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"
             android:clipToPadding="false"
+            android:nestedScrollingEnabled="false"
             android:overScrollMode="never" />
-
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -70,6 +70,8 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
     private long petId = -1;
     private long idVacina = -1;
     private boolean modoEdicao = false;
+    /** Suporte não grava direto: envia uma solicitação para o tutor principal aprovar. */
+    private boolean souSuporte = false;
     private boolean precisaConfirmarAplicacao = false;
     private boolean jaAplicadaChecked = false;
 
@@ -131,8 +133,13 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
 
         configurarSpinners();
         lerExtras();
+        souSuporte = !com.example.protpetverso_1.pet.PapelPet.ehDono(this, petId);
         if (toolbar != null) {
-            toolbar.setTitle(modoEdicao ? "Atualizar Imunidade" : "Cadastrar Imunidade");
+            if (souSuporte) {
+                toolbar.setTitle(modoEdicao ? "Solicitar alteração" : "Solicitar cadastro");
+            } else {
+                toolbar.setTitle(modoEdicao ? "Atualizar Imunidade" : "Cadastrar Imunidade");
+            }
         }
         atualizarUiJaAplicada();
         atualizarVisibilidade();
@@ -169,12 +176,20 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
         if (btnConfirmar != null) {
             btnConfirmar.setVisibility(editando ? View.GONE : View.VISIBLE);
             btnConfirmar.setOnClickListener(v -> salvar());
+            if (souSuporte) btnConfirmar.setText("Solicitar cadastro");
         }
         if (boxAcoesEdicaoVacina != null) {
             boxAcoesEdicaoVacina.setVisibility(editando ? View.VISIBLE : View.GONE);
         }
-        if (btnSalvarVacina != null) btnSalvarVacina.setOnClickListener(v -> salvar());
-        if (btnExcluirVacina != null) btnExcluirVacina.setOnClickListener(v -> confirmarExclusaoVacina());
+        if (btnSalvarVacina != null) {
+            btnSalvarVacina.setOnClickListener(v -> salvar());
+            if (souSuporte) btnSalvarVacina.setText("Solicitar alteração");
+        }
+        if (btnExcluirVacina != null) {
+            btnExcluirVacina.setOnClickListener(v -> confirmarExclusaoVacina());
+            // Só o tutor principal exclui
+            if (souSuporte) btnExcluirVacina.setVisibility(View.GONE);
+        }
     }
 
     private void setBotoesHabilitados(boolean habilitado) {
@@ -382,6 +397,30 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
         dlg.show();
     }
 
+    /** Traduz o erro de POST /api/solicitacoes/(pets/{id}/)vacinas. */
+    private String mensagemErroSolicitacao(com.android.volley.VolleyError error) {
+        if (error.networkResponse == null) return "Sem conexão. Tente novamente.";
+        int code = error.networkResponse.statusCode;
+        String corpo = "";
+        try {
+            corpo = new String(error.networkResponse.data, StandardCharsets.UTF_8);
+        } catch (Exception ignored) { }
+        String baixo = corpo.toLowerCase();
+        if (code == 409) {
+            if (baixo.contains("aguardando")) {
+                return "Já existe uma alteração desta vacina aguardando aprovação do tutor principal.";
+            }
+            return "Não foi possível enviar a solicitação.";
+        }
+        if (code == 400) {
+            String msg = corpo.isEmpty() ? "Dados inválidos." : "Dados inválidos: " + corpo;
+            return msg.length() > 200 ? msg.substring(0, 200) + "…" : msg;
+        }
+        if (code == 403) return "O tutor principal altera a vacina diretamente.";
+        if (code == 404) return "Vacina não encontrada ou você não está mais vinculado a este pet.";
+        return "Erro ao enviar a solicitação (" + code + ").";
+    }
+
     private void salvar() {
         String nome = edtNome != null && edtNome.getText() != null
                 ? edtNome.getText().toString().trim() : "";
@@ -452,14 +491,31 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
             body.put("observacao", obs.isEmpty() ? JSONObject.NULL : obs);
 
             final boolean editar = idVacina > 0;
-            String url = editar
-                    ? ApiConfig.URL_VACINA + idVacina
-                    : ApiConfig.URL_VACINAS_DO_PET + petId + "/vacinas";
-            int method = editar ? Request.Method.PUT : Request.Method.POST;
+            String url;
+            int method;
+            if (souSuporte) {
+                // Suporte: POST /api/solicitacoes/... (o tutor principal aprova ou recusa)
+                method = Request.Method.POST;
+                url = editar
+                        ? ApiConfig.URL_SOLICITAR_VACINA + idVacina
+                        : ApiConfig.URL_SOLICITAR_VACINA_NOVA + petId + "/vacinas";
+            } else {
+                method = editar ? Request.Method.PUT : Request.Method.POST;
+                url = editar
+                        ? ApiConfig.URL_VACINA + idVacina
+                        : ApiConfig.URL_VACINAS_DO_PET + petId + "/vacinas";
+            }
 
             JsonObjectRequest req = new JsonObjectRequest(
                     method, url, body,
                     response -> {
+                        if (souSuporte) {
+                            Toast.makeText(this,
+                                    "Solicitação enviada ao tutor principal. A vacina só muda depois da aprovação.",
+                                    Toast.LENGTH_LONG).show();
+                            finish();
+                            return;
+                        }
                         AppDataCache.get().invalidarVacinas(petId);
                         Toast.makeText(this,
                                 editar ? "Imunidade atualizada!" : "Vacina cadastrada!",
@@ -468,6 +524,10 @@ public class CadastrarVacinaActivity extends AppCompatActivity {
                     },
                     error -> {
                         setBotoesHabilitados(true);
+                        if (souSuporte) {
+                            Toast.makeText(this, mensagemErroSolicitacao(error), Toast.LENGTH_LONG).show();
+                            return;
+                        }
                         String msg = "Erro ao salvar.";
                         if (error.networkResponse != null) {
                             int code = error.networkResponse.statusCode;

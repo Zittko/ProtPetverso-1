@@ -4,7 +4,7 @@
         android:title="Perfil do Usuário" />
     <item
         android:id="@+id/drawerSolicitacoes"
-        android:title="Solicitações de vínculo" />
+        android:title="Solicitações" />
     <item
         android:id="@+id/drawerPrefNotificacoes"
         android:title="Preferências de notificação" />

@@ -24,6 +24,7 @@ import com.example.protpetverso_1.R;
 import com.example.protpetverso_1.SessionManager;
 import com.example.protpetverso_1.VolleySingleton;
 import com.example.protpetverso_1.data.AppDataCache;
+import com.example.protpetverso_1.pet.PapelPet;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -50,6 +51,8 @@ public class CriarTarefaActivity extends AppCompatActivity {
     private long petId = -1;
     private long idTarefa = -1;
     private boolean modoEdicao = false;
+    /** Suporte não altera a tarefa: envia uma solicitação para o tutor principal aprovar. */
+    private boolean souSuporte = false;
 
     private LocalDate dataSelecionada = LocalDate.now();
     private LocalTime horaSelecionada = LocalTime.of(8, 0);
@@ -69,6 +72,7 @@ public class CriarTarefaActivity extends AppCompatActivity {
         modoEdicao = getIntent().getBooleanExtra("MODO_EDICAO", false);
         idTarefa = getIntent().getLongExtra("ID_TAREFA", -1);
         petId = getIntent().getLongExtra("PET_ID", sessionManager.obterPetId());
+        souSuporte = modoEdicao && !PapelPet.ehDono(this, petId);
 
         String tituloExtra = getIntent().getStringExtra("TITULO");
         String descExtra = getIntent().getStringExtra("DESCRICAO");
@@ -95,7 +99,7 @@ public class CriarTarefaActivity extends AppCompatActivity {
                 v.setPadding(bars.left, bars.top, bars.right, 0);
                 return insets;
             });
-            toolbar.setTitle(modoEdicao ? "Editar tarefa" : "Nova tarefa");
+            toolbar.setTitle(modoEdicao ? (souSuporte ? "Solicitar alteração" : "Editar tarefa") : "Nova tarefa");
             toolbar.setTitleTextColor(Color.parseColor("#000000"));
             toolbar.setNavigationIconTint(Color.parseColor("#000000"));
             toolbar.setNavigationOnClickListener(v -> finish());
@@ -139,8 +143,15 @@ public class CriarTarefaActivity extends AppCompatActivity {
         if (boxAcoesEdicaoTarefa != null) {
             boxAcoesEdicaoTarefa.setVisibility(editando ? View.VISIBLE : View.GONE);
         }
-        if (btnSalvarTarefa != null) btnSalvarTarefa.setOnClickListener(v -> salvarTarefa());
-        if (btnExcluirTarefa != null) btnExcluirTarefa.setOnClickListener(v -> confirmarExclusaoTarefa());
+        if (btnSalvarTarefa != null) {
+            btnSalvarTarefa.setOnClickListener(v -> salvarTarefa());
+            if (souSuporte) btnSalvarTarefa.setText("Solicitar alteração");
+        }
+        if (btnExcluirTarefa != null) {
+            btnExcluirTarefa.setOnClickListener(v -> confirmarExclusaoTarefa());
+            // Só o tutor principal exclui
+            if (souSuporte) btnExcluirTarefa.setVisibility(View.GONE);
+        }
     }
 
     private void setBotoesHabilitados(boolean habilitado) {
@@ -248,6 +259,27 @@ public class CriarTarefaActivity extends AppCompatActivity {
         ).show();
     }
 
+    /** Traduz o erro de POST /api/solicitacoes/tarefas/{id}. */
+    private String mensagemErroSolicitacao(com.android.volley.VolleyError error) {
+        if (error.networkResponse == null) return "Sem conexão. Tente novamente.";
+        int s = error.networkResponse.statusCode;
+        String corpo = "";
+        try {
+            corpo = new String(error.networkResponse.data, java.nio.charset.StandardCharsets.UTF_8).toLowerCase();
+        } catch (Exception ignored) { }
+        if (s == 409) {
+            if (corpo.contains("aguardando")) {
+                return "Já existe uma alteração desta tarefa aguardando aprovação do tutor principal.";
+            }
+            if (corpo.contains("concluida")) return "Esta tarefa já foi concluída e não pode ser alterada.";
+            return "Não foi possível enviar a solicitação.";
+        }
+        if (s == 403) return "O tutor principal altera a tarefa diretamente.";
+        if (s == 404) return "Tarefa não encontrada ou você não está mais vinculado a este pet.";
+        if (s == 400) return "Dados inválidos. Confira os campos.";
+        return "Erro ao enviar a solicitação (" + s + ").";
+    }
+
     private void salvarTarefa() {
         String titulo = edtTitulo != null && edtTitulo.getText() != null
                 ? edtTitulo.getText().toString().trim() : "";
@@ -285,7 +317,12 @@ public class CriarTarefaActivity extends AppCompatActivity {
 
             int method;
             String url;
-            if (modoEdicao && idTarefa > 0) {
+            final boolean solicitar = souSuporte && modoEdicao && idTarefa > 0;
+            if (solicitar) {
+                // Suporte: POST /api/solicitacoes/tarefas/{id} (o tutor principal aprova ou recusa)
+                method = Request.Method.POST;
+                url = ApiConfig.URL_SOLICITAR_TAREFA + idTarefa;
+            } else if (modoEdicao && idTarefa > 0) {
                 method = Request.Method.PUT;
                 url = ApiConfig.URL_ATUALIZAR_TAREFA + idTarefa;
             } else {
@@ -299,13 +336,18 @@ public class CriarTarefaActivity extends AppCompatActivity {
                     method, url, body,
                     response -> {
                         Toast.makeText(this,
-                                modoEdicao ? "Tarefa atualizada!" : "Tarefa criada!",
-                                Toast.LENGTH_SHORT).show();
+                                solicitar ? "Solicitação enviada ao tutor principal. A tarefa só muda depois da aprovação."
+                                        : (modoEdicao ? "Tarefa atualizada!" : "Tarefa criada!"),
+                                solicitar ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
                         setResult(RESULT_OK);
                         finish();
                     },
                     error -> {
                         setBotoesHabilitados(true);
+                        if (solicitar) {
+                            Toast.makeText(this, mensagemErroSolicitacao(error), Toast.LENGTH_LONG).show();
+                            return;
+                        }
                         String msg = modoEdicao ? "Erro ao atualizar tarefa." : "Erro ao criar tarefa.";
                         if (error.networkResponse != null) {
                             int s = error.networkResponse.statusCode;
